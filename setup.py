@@ -9,7 +9,7 @@ def _requires_from_file(filename):
     return open(filename).read().splitlines()
 
 setup(
-    name="jjj_experiment",
+    name="jjjexperiment",
     version="1.0.0",
     license="MIT",
     author="IGUCHI Masato",
