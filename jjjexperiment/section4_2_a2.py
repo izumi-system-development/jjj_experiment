@@ -1,5 +1,4 @@
 import numpy as np
-from pyhees.section4_2_a import get_f_SFP
 
 def get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t, f_SFP = None):
     """(37)
@@ -25,3 +24,10 @@ def get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, 
     E_E_fan_H_d_t[q_hs_H_d_t > 0] = np.clip(a[q_hs_H_d_t > 0], 0, None)
 
     return E_E_fan_H_d_t
+
+# 全般換気設備の比消費電力（W/(m3/h)）
+def get_f_SFP(f_SFP):
+    """ """
+    if f_SFP is not None:
+      return f_SFP
+    return 0.4 * 0.36
