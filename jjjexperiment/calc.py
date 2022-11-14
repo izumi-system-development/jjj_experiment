@@ -7,7 +7,7 @@ from pyhees.section11_1 import calc_h_ex, load_climate, load_outdoor, get_Theta_
 # ダクト式セントラル空調機
 import pyhees.section4_2 as dc
 import pyhees.section4_2_a as dc_a
-import jjjexperiment.pyhees.section4_2_a as dc_a2
+import section4_2_a2 as dc_a2
 
 # エアーコンディショナー
 import pyhees.section4_3 as rac
