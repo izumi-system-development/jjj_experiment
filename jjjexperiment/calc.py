@@ -7,6 +7,7 @@ from pyhees.section11_1 import calc_h_ex, load_climate, load_outdoor, get_Theta_
 # ダクト式セントラル空調機
 import pyhees.section4_2 as dc
 import pyhees.section4_2_a as dc_a
+import jjjexperiment.pyhees.section4_2_a as dc_a2
 
 # エアーコンディショナー
 import pyhees.section4_3 as rac
@@ -403,7 +404,9 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
 
     if type == 'ダクト式セントラル空調機':
         # (37)
-        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        #E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        E_E_fan_H_d_t = dc_a2.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+
 
         # (20)
         e_th_mid_H = dc_a.calc_e_th_mid_H(V_fan_mid_H, q_hs_mid_H)
@@ -435,7 +438,9 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
         # (1)
         E_E_H_d_t = E_E_comp_H_d_t + E_E_fan_H_d_t
     elif type == 'ルームエアコンディショナ活用型全館空調システム':
-        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        #E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        E_E_fan_H_d_t = dc_a2.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        
         E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H)
         E_E_H_d_t = E_E_CRAC_H_d_t + E_E_fan_H_d_t
     else:
