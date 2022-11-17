@@ -11,7 +11,7 @@ import jjjexperiment.section4_2_a2 as dc_a2
 
 # エアーコンディショナー
 import pyhees.section4_3 as rac
-import pyhees.section4_3_2 as rac2
+import jjjexperiment.section4_3_2 as rac2
 
 # 床下
 import pyhees.section3_1_e as uf
