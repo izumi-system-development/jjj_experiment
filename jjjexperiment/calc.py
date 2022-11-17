@@ -11,6 +11,7 @@ import jjjexperiment.section4_2_a2 as dc_a2
 
 # エアーコンディショナー
 import pyhees.section4_3 as rac
+import pyhees.section4_3_2 as rac2
 
 # 床下
 import pyhees.section3_1_e as uf
@@ -248,7 +249,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rt
         Q_r_max_H_d_t = rac.calc_Q_r_max_H_d_t(q_rtd_C, q_r_max_H, Theta_ex_d_t)
 
         # 最大暖房出力
-        Q_max_H_d_t = rac.calc_Q_max_H_d_t(Q_r_max_H_d_t, q_rtd_H, Theta_ex_d_t, h_ex_d_t, input_C_af_H)
+        Q_max_H_d_t = rac2.calc_Q_max_H_d_t(Q_r_max_H_d_t, q_rtd_H, Theta_ex_d_t, h_ex_d_t, input_C_af_H)
         Q_hs_max_H_d_t = Q_max_H_d_t
 
         # 最大冷房能力比
