@@ -259,7 +259,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rt
         Q_r_max_C_d_t = rac.calc_Q_r_max_C_d_t(q_r_max_C, q_rtd_C, Theta_ex_d_t)
 
         # 最大冷房出力
-        Q_max_C_d_t = rac.calc_Q_max_C_d_t(Q_r_max_C_d_t, q_rtd_C, input_C_af_C)
+        Q_max_C_d_t = rac2.calc_Q_max_C_d_t(Q_r_max_C_d_t, q_rtd_C, input_C_af_C)
 
         # 冷房負荷最小顕熱比
         SHF_L_min_c = rac.get_SHF_L_min_c()
