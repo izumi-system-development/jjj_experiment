@@ -442,7 +442,7 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
         #E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
         E_E_fan_H_d_t = dc_a2.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
         
-        E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H)
+        E_E_CRAC_H_d_t = rac2.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H)
         E_E_H_d_t = E_E_CRAC_H_d_t + E_E_fan_H_d_t
     else:
         raise Exception('暖房設備機器の種類の入力が不正です。')
