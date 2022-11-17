@@ -4,7 +4,7 @@
 # Ver.03（エネルギー消費性能計算プログラム（住宅版）Ver.02～）
 # ============================================================================
 
-import jjj_experiment.constants as constants
+import jjjexperiment.constants as constants
 import numpy as np
 from math import floor
 
