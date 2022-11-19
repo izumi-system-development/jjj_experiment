@@ -195,7 +195,7 @@ def get_C_df_H(Theta_ex, h_ex):
 
 # 消費電力量 (5)
 # dualcompressor: 容量可変型コンプレッサー搭載
-def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, dualcompressor, L_H_d_t, input_C_af_H):
+def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor, L_H_d_t, input_C_af_H):
     """消費電力量 (5)
 
     Args:
@@ -218,8 +218,8 @@ def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, dualcompressor, L_H_d_t, i
     h_ex = calc_h_ex(X_ex, Theta_ex)
 
     # 最大暖房能力
-    q_max_C = get_q_max_C(q_rtd_C)
-    q_max_H = get_q_max_H(q_rtd_H, q_max_C)
+    #q_max_C = get_q_max_C(q_rtd_C)
+    #q_max_H = get_q_max_H(q_rtd_H, q_max_C)
 
     # 最大暖房能力比
     q_r_max_H = get_q_r_max_H(q_max_H, q_rtd_H)
