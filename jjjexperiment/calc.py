@@ -481,7 +481,7 @@ def get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_
 
 def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, V_hs_dsgn_C,
         EquipmentSpec, q_hs_rtd_C, P_hs_rtd_C, V_fan_rtd_C, P_fan_rtd_C, q_hs_mid_C, P_hs_mid_C, V_fan_mid_C, P_fan_mid_C, q_hs_min_C,
-        region, type, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C, input_C_af_C, dualcompressor_C, f_SFP_C):
+        region, type, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C, q_max_C, input_C_af_C, dualcompressor_C, f_SFP_C):
 
     # (4)
     q_hs_CS_d_t, q_hs_CL_d_t = get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
@@ -524,7 +524,7 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t,
         # (2)
         E_E_C_d_t = E_E_comp_C_d_t + E_E_fan_C_d_t
     elif type == 'ルームエアコンディショナ活用型全館空調システム':
-        E_E_CRAC_C_d_t = rac2.calc_E_E_C_d_t(region, q_rtd_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6 / 1000, q_hs_CL_d_t * 3.6 / 1000, input_C_af_C)
+        E_E_CRAC_C_d_t = rac2.calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6 / 1000, q_hs_CL_d_t * 3.6 / 1000, input_C_af_C)
 
         # (38)
         #E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
