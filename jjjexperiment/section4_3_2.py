@@ -241,16 +241,6 @@ def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, dualcompressor, L_H_d_t, i
                 / calc_f_H_Theta(1.0 / q_r_max_H, q_rtd_C, dualcompressor, np.ones(24 * 365) * 7.0) \
                 * (q_rtd_H / e_rtd_H) * 10 ** (-3)
 
-    print("Q_dash_T_H_d_t", Q_dash_T_H_d_t)
-    print("q_max_H", q_max_H)
-    print("q_rtd_C", q_rtd_C)
-    print("dualcompressor", dualcompressor)
-    print("Theta_ex", Theta_ex)
-    print("q_r_max_H", q_r_max_H)
-
-    print("1", calc_f_H_Theta(Q_dash_T_H_d_t / (q_max_H * 3600 * 10 ** (-6)), q_rtd_C, dualcompressor, Theta_ex))    
-    print("2", calc_f_H_Theta(1.0 / q_r_max_H, q_rtd_C, dualcompressor, np.ones(24 * 365) * 7.0))
-
     E_E_H_d_t[Q_dash_T_H_d_t == 0.0] = 0.0  # 補正処理暖房負荷が0の場合は0
 
     return E_E_H_d_t
@@ -313,11 +303,6 @@ def calc_f_H_Theta(x, q_rtd_C, dualcompressor, Theta_ex):
     """
     # 係数a0-a4
     a0, a1, a2, a3, a4 = calc_a_eq7(q_rtd_C, dualcompressor, Theta_ex)
-    print("a0", a0)
-    print("a1", a1)
-    print("a2", a2)
-    print("a3", a3)
-    print("a4", a4)
     return a4 * x ** 4 + a3 * x ** 3 + a2 * x ** 2 + a1 * x + a0
 
 
