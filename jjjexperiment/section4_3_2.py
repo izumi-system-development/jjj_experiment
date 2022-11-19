@@ -240,6 +240,12 @@ def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, dualcompressor, L_H_d_t, i
     E_E_H_d_t = calc_f_H_Theta(Q_dash_T_H_d_t / (q_max_H * 3600 * 10 ** (-6)), q_rtd_C, dualcompressor, Theta_ex) \
                 / calc_f_H_Theta(1.0 / q_r_max_H, q_rtd_C, dualcompressor, np.ones(24 * 365) * 7.0) \
                 * (q_rtd_H / e_rtd_H) * 10 ** (-3)
+    
+    print("1")
+    print(calc_f_H_Theta(Q_dash_T_H_d_t / (q_max_H * 3600 * 10 ** (-6)), q_rtd_C, dualcompressor, Theta_ex))    
+    print("2")
+    print(calc_f_H_Theta(1.0 / q_r_max_H, q_rtd_C, dualcompressor, np.ones(24 * 365) * 7.0))
+
     E_E_H_d_t[Q_dash_T_H_d_t == 0.0] = 0.0  # 補正処理暖房負荷が0の場合は0
 
     return E_E_H_d_t
