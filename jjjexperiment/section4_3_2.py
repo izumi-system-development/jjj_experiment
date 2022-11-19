@@ -912,7 +912,7 @@ def get_SHF_L_min_c():
 # ============================================================================
 
 # 消費電力量 (20)
-def calc_E_E_C_d_t(region, q_rtd_C, e_rtd_C, dualcompressor, L_CS_d_t, L_CL_d_t, input_C_af_C):
+def calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor, L_CS_d_t, L_CL_d_t, input_C_af_C):
     """消費電力量 (20)
 
     Args:
@@ -935,7 +935,7 @@ def calc_E_E_C_d_t(region, q_rtd_C, e_rtd_C, dualcompressor, L_CS_d_t, L_CL_d_t,
     h_ex = calc_h_ex(X_ex, Theta_ex)
 
     # 最大冷房能力
-    q_max_C = get_q_max_C(q_rtd_C)
+    #q_max_C = get_q_max_C(q_rtd_C)
 
     # 最大冷房能力比
     q_r_max_C = get_q_r_max_C(q_max_C, q_rtd_C)
