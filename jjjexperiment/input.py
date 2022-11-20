@@ -304,7 +304,7 @@ def get_heatexchangeventilation(input: dict):
     else:
         HEX = {
             'hex':      True,                       
-            'etr_t':    input['HEX']['ert_t'],      #温度交換効率
+            'etr_t':    input['HEX']['etr_t'],      #温度交換効率
             'e_bal':    0.9,                        #給気と排気の比率による温度交換効率の補正係数
             'e_leak':   1.0                         #排気過多時における住宅外皮経由の漏気による温度交換効率の補正係数 
     }
