@@ -292,13 +292,22 @@ def get_CRAC_spec(input: dict):
     return q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H, dualcompressor_C, dualcompressor_H, \
         input_C_af_C, input_C_af_H
 
-def get_heatexchangeventilation():
+def get_heatexchangeventilation(input: dict):
     """熱交換型換気の設定
 
     :return: 熱交換型換気
     """
-    # 熱交換型換気
-    HEX = None
+
+    if int(input['HEX']['install']) == 1:   
+        # 熱交換型換気
+        HEX = None
+    else:
+        HEX = {
+            'hex':      True,                       
+            'etr_t':    input['HEX']['ert_t'],      #温度交換効率
+            'e_bal':    0.9,                        #給気と排気の比率による温度交換効率の補正係数
+            'e_leak':   1.0                         #排気過多時における住宅外皮経由の漏気による温度交換効率の補正係数 
+    }
 
     return HEX
 
