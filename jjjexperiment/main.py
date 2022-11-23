@@ -26,11 +26,12 @@ from datetime import datetime
 
 def calc(input_data : dict):
 
-    with open(input_data['case_name'] + '_input.json', 'w') as f:
-        json.dump(input_data, f, indent=4)
-
+    case_name   = input_data['case_name']
     climateFile = input_data['climateFile']
     outdoorFile = input_data['outdoorFile']
+
+    with open(case_name+ '_input.json', 'w') as f:
+        json.dump(input_data, f, indent=4)
 
     jjjexperiment.constants.set_constants(input_data)
     type, tatekata, A_A, A_MR, A_OR, region, sol_region = jjjexperiment.input.get_basic(input_data)
