@@ -33,7 +33,8 @@ def calc(input_data : dict):
     mode_C, C_A, C_MR, C_OR = jjjexperiment.input.get_cooling(input_data, region, A_A)
     q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H, dualcompressor_C, dualcompressor_H, input_C_af_C, input_C_af_H = jjjexperiment.input.get_CRAC_spec(input_data)
 
-
+    with open(input_data['case_name'] + '_input.json', 'w') as f:
+        json.dump(input_data, f, indent=4)
 
     # 熱交換型換気の取得
     HEX = jjjexperiment.input.get_heatexchangeventilation(input_data)
@@ -66,8 +67,6 @@ def calc(input_data : dict):
     # 空調空気を床下を通して給気する場合（YUCACO）の「床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)」
     YUCACO_r_A_ufvnt = (8.28+16.56+21.53) / (9.52+1.24+3.31+3.31+1.66+8.28+16.56+21.53)
 
-    with open(case_name + '_input.json', 'w') as f:
-        json.dump(input_data, f, indent=4)
 
     ##### 暖房負荷の取得（MJ/h）
     L_H_d_t_i: np.ndarray
