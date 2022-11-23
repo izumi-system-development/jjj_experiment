@@ -264,4 +264,3 @@ def calc(input_data : dict):
     df_output2['q_hs_CS_d_t [Wh/h]']    = q_hs_CS_d_t
     df_output2['q_hs_CL_d_t [Wh/h]']    = q_hs_CL_d_t
     df_output2.to_csv(case_name + '_output2.csv', encoding = 'cp932')
-    df_output2
