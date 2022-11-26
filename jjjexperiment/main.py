@@ -141,7 +141,7 @@ def calc(input_data : dict):
     """日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h)"""
 
     _, Q_UT_H_d_t_i, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, _, _, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t =\
-        jjjexperiment.calc.calc_Q_UT_A(A_A, A_MR, A_OR, ENV['A_env'], mu_H, mu_C,
+        jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, ENV['A_env'], mu_H, mu_C,
             H_A['q_hs_rtd_H'], None,
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, H_A['VAV'], H_A['general_ventilation'], hs_CAV,
             H_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
@@ -230,7 +230,7 @@ def calc(input_data : dict):
     """日付dの時刻tにおける1時間当たりの冷房時の消費電力量(kWh/h)"""
 
     E_C_UT_d_t, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, _\
-        = jjjexperiment.calc.calc_Q_UT_A(A_A, A_MR, A_OR, ENV['A_env'], mu_H, mu_C,
+        = jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, ENV['A_env'], mu_H, mu_C,
             None, C_A['q_hs_rtd_C'],
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, C_A['VAV'], C_A['general_ventilation'], hs_CAV,
             C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
