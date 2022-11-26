@@ -25,6 +25,8 @@ import pandas as pd
 from datetime import datetime
 
 def calc(input_data : dict):
+    df_output1 = pd.DataFrame(index = ['合計値'])
+    df_output2 = pd.DataFrame(index = pd.date_range(datetime(2022, 1, 1, 1, 0, 0), datetime(2023, 1, 1, 0, 0, 0), freq = 'h'))
 
     case_name   = input_data['case_name']
     climateFile = input_data['climateFile']
@@ -146,6 +148,14 @@ def calc(input_data : dict):
             H_A['type'], input_C_af_H, input_C_af_C,
             underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, climateFile, outdoorFile)
 
+    df_output2['Q_UT_H_d_t_i [MJ/h']        = Q_UT_H_d_t_i
+    df_output2['Theta_hs_H_out_d_t [℃]']    = Theta_hs_out_d_t
+    df_output2['Theta_hs_H_in_d_t [℃]']     = Theta_hs_in_d_t
+    df_output2['Theta_ex_d_t [℃]']          = Theta_ex_d_t
+    df_output2['V_hs_supply_H_d_t [m3/h]']  = V_hs_supply_d_t
+    df_output2['V_hs_vent_H_d_t [m3/h]']    = V_hs_vent_d_t
+    df_output2['C_df_H_d_t [-]']            = C_df_H_d_t
+
     E_E_H_d_t: np.ndarray
     """日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h)"""
 
@@ -215,7 +225,7 @@ def calc(input_data : dict):
     E_C_UT_d_t: np.ndarray
     """冷房設備の未処理冷房負荷の設計一次エネルギー消費量相当値(MJ/h)"""
 
-    E_C_UT_d_t: np.ndarray
+    E_E_C_d_t: np.ndarray
     """日付dの時刻tにおける1時間当たりの冷房時の消費電力量(kWh/h)"""
 
     E_C_UT_d_t, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, _\
@@ -225,6 +235,13 @@ def calc(input_data : dict):
             C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
             C_A['type'], input_C_af_H, input_C_af_C,
             underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, climateFile, outdoorFile)
+
+    df_output2['Q_UT_H_d_t_i [MJ/h']        = E_C_UT_d_t
+    df_output2['Theta_hs_C_out_d_t [℃]']    = Theta_hs_out_d_t
+    df_output2['Theta_hs_C_in_d_t [℃]']     = Theta_hs_in_d_t
+    df_output2['Theta_ex_d_t [℃]']          = Theta_ex_d_t
+    df_output2['V_hs_supply_C_d_t [m3/h]']  = V_hs_supply_d_t
+    df_output2['V_hs_vent_C_d_t [m3/h]']    = V_hs_vent_d_t
 
     E_E_C_d_t, E_E_fan_C_d_t, q_hs_CS_d_t, q_hs_CL_d_t = jjjexperiment.calc.get_E_E_C_d_t(
         Theta_hs_out_d_t = Theta_hs_out_d_t,
@@ -264,25 +281,25 @@ def calc(input_data : dict):
     E_H                 = np.sum(E_H_d_t)                           #1 年当たりの暖房設備の設計一次エネルギー消費量(MJ/年)
     E_C                 = np.sum(E_C_d_t)                           #1 年当たりの冷房設備の設計一次エネルギー消費量(MJ/年)
 
-    df_output1 = pd.DataFrame(index = ['合計値'])
+
     df_output1['E_H [MJ/year]'] = E_H
     df_output1['E_C [MJ/year]'] = E_C
     df_output1.to_csv(case_name + '_output1.csv', encoding = 'cp932')
     print('E_H [MJ/year]:', E_H, ', E_C [MJ/year]:', E_C)
 
-    df_output2 = pd.DataFrame(index = pd.date_range(datetime(2022, 1, 1, 1, 0, 0), datetime(2023, 1, 1, 0, 0, 0), freq = 'h'))
-    df_output2['E_H_d_t [MJ/h]']        = E_H_d_t
-    df_output2['E_C_d_t [MJ/h]']        = E_C_d_t
-    df_output2['E_E_H_d_t [kWh/h]']     = E_E_H_d_t
-    df_output2['E_E_C_d_t [kWh/h]']     = E_E_C_d_t
-    df_output2['E_UT_H_d_t [MJ/h]']     = E_UT_H_d_t
-    df_output2['E_UT_C_d_t [MJ/h]']     = E_C_UT_d_t
-    df_output2['L_H_d_t [MJ/h]']        = L_H_d_t
-    df_output2['L_CS_d_t [MJ/h]']       = L_CS_d_t
-    df_output2['L_CL_d_t [MJ/h]']       = L_CL_d_t
-    df_output2['E_E_fan_H_d_t [kWh/h]'] = E_E_fan_H_d_t
-    df_output2['q_hs_H_d_t [Wh/h]']     = q_hs_H_d_t
-    df_output2['E_E_fan_C_d_t [kWh/h]'] = E_E_fan_C_d_t
-    df_output2['q_hs_CS_d_t [Wh/h]']    = q_hs_CS_d_t
-    df_output2['q_hs_CL_d_t [Wh/h]']    = q_hs_CL_d_t
+
+    df_output2['E_H_d_t [MJ/h]']            = E_H_d_t
+    df_output2['E_C_d_t [MJ/h]']            = E_C_d_t
+    df_output2['E_E_H_d_t [kWh/h]']         = E_E_H_d_t
+    df_output2['E_E_C_d_t [kWh/h]']         = E_E_C_d_t
+    df_output2['E_UT_H_d_t [MJ/h]']         = E_UT_H_d_t
+    df_output2['E_UT_C_d_t [MJ/h]']         = E_C_UT_d_t
+    df_output2['L_H_d_t [MJ/h]']            = L_H_d_t
+    df_output2['L_CS_d_t [MJ/h]']           = L_CS_d_t
+    df_output2['L_CL_d_t [MJ/h]']           = L_CL_d_t
+    df_output2['E_E_fan_H_d_t [kWh/h]']     = E_E_fan_H_d_t
+    df_output2['q_hs_H_d_t [Wh/h]']         = q_hs_H_d_t
+    df_output2['E_E_fan_C_d_t [kWh/h]']     = E_E_fan_C_d_t
+    df_output2['q_hs_CS_d_t [Wh/h]']        = q_hs_CS_d_t
+    df_output2['q_hs_CL_d_t [Wh/h]']        = q_hs_CL_d_t
     df_output2.to_csv(case_name + '_output2.csv', encoding = 'cp932')
