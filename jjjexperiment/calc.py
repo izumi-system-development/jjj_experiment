@@ -427,11 +427,13 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     if underfloor_air_conditioning_air_supply:
         Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
                                                 V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i)
+        df_output['Theta_req_d_t_1_bef'] = Theta_req_d_t_i[0]
         df_output['Theta_uf_d_t_1_req'] = Theta_uf_d_t
         Theta_req_d_t_i[0] += (Theta_req_d_t_i[0] - Theta_uf_d_t)
         Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[1], Theta_ex_d_t,
                                                 V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i)
         Theta_req_d_t_i[1] += (Theta_req_d_t_i[1] - Theta_uf_d_t)
+        df_output['Theta_req_d_t_2_bef'] = Theta_req_d_t_i[1]
         df_output['Theta_uf_d_t_2_req'] = Theta_uf_d_t
 
     df_output['Theta_req_d_t_1'] = Theta_req_d_t_i[0]
@@ -477,12 +479,14 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     if underfloor_air_conditioning_air_supply:
         Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[0], Theta_ex_d_t,
                                                 V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i)
-        Theta_supply_d_t_i[0] -= (Theta_supply_d_t_i[0] - Theta_uf_d_t)
+        df_output['Theta_supply_d_t_1_bef'] = Theta_supply_d_t_i[0]
         df_output['Theta_uf_d_t_1_sup'] = Theta_uf_d_t
+        Theta_supply_d_t_i[0] -= (Theta_supply_d_t_i[0] - Theta_uf_d_t)
         Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[1], Theta_ex_d_t,
                                                 V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i)
-        Theta_supply_d_t_i[1] -= (Theta_supply_d_t_i[1] - Theta_uf_d_t)
+        df_output['Theta_supply_d_t_2_bef'] = Theta_supply_d_t_i[1]
         df_output['Theta_uf_d_t_2_sup'] = Theta_uf_d_t
+        Theta_supply_d_t_i[1] -= (Theta_supply_d_t_i[1] - Theta_uf_d_t)
 
     df_output['Theta_supply_d_t_1'] = Theta_supply_d_t_i[0]
     df_output['Theta_supply_d_t_2'] = Theta_supply_d_t_i[1]
