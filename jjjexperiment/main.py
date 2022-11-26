@@ -117,6 +117,9 @@ def calc(input_data : dict):
         else:
             V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_C(H_A['V_fan_rtd_H'])
     elif H_A['type'] == 'ルームエアコンディショナ活用型全館空調システム':
+        if 'V_hs_dsgn_H' in H_A:
+            V_hs_dsgn_H = H_A['V_hs_dsgn_H']
+        else:
             V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_C(V_rac_fan_rtd_H)
     else: 
         raise Exception("暖房方式が不正です。")
@@ -193,7 +196,10 @@ def calc(input_data : dict):
         else:
             V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(C_A['V_fan_rtd_C'])
     elif C_A['type'] == 'ルームエアコンディショナ活用型全館空調システム':
-        V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(V_fan_rtd_C)
+        if 'V_hs_dsgn_C' in C_A:
+            V_hs_dsgn_C = C_A['V_hs_dsgn_C']
+        else:
+            V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(V_fan_rtd_C)
     else: 
         raise Exception("冷房方式が不正です。")
     """冷房時の送風機の設計風量(m3/h)"""
