@@ -179,7 +179,8 @@ def calc(input_data : dict):
         e_rtd_H = e_rtd_H,
         dualcompressor_H = dualcompressor_H,
         input_C_af_H = input_C_af_H,
-        f_SFP_H = H_A['f_SFP_H'])
+        f_SFP_H = H_A['f_SFP_H'],
+        outdoorFile = outdoorFile)
 
     alpha_UT_H_A: float = get_alpha_UT_H_A(region)
     """未処理暖房負荷を未処理暖房負荷の設計一次エネルギー消費量相当値に換算するための係数"""
@@ -263,7 +264,8 @@ def calc(input_data : dict):
         q_max_C = q_max_C,
         dualcompressor_C = dualcompressor_C,
         input_C_af_C = input_C_af_C,
-        f_SFP_C = C_A['f_SFP_C'])
+        f_SFP_C = C_A['f_SFP_C'],
+        outdoorFile = outdoorFile)
 
     df_output2['Q_UT_H_d_t_i [MJ/h']        = E_C_UT_d_t
     df_output2['Theta_hs_C_out_d_t [℃]']    = Theta_hs_out_d_t
