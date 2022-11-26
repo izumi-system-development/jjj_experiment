@@ -471,8 +471,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     # (41)　暖冷房区画𝑖の吹き出し温度
     Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
                                                    V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
-    df_output3['Theta_supply_d_t_1'] = Theta_supply_d_t_i[0]
-
     if underfloor_air_conditioning_air_supply:
         Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[0], Theta_ex_d_t,
                                                 V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i)
