@@ -248,7 +248,7 @@ def calc(input_data : dict):
         f_SFP_C = C_A['f_SFP_C'])
 
     ##### 計算結果のまとめ
-    pprint.pprint(input_data)
+    #pprint.pprint(input_data)
 
     f_prim: float       = get_f_prim()                              #電気の量 1kWh を熱量に換算する係数(kJ/kWh)
     E_H_d_t: np.ndarray = E_E_H_d_t * f_prim / 1000 + E_UT_H_d_t    #1 時間当たりの暖房設備の設計一次エネルギー消費量(MJ/h)
