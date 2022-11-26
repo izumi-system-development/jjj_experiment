@@ -125,7 +125,8 @@ def calc(input_data : dict):
         raise Exception("暖房方式が不正です。")
     """暖房時の送風機の設計風量(m3/h)"""
 
-    P_rac_fan_rtd_H: float = dc_spec.get_P_fan_rtd_H(V_rac_fan_rtd_H)
+    #P_rac_fan_rtd_H: float = dc_spec.get_P_fan_rtd_H(V_rac_fan_rtd_H)
+    P_rac_fan_rtd_H: float = V_hs_dsgn_H * H_A['f_SFP_H']
     """定格暖房能力運転時の送風機の消費電力(W)"""
 
     V_hs_dsgn_C: float = None
@@ -204,7 +205,8 @@ def calc(input_data : dict):
         raise Exception("冷房方式が不正です。")
     """冷房時の送風機の設計風量(m3/h)"""
 
-    P_rac_fan_rtd_C: float = dc_spec.get_P_fan_rtd_C(V_fan_rtd_C)
+    #P_rac_fan_rtd_C: float = dc_spec.get_P_fan_rtd_C(V_fan_rtd_C)
+    P_rac_fan_rtd_C: float = V_hs_dsgn_H * C_A['f_SFP_C']
     """定格冷房能力運転時の送風機の消費電力(W)"""
 
     V_hs_dsgn_H: float = None
