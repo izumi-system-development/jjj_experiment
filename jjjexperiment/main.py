@@ -29,6 +29,7 @@ def calc(input_data : dict):
     case_name   = input_data['case_name']
     climateFile = input_data['climateFile']
     outdoorFile = input_data['outdoorFile']
+    loadFile    = input_data['loadFile']
 
     with open(case_name+ '_input.json', 'w') as f:
         json.dump(input_data, f, indent=4)
@@ -73,11 +74,17 @@ def calc(input_data : dict):
 
 
     ##### 暖房負荷の取得（MJ/h）
+
     L_H_d_t_i: np.ndarray
     """暖房負荷 [MJ/h]"""
 
-    L_H_d_t_i, _ = calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, TS, r_A_ufvnt,
+    if loadFile == '-':
+        L_H_d_t_i, _ = calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, TS, r_A_ufvnt,
                                         HEX, underfloor_insulation, mode_H, mode_C, spec_MR, spec_OR, mode_MR, mode_OR, SHC)
+    else:
+        load = pd.read_csv(FN_LOAD, nrows=24 * 365)
+        L_H_d_t_i = load.iloc[::,:12].T.values
+
     L_H_d_t: np.ndarray = np.sum(L_H_d_t_i, axis=0)
     """暖房負荷の全区画合計 [MJ/h]"""
 
@@ -86,8 +93,15 @@ def calc(input_data : dict):
     """冷房顕熱負荷 [MJ/h]"""
     L_CL_d_t_i: np.ndarray
     """冷房潜熱負荷 [MJ/h]"""
-    L_CS_d_t_i, L_CL_d_t_i = calc_cooling_load(region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, r_A_ufvnt,
+
+    if loadFile == '-':
+        L_CS_d_t_i, L_CL_d_t_i = calc_cooling_load(region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, r_A_ufvnt,
                                                 underfloor_insulation, mode_C, mode_H, mode_MR, mode_OR, TS, HEX)
+    else:
+        load = pd.read_csv(FN_LOAD, nrows=24 * 365)
+        L_CS_d_t_i = load.iloc[::,12:24].T.values
+        L_CL_d_t_i = load.iloc[::,24:].T.values
+
     L_CS_d_t: np.ndarray = np.sum(L_CS_d_t_i, axis=0)
     """冷房顕熱負荷の全区画合計 [MJ/h]"""
     L_CL_d_t: np.ndarray = np.sum(L_CL_d_t_i, axis=0)
