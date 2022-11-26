@@ -129,6 +129,7 @@ def calc(input_data : dict):
 
     #P_rac_fan_rtd_H: float = dc_spec.get_P_fan_rtd_H(V_rac_fan_rtd_H)
     P_rac_fan_rtd_H: float = V_hs_dsgn_H * H_A['f_SFP_H']
+    print(P_rac_fan_rtd_H)
     """定格暖房能力運転時の送風機の消費電力(W)"""
 
     V_hs_dsgn_C: float = None
