@@ -23,8 +23,9 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             type, input_C_af_H, input_C_af_C, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, climateFile, outdoorFile):
     """未処理負荷と機器の計算に必要な変数を取得"""
 
-    df_output = pd.DataFrame(index = pd.date_range(datetime(2022, 1, 1, 1, 0, 0), datetime(2023, 1, 1, 0, 0, 0), freq = 'h'))
+    df_output  = pd.DataFrame(index = pd.date_range(datetime(2022, 1, 1, 1, 0, 0), datetime(2023, 1, 1, 0, 0, 0), freq = 'h'))
     df_output2 = pd.DataFrame()
+    df_output3 = pd.DataFrame()
 
     # 外気条件
     if outdoorFile == '-':
@@ -57,11 +58,11 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     df_output2['A_HCZ_i'] = A_HCZ_i
     df_output2['A_HCZ_R_i'] = A_HCZ_R_i
-    df_output2['A_NR'] = A_NR
+    df_output3['A_NR'] = A_NR
 
     # (67)  水の蒸発潜熱
     L_wtr = dc.get_L_wtr()
-    df_output2['L_wtr'] = L_wtr
+    df_output3['L_wtr'] = L_wtr
 
     # (66d)　非居室の在室人数
     n_p_NR_d_t = dc.calc_n_p_NR_d_t(A_NR)
@@ -83,9 +84,9 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     q_p_H = dc.get_q_p_H()
     q_p_CS = dc.get_q_p_CS()
     q_p_CL = dc.get_q_p_CL()
-    df_output2['q_p_H'] = q_p_H
-    df_output2['q_p_CS'] = q_p_CS
-    df_output2['q_p_CL'] = q_p_CL
+    df_output3['q_p_H'] = q_p_H
+    df_output3['q_p_CS'] = q_p_CS
+    df_output3['q_p_CL'] = q_p_CL
 
     # (65d)　非居室の内部発湿
     w_gen_NR_d_t = dc.calc_w_gen_NR_d_t(A_NR)
@@ -135,12 +136,12 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     # (61)　間仕切の熱貫流率
     U_prt = dc.get_U_prt()
-    df_output2['U_prt'] = U_prt
+    df_output3['U_prt'] = U_prt
 
     # (60)　非居室の間仕切の面積
     r_env = get_r_env(A_env, A_A)
     A_prt_i = dc.get_A_prt_i(A_HCZ_i, r_env, A_MR, A_NR, A_OR)
-    df_output2['r_env'] = r_env
+    df_output3['r_env'] = r_env
     df_output2['A_prt_i'] = A_prt_i
 
     # (59)　等価外気温度
@@ -186,7 +187,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     # (39)　熱源機の最低風量
     V_hs_min = dc.get_V_hs_min(V_vent_g_i)
-    df_output2['V_hs_min'] = V_hs_min
+    df_output3['V_hs_min'] = V_hs_min
 
     ####################################################################################################################
     if type == 'ダクト式セントラル空調機':
@@ -204,8 +205,8 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     else:
         raise Exception('設備機器の種類の入力が不正です。')
     
-    df_output2['Q_hs_rtd_C'] = Q_hs_rtd_C
-    df_output2['Q_hs_rtd_H'] = Q_hs_rtd_H 
+    df_output3['Q_hs_rtd_C'] = Q_hs_rtd_C
+    df_output3['Q_hs_rtd_H'] = Q_hs_rtd_H 
     ####################################################################################################################
 
     # (36)　VAV 調整前の熱源機の風量
@@ -345,7 +346,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
         # 最大暖房能力比
         q_r_max_H = rac.get_q_r_max_H(q_max_H, q_rtd_H)
-        df_output2['q_r_max_H'] = q_r_max_H
+        df_output3['q_r_max_H'] = q_r_max_H
 
         # 最大暖房出力比
         Q_r_max_H_d_t = rac.calc_Q_r_max_H_d_t(q_rtd_C, q_r_max_H, Theta_ex_d_t)
@@ -358,7 +359,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
         # 最大冷房能力比
         q_r_max_C = rac.get_q_r_max_C(q_max_C, q_rtd_C)
-        df_output2['q_r_max_C'] = q_r_max_C
+        df_output3['q_r_max_C'] = q_r_max_C
 
         # 最大冷房出力比
         Q_r_max_C_d_t = rac.calc_Q_r_max_C_d_t(q_r_max_C, q_rtd_C, Theta_ex_d_t)
@@ -370,7 +371,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
         # 冷房負荷最小顕熱比
         SHF_L_min_c = rac.get_SHF_L_min_c()
-        df_output2['SHF_L_min_c'] = SHF_L_min_c
+        df_output3['SHF_L_min_c'] = SHF_L_min_c
 
         # 最大冷房潜熱負荷
         L_max_CL_d_t = rac.get_L_max_CL_d_t(np.sum(L_CS_d_t_i, axis=0), SHF_L_min_c)
@@ -583,11 +584,13 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output['E_C_UT_d_t'] = E_C_UT_d_t
 
     if q_hs_rtd_H is not None:
-        df_output2.to_csv(case_name + '_H_output3.csv', encoding = 'cp932')
-        df_output.to_csv(case_name  + '_H_output4.csv', encoding = 'cp932')
+        df_output3.to_csv(case_name + '_H_output3.csv', encoding = 'cp932')
+        df_output2.to_csv(case_name + '_H_output4.csv', encoding = 'cp932')
+        df_output.to_csv(case_name  + '_H_output5.csv', encoding = 'cp932')
     else:
-        df_output2.to_csv(case_name + '_C_output3.csv', encoding = 'cp932')
-        df_output.to_csv(case_name  + '_C_output4.csv', encoding = 'cp932')
+        df_output3.to_csv(case_name + '_C_output3.csv', encoding = 'cp932')
+        df_output2.to_csv(case_name + '_C_output4.csv', encoding = 'cp932')
+        df_output.to_csv(case_name  + '_C_output5.csv', encoding = 'cp932')
 
     return E_C_UT_d_t, Q_UT_H_d_t_i, Q_UT_CS_d_t_i, Q_UT_CL_d_t_i, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, \
            X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t
