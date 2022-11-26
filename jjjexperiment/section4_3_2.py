@@ -206,7 +206,7 @@ def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcomp
       dualcompressor(bool): 容量可変型コンプレッサー搭載
       L_H_d_t(ndarray): 暖冷房区画݅の１時間当たりの暖房負荷
       input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
-
+      outdoorFile: 外気条件ファイル
     Returns:
       ndarray: 消費電力量
 
@@ -935,7 +935,7 @@ def calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor, L_CS_d_t, 
       L_CS_d_t(ndarray): 暖冷房区画の 1 時間当たりの冷房顕熱負荷
       L_CL_d_t(ndarray): 暖冷房区画の 1 時間当たりの冷房潜熱負荷
       input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
-
+      outdoor: 外気条件ファイル
     Returns:
       ndarray: 消費電力量
 
