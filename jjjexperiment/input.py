@@ -82,7 +82,7 @@ def get_heating(input: dict, region: int, A_A: float):
     if int(input['H_A']['input_f_SFP_H']) == 2:
         H_A['f_SFP_H'] = float(input['H_A']['f_SFP_H'])
     else:
-        H_A['f_SFP_H'] = None
+        H_A['f_SFP_H'] = 0.4 * 0.36
 
     # 暖房設備機器の種類
     if int(input['H_A']['type']) == 1:
@@ -169,7 +169,7 @@ def get_cooling(input: dict, region: int, A_A: float):
     if int(input['C_A']['input_f_SFP_C']) == 2:
         C_A['f_SFP_C'] = float(input['C_A']['f_SFP_C'])
     else:
-        C_A['f_SFP_C'] = None
+        C_A['f_SFP_C'] = 0.4 * 0.36
 
     # 冷房設備機器の種類
     if int(input['C_A']['type']) == 1:
