@@ -195,7 +195,7 @@ def get_C_df_H(Theta_ex, h_ex):
 
 # 消費電力量 (5)
 # dualcompressor: 容量可変型コンプレッサー搭載
-def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor, L_H_d_t, input_C_af_H):
+def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor, L_H_d_t, input_C_af_H, outdoorFile):
     """消費電力量 (5)
 
     Args:
@@ -212,10 +212,22 @@ def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcomp
 
     """
     # 外気条件
-    outdoor = load_outdoor()
-    Theta_ex = get_Theta_ex(region, outdoor)
-    X_ex = get_X_ex(region, outdoor)
-    h_ex = calc_h_ex(X_ex, Theta_ex)
+    if outdoorFile == '-':
+        outdoor = load_outdoor()
+        Theta_ex = get_Theta_ex(region, outdoor)
+        X_ex = get_X_ex(region, outdoor)
+        h_ex = calc_h_ex(X_ex, Theta_ex)
+    else:
+        outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
+            names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
+        Theta_ex = outdoor['Theta_ex_1'].values
+        X_ex = outdoor['X_ex_1'].values
+        h_ex = calc_h_ex(X_ex, Theta_ex)
+
+    #outdoor = load_outdoor()
+    #Theta_ex = get_Theta_ex(region, outdoor)
+    #X_ex = get_X_ex(region, outdoor)
+    #h_ex = calc_h_ex(X_ex, Theta_ex)
 
     # 最大暖房能力
     #q_max_C = get_q_max_C(q_rtd_C)
@@ -912,7 +924,7 @@ def get_SHF_L_min_c():
 # ============================================================================
 
 # 消費電力量 (20)
-def calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor, L_CS_d_t, L_CL_d_t, input_C_af_C):
+def calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor, L_CS_d_t, L_CL_d_t, input_C_af_C, outdoorFile):
     """消費電力量 (20)
 
     Args:
@@ -929,10 +941,22 @@ def calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor, L_CS_d_t, 
 
     """
     # 外気条件
-    outdoor = load_outdoor()
-    Theta_ex = get_Theta_ex(region, outdoor)
-    X_ex = get_X_ex(region, outdoor)
-    h_ex = calc_h_ex(X_ex, Theta_ex)
+    if outdoorFile == '-':
+        outdoor = load_outdoor()
+        Theta_ex = get_Theta_ex(region, outdoor)
+        X_ex = get_X_ex(region, outdoor)
+        h_ex = calc_h_ex(X_ex, Theta_ex)
+    else:
+        outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
+            names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
+        Theta_ex = outdoor['Theta_ex_1'].values
+        X_ex = outdoor['X_ex_1'].values
+        h_ex = calc_h_ex(X_ex, Theta_ex)
+
+    #outdoor = load_outdoor()
+    #Theta_ex = get_Theta_ex(region, outdoor)
+    #X_ex = get_X_ex(region, outdoor)
+    #h_ex = calc_h_ex(X_ex, Theta_ex)
 
     # 最大冷房能力
     #q_max_C = get_q_max_C(q_rtd_C)
