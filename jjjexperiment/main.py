@@ -148,6 +148,7 @@ def calc(input_data : dict):
             H_A['type'], input_C_af_H, input_C_af_C,
             underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, climateFile, outdoorFile)
 
+    print(Q_UT_H_d_t_i)
     df_output2['Q_UT_H_d_t_i [MJ/h']        = Q_UT_H_d_t_i
     df_output2['Theta_hs_H_out_d_t [℃]']    = Theta_hs_out_d_t
     df_output2['Theta_hs_H_in_d_t [℃]']     = Theta_hs_in_d_t
