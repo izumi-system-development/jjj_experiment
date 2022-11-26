@@ -148,15 +148,6 @@ def calc(input_data : dict):
             H_A['type'], input_C_af_H, input_C_af_C,
             underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, climateFile, outdoorFile)
 
-    print(Q_UT_H_d_t_i)
-    df_output2['Q_UT_H_d_t_i [MJ/h']        = Q_UT_H_d_t_i
-    df_output2['Theta_hs_H_out_d_t [℃]']    = Theta_hs_out_d_t
-    df_output2['Theta_hs_H_in_d_t [℃]']     = Theta_hs_in_d_t
-    df_output2['Theta_ex_d_t [℃]']          = Theta_ex_d_t
-    df_output2['V_hs_supply_H_d_t [m3/h]']  = V_hs_supply_d_t
-    df_output2['V_hs_vent_H_d_t [m3/h]']    = V_hs_vent_d_t
-    df_output2['C_df_H_d_t [-]']            = C_df_H_d_t
-
     E_E_H_d_t: np.ndarray
     """日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h)"""
 
@@ -196,6 +187,14 @@ def calc(input_data : dict):
     """未処理暖房負荷の全機器合計(MJ/h)"""
     E_UT_H_d_t: np.ndarray = Q_UT_H_A_d_t * alpha_UT_H_A
     """未処理暖房負荷の設計一次エネルギー消費量相当値(MJ/h)"""
+
+    df_output2['Q_UT_H_d_A_t [MJ/h']        = Q_UT_H_A_d_t
+    df_output2['Theta_hs_H_out_d_t [℃]']    = Theta_hs_out_d_t
+    df_output2['Theta_hs_H_in_d_t [℃]']     = Theta_hs_in_d_t
+    df_output2['Theta_ex_d_t [℃]']          = Theta_ex_d_t
+    df_output2['V_hs_supply_H_d_t [m3/h]']  = V_hs_supply_d_t
+    df_output2['V_hs_vent_H_d_t [m3/h]']    = V_hs_vent_d_t
+    df_output2['C_df_H_d_t [-]']            = C_df_H_d_t
 
     ##### 冷房消費電力の計算（kWh/h）
 
@@ -237,13 +236,6 @@ def calc(input_data : dict):
             C_A['type'], input_C_af_H, input_C_af_C,
             underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, climateFile, outdoorFile)
 
-    df_output2['Q_UT_H_d_t_i [MJ/h']        = E_C_UT_d_t
-    df_output2['Theta_hs_C_out_d_t [℃]']    = Theta_hs_out_d_t
-    df_output2['Theta_hs_C_in_d_t [℃]']     = Theta_hs_in_d_t
-    df_output2['Theta_ex_d_t [℃]']          = Theta_ex_d_t
-    df_output2['V_hs_supply_C_d_t [m3/h]']  = V_hs_supply_d_t
-    df_output2['V_hs_vent_C_d_t [m3/h]']    = V_hs_vent_d_t
-
     E_E_C_d_t, E_E_fan_C_d_t, q_hs_CS_d_t, q_hs_CL_d_t = jjjexperiment.calc.get_E_E_C_d_t(
         Theta_hs_out_d_t = Theta_hs_out_d_t,
         Theta_hs_in_d_t = Theta_hs_in_d_t,
@@ -272,6 +264,13 @@ def calc(input_data : dict):
         dualcompressor_C = dualcompressor_C,
         input_C_af_C = input_C_af_C,
         f_SFP_C = C_A['f_SFP_C'])
+
+    df_output2['Q_UT_H_d_t_i [MJ/h']        = E_C_UT_d_t
+    df_output2['Theta_hs_C_out_d_t [℃]']    = Theta_hs_out_d_t
+    df_output2['Theta_hs_C_in_d_t [℃]']     = Theta_hs_in_d_t
+    df_output2['Theta_ex_d_t [℃]']          = Theta_ex_d_t
+    df_output2['V_hs_supply_C_d_t [m3/h]']  = V_hs_supply_d_t
+    df_output2['V_hs_vent_C_d_t [m3/h]']    = V_hs_vent_d_t
 
     ##### 計算結果のまとめ
     #pprint.pprint(input_data)
