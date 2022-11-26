@@ -397,7 +397,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rt
 
 def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t, V_hs_dsgn_H,
         EquipmentSpec, q_hs_rtd_H, P_hs_rtd_H, V_fan_rtd_H, P_fan_rtd_H, q_hs_mid_H, P_hs_mid_H, V_fan_mid_H, P_fan_mid_H, q_hs_min_H,
-        region, type, q_rtd_C, q_rtd_H, P_rac_fan_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, input_C_af_H, f_SFP_H):
+        region, type, q_rtd_C, q_rtd_H, P_rac_fan_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, input_C_af_H, f_SFP_H, outdoorFile):
     """日付dの時刻tにおける1時間当たりの暖房時の消費電力量（kWh/h）(1)"""
 
     # (3)
@@ -442,7 +442,7 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
         #E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
         E_E_fan_H_d_t = dc_a2.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
         
-        E_E_CRAC_H_d_t = rac2.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H)
+        E_E_CRAC_H_d_t = rac2.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H, outdoorFile)
         E_E_H_d_t = E_E_CRAC_H_d_t + E_E_fan_H_d_t
     else:
         raise Exception('暖房設備機器の種類の入力が不正です。')
@@ -481,7 +481,7 @@ def get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_
 
 def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, V_hs_dsgn_C,
         EquipmentSpec, q_hs_rtd_C, P_hs_rtd_C, V_fan_rtd_C, P_fan_rtd_C, q_hs_mid_C, P_hs_mid_C, V_fan_mid_C, P_fan_mid_C, q_hs_min_C,
-        region, type, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C, q_max_C, input_C_af_C, dualcompressor_C, f_SFP_C):
+        region, type, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C, q_max_C, input_C_af_C, dualcompressor_C, f_SFP_C, outdoorFile):
 
     # (4)
     q_hs_CS_d_t, q_hs_CL_d_t = get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
@@ -528,7 +528,7 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t,
 
         # (38)
         #E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
-        E_E_fan_C_d_t = dc_a2.get_E_E_fan_C_d_t(P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
+        E_E_fan_C_d_t = dc_a2.get_E_E_fan_C_d_t(P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C, outdoorFile)
 
         # (2)
         E_E_C_d_t = E_E_CRAC_C_d_t + E_E_fan_C_d_t
