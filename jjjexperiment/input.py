@@ -252,7 +252,7 @@ def get_CRAC_spec(input: dict):
 
     # 機器の性能の入力（冷房）
     if int(input['C_A']['input_rac_performance']) == 1:
-        q_rtd_C: float = 2800
+        q_rtd_C: float = rac_spec.get_q_rtd_C(input['A_A'])
         q_max_C: float = rac_spec.get_q_max_C(q_rtd_C)
         e_rtd_C: float = rac_spec.get_e_rtd_C(e_class, q_rtd_C)
     else:
