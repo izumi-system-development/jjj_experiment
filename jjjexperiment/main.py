@@ -42,6 +42,7 @@ def calc(input_data : dict):
     mode_H, H_A, H_MR, H_OR, H_HS = jjjexperiment.input.get_heating(input_data, region, A_A)
     mode_C, C_A, C_MR, C_OR = jjjexperiment.input.get_cooling(input_data, region, A_A)
     q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H, dualcompressor_C, dualcompressor_H, input_C_af_C, input_C_af_H = jjjexperiment.input.get_CRAC_spec(input_data)
+    R_g = input_data['R_g']
 
     # 熱交換型換気の取得
     HEX = jjjexperiment.input.get_heatexchangeventilation(input_data)
@@ -146,7 +147,7 @@ def calc(input_data : dict):
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, H_A['VAV'], H_A['general_ventilation'], hs_CAV,
             H_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
             H_A['type'], input_C_af_H, input_C_af_C,
-            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, climateFile, outdoorFile)
+            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile, outdoorFile)
 
     E_E_H_d_t: np.ndarray
     """日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h)"""
@@ -235,7 +236,7 @@ def calc(input_data : dict):
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, C_A['VAV'], C_A['general_ventilation'], hs_CAV,
             C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
             C_A['type'], input_C_af_H, input_C_af_C,
-            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, climateFile, outdoorFile)
+            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile, outdoorFile)
 
     E_E_C_d_t, E_E_fan_C_d_t, q_hs_CS_d_t, q_hs_CL_d_t = jjjexperiment.calc.get_E_E_C_d_t(
         Theta_hs_out_d_t = Theta_hs_out_d_t,
