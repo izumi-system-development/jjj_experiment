@@ -165,7 +165,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output['X_star_HBR_d_t'] = X_star_HBR_d_t
 
     # (50)　負荷バランス時の居室の室温
-    Theta_star_HBR_d_t = dc.get_Theta_star_HBR_d_t(Theta_ex_d_t, region)Q_hs_max_H_d_t
+    Theta_star_HBR_d_t = dc.get_Theta_star_HBR_d_t(Theta_ex_d_t, region)
     df_output['Theta_star_HBR_d_t'] = Theta_star_HBR_d_t   
 
     # (55)　小屋裏の空気温度
