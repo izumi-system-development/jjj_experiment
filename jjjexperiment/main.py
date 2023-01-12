@@ -7,11 +7,11 @@ import pprint
 
 from pyhees.section2_1_b import get_f_prim
 
-from pyhees.section4_1 import calc_heating_load, calc_cooling_load, get_virtual_heating_devices, get_alpha_UT_H_A, calc_E_E_H_hs_A_d_t, calc_E_E_C_hs_d_t
+from jjjexperiment.jjj_section4_1 import calc_heating_load, calc_cooling_load, get_virtual_heating_devices, get_alpha_UT_H_A, calc_E_E_H_hs_A_d_t, calc_E_E_C_hs_d_t
 from pyhees.section4_1_a import calc_heating_mode
 
 # ダクト式セントラル空調機
-import pyhees.section4_2_b as dc_spec
+import jjjexperiment.jjj_section4_2_b as dc_spec
 
 # 床下
 import pyhees.section3_1 as ld
@@ -121,12 +121,12 @@ def calc(input_data : dict):
         if 'V_hs_dsgn_H' in H_A:
             V_hs_dsgn_H = H_A['V_hs_dsgn_H']
         else:
-            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_C(H_A['V_fan_rtd_H'])
+            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(H_A['V_fan_rtd_H'])
     elif H_A['type'] == 'ルームエアコンディショナ活用型全館空調システム':
         if 'V_hs_dsgn_H' in H_A:
             V_hs_dsgn_H = H_A['V_hs_dsgn_H']
         else:
-            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_C(V_rac_fan_rtd_H)
+            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(V_rac_fan_rtd_H)
     else: 
         raise Exception("暖房方式が不正です。")
     """暖房時の送風機の設計風量(m3/h)"""

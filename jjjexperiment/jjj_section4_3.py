@@ -14,7 +14,7 @@ from pyhees.section4_1_Q import \
     get_Q_T_CS_d_t_i, \
     get_Q_T_CL_d_t_i
 
-from pyhees.section4_3_a import \
+from jjjexperiment.jjj_section4_3_a import \
     get_q_max_H, \
     get_q_rtd_C, \
     get_q_max_C

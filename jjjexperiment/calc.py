@@ -6,13 +6,11 @@ from pyhees.section3_2_8 import get_r_env
 from pyhees.section11_1 import calc_h_ex, load_climate, load_outdoor, get_Theta_ex, get_X_ex, get_J
 
 # ダクト式セントラル空調機
-import pyhees.section4_2 as dc
-import pyhees.section4_2_a as dc_a
-import jjjexperiment.section4_2_a2 as dc_a2
+import jjjexperiment.jjj_section4_2 as dc
+import jjjexperiment.jjj_section4_2_a as dc_a
 
 # エアーコンディショナー
-import pyhees.section4_3 as rac
-import jjjexperiment.section4_3_2 as rac2
+import jjjexperiment.jjj_section4_3 as rac
 
 # 床下
 import jjjexperiment.section3_1_e2 as uf
@@ -353,7 +351,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         df_output['Q_r_max_H_d_t'] = Q_r_max_H_d_t
 
         # 最大暖房出力
-        Q_max_H_d_t = rac2.calc_Q_max_H_d_t(Q_r_max_H_d_t, q_rtd_H, Theta_ex_d_t, h_ex_d_t, input_C_af_H)
+        Q_max_H_d_t = rac.calc_Q_max_H_d_t(Q_r_max_H_d_t, q_rtd_H, Theta_ex_d_t, h_ex_d_t, input_C_af_H)
         Q_hs_max_H_d_t = Q_max_H_d_t
         df_output['Q_hs_max_H_d_t'] = Q_hs_max_H_d_t
 
@@ -366,7 +364,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         df_output['Q_r_max_C_d_t'] = Q_r_max_C_d_t
 
         # 最大冷房出力
-        Q_max_C_d_t = rac2.calc_Q_max_C_d_t(Q_r_max_C_d_t, q_rtd_C, input_C_af_C)
+        Q_max_C_d_t = rac.calc_Q_max_C_d_t(Q_r_max_C_d_t, q_rtd_C, input_C_af_C)
         Q_hs_max_C_d_t = Q_max_C_d_t
         df_output['Q_hs_max_C_d_t'] = Q_hs_max_C_d_t
 
@@ -644,8 +642,7 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
 
     if type == 'ダクト式セントラル空調機':
         # (37)
-        #E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
-        E_E_fan_H_d_t = dc_a2.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
 
 
         # (20)
@@ -678,10 +675,9 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
         # (1)
         E_E_H_d_t = E_E_comp_H_d_t + E_E_fan_H_d_t
     elif type == 'ルームエアコンディショナ活用型全館空調システム':
-        #E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
-        E_E_fan_H_d_t = dc_a2.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
         
-        E_E_CRAC_H_d_t = rac2.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H, outdoorFile)
+        E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H, outdoorFile)
         E_E_H_d_t = E_E_CRAC_H_d_t + E_E_fan_H_d_t
     else:
         raise Exception('暖房設備機器の種類の入力が不正です。')
@@ -730,8 +726,7 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t,
         q_hs_C_d_t = dc_a.get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
         # (38)
-        #E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP_C)
-        E_E_fan_C_d_t = dc_a2.get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP_C)
+        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP_C)
 
         # (22)
         e_th_mid_C = dc_a.calc_e_th_mid_C(V_fan_mid_C, q_hs_mid_C)
@@ -763,11 +758,10 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t,
         # (2)
         E_E_C_d_t = E_E_comp_C_d_t + E_E_fan_C_d_t
     elif type == 'ルームエアコンディショナ活用型全館空調システム':
-        E_E_CRAC_C_d_t = rac2.calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6 / 1000, q_hs_CL_d_t * 3.6 / 1000, input_C_af_C, outdoorFile)
+        E_E_CRAC_C_d_t = rac.calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6 / 1000, q_hs_CL_d_t * 3.6 / 1000, input_C_af_C, outdoorFile)
 
         # (38)
-        #E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
-        E_E_fan_C_d_t = dc_a2.get_E_E_fan_C_d_t(P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
+        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
 
         # (2)
         E_E_C_d_t = E_E_CRAC_C_d_t + E_E_fan_C_d_t

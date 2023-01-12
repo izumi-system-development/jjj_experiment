@@ -6,11 +6,11 @@ from pyhees.section4_1_Q import \
     get_Q_T_CL_d_t_i
 #    get_Q_T_H_A_d_t
 
-from pyhees.section4_2 import \
+from jjjexperiment.jjj_section4_2 import \
     get_season_array_d_t, \
     calc_Q_UT_A
 
-from pyhees.section4_2_b import \
+from jjjexperiment.jjj_section4_2_b import \
     get_q_hs_rtd_H, \
     get_q_hs_mid_H, \
     get_q_hs_min_H, \
@@ -500,7 +500,6 @@ def get_e_r_rtd_C(e_th_rtd_C, q_hs_rtd_C, P_hs_rtd_C, P_fan_rtd_C):
     e_r_rtd_C = e_hs_rtd_C / e_th_rtd_C
 
     e_r_rtd_C = np.clip(e_r_rtd_C, 0, 1.0)
-
     return e_r_rtd_C
 
 
