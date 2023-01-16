@@ -82,7 +82,7 @@ def get_heating(input: dict, region: int, A_A: float):
     if int(input['H_A']['input_f_SFP_H']) == 2:
         H_A['f_SFP_H'] = float(input['H_A']['f_SFP_H'])
     else:
-        H_A['f_SFP_H'] = None
+        H_A['f_SFP_H'] = 0.4 * 0.36
 
     # 暖房設備機器の種類
     if int(input['H_A']['type']) == 1:
@@ -169,7 +169,7 @@ def get_cooling(input: dict, region: int, A_A: float):
     if int(input['C_A']['input_f_SFP_C']) == 2:
         C_A['f_SFP_C'] = float(input['C_A']['f_SFP_C'])
     else:
-        C_A['f_SFP_C'] = None
+        C_A['f_SFP_C'] = 0.4 * 0.36
 
     # 冷房設備機器の種類
     if int(input['C_A']['type']) == 1:
@@ -252,7 +252,7 @@ def get_CRAC_spec(input: dict):
 
     # 機器の性能の入力（冷房）
     if int(input['C_A']['input_rac_performance']) == 1:
-        q_rtd_C: float = 2800
+        q_rtd_C: float = rac_spec.get_q_rtd_C(input['A_A'])
         q_max_C: float = rac_spec.get_q_max_C(q_rtd_C)
         e_rtd_C: float = rac_spec.get_e_rtd_C(e_class, q_rtd_C)
     else:
@@ -292,13 +292,22 @@ def get_CRAC_spec(input: dict):
     return q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H, dualcompressor_C, dualcompressor_H, \
         input_C_af_C, input_C_af_H
 
-def get_heatexchangeventilation():
+def get_heatexchangeventilation(input: dict):
     """熱交換型換気の設定
 
     :return: 熱交換型換気
     """
-    # 熱交換型換気
-    HEX = None
+
+    if int(input['HEX']['install']) == 1:   
+        # 熱交換型換気
+        HEX = None
+    else:
+        HEX = {
+            'hex':      True,                       
+            'etr_t':    input['HEX']['etr_t'],      #温度交換効率
+            'e_bal':    0.9,                        #給気と排気の比率による温度交換効率の補正係数
+            'e_leak':   1.0                         #排気過多時における住宅外皮経由の漏気による温度交換効率の補正係数 
+    }
 
     return HEX
 
