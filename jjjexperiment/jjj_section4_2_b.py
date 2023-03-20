@@ -223,14 +223,15 @@ def get_P_fan_rtd_H(type, V_fan_rtd_H, q_hs_H_d_t):
     Args:
       type: 暖房設備機器の種類
       V_fan_rtd_H: 定格暖房能力運転時の送風機の風量（m3/h）
-      q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
+      q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（W）
 
     Returns:
       定格暖房能力運転時の送風機の消費電力（W）
 
     """
     if type == 3:
-      return 1.4675 * q_hs_H_d_t**3 - 8.5886 * q_hs_H_d_t**2 + 20.217 * q_hs_H_d_t + 50
+      x = q_hs_H_d_t / 1000
+      return 1.4675 * x**3 - 8.5886 * x**2 + 20.217 * x + 50
     else:
       return 8.0 * (V_fan_rtd_H / 60) + 20.7
 
