@@ -38,7 +38,7 @@ import jjjexperiment.constants as constants
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i):
+             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, fix_latent_load):
     """
 
     Args:
@@ -60,6 +60,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
       duct_insulation: 
       L_H_d_t_i: 
       L_CL_d_t_i: 
+      fix_latent_load:
 
     Returns:
 
@@ -164,7 +165,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
 
     # (40)
     Q_hat_hs_d_t = calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen_d_t, n_p_d_t, q_p_H,
-                                     q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region)
+                                     q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region, fix_latent_load)
 
     # (39)
     V_hs_min = get_V_hs_min(V_vent_g_i)
@@ -1277,8 +1278,8 @@ def get_V_hs_vent_d_t(V_vent_g_i, general_ventilation):
 # ============================================================================
 # 9.7 VAV調整前の熱源機の風量
 # ============================================================================
-def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region): #ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_風量特性
-    """
+def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
+    """ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_風量特性
     Args:
       Q_hat_hs_d_t: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の出力（MJ/h）
       region: 地域区分
@@ -1424,7 +1425,7 @@ def get_V_hs_min(V_vent_g_i):
     return np.sum(V_vent_g_i[:5], axis=0)
 
 
-def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen_d_t, n_p_d_t, q_p_H, q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region):
+def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen_d_t, n_p_d_t, q_p_H, q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region, fix_latent_load):
     """(40-1a)(40-1b)(40-2a)(40-2b)(40-2c)(40-3)
 
     Args:
@@ -1444,6 +1445,7 @@ def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen
       w_gen_d_t: param Theta_ex_d_t: 日付dの時刻tにおける外気温度（℃）
       L_wtr: 水の蒸発潜熱（kJ/kg）
       region: 地域区分
+      fix_latent_load: 潜熱負荷計算の不具合修正適用
       Theta_ex_d_t: returns: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の暖房出力（MJ/h）
 
     Returns:
@@ -1475,7 +1477,12 @@ def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen
                       + mu_C * A_A * J_d_t[C] + q_gen_d_t[C] + n_p_d_t[C] * q_p_CS) * 3600 * 10 ** -6
 
     # (40-2c)
-    Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] / 1000 - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
+    if fix_latent_load == 2:
+      Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
+                       * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
+    
+    else:
+        Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] / 1000 - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
                        * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
 
     # (40-2a)
