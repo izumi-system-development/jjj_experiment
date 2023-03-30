@@ -179,7 +179,7 @@ def get_cooling(input: dict, region: int, A_A: float):
     elif int(input['C_A']['type']) == 2:
         C_A['type'] = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'
     elif int(input['C_A']['type']) == 3:
-        C_A['type'] = 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル'
+        C_A['type'] = 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル)'
     else:
         raise Exception('冷房設備機器の種類の入力が不正です。')
 
