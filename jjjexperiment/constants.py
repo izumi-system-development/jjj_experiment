@@ -24,6 +24,8 @@ C_hm_C: float = 1.15
 """室内機吸い込み湿度に関する冷房出力補正係数"""
 q_rtd_C_limit: float = 5600
 """定格冷房能力の最大値"""
+fix_latent_load: float = 2
+"""潜熱負荷計算の不具合修正"""
 #以下、潜熱評価モデル追加対応(暖房)
 A_f_hex_small_H: float = 0.2
 """定格冷却能力が5.6kW未満の場合のA_f,hex"""
@@ -33,23 +35,33 @@ A_f_hex_large_H: float = 0.3
 """定格冷却能力が5.6kW以上の場合のA_f,hex"""
 A_e_hex_large_H: float = 10.6
 """定格冷却能力が5.6kW以上の場合のA_e,hex"""
-a_c_hex_c_a1_H: float = 0.0631
-"""熱伝達特性_a1"""
-a_c_hex_c_a0_H: float = 0.0015
-"""熱伝達特性_a0"""
+a_r_H_t_t_a4: float = 0
+"""コンプレッサ効率特性_a4"""
+a_r_H_t_t_a3: float = 0
+"""コンプレッサ効率特性_a3"""
 a_r_H_t_t_a2: float = -0.0316
 """コンプレッサ効率特性_a2"""
 a_r_H_t_t_a1: float = 0.2944
 """コンプレッサ効率特性_a1"""
-airvolume_coeff_minimum_H: float = 0.17
+a_r_H_t_t_a0: float = 0
+"""コンプレッサ効率特性_a0"""
+airvolume_coeff_minimum: float = 0.17
 """風量特性_中間期及び最小風量"""
+airvolume_coeff_a4_H: float = 0
+"""風量特性_a4"""
+airvolume_coeff_a3_H: float = 0
+"""風量特性_a3"""
+airvolume_coeff_a2_H: float = 0
+"""風量特性_a2"""
 airvolume_coeff_a1_H: float = 0.092
 """風量特性_a1"""
-airvolume_coeff_a2_H: float = -0.06
-"""風量特性_a2"""
+airvolume_coeff_a0_H: float = -0.06
+"""風量特性_a0"""
+P_fan_H_d_t_a4: float = 0
+"""ファン消費電力_a4"""
 P_fan_H_d_t_a3: float = 1.4675
 """ファン消費電力_a3"""
-P_fan_H_d_t_a2: float = 8.5886
+P_fan_H_d_t_a2: float = -8.5886
 """ファン消費電力_a2"""
 P_fan_H_d_t_a1: float = 20.217
 """ファン消費電力_a1"""
@@ -64,20 +76,38 @@ A_f_hex_large_C: float = 0.3
 """定格冷却能力が5.6kW以上の場合のA_f,hex"""
 A_e_hex_large_C: float = 10.6
 """定格冷却能力が5.6kW以上の場合のA_e,hex"""
+a_c_hex_c_a4_C: float = 0
+"""熱伝達特性_a4"""
+a_c_hex_c_a3_C: float = 0
+"""熱伝達特性_a3"""
+a_c_hex_c_a2_C: float = 0
+"""熱伝達特性_a2"""
 a_c_hex_c_a1_C: float = 0.0631
 """熱伝達特性_a1"""
 a_c_hex_c_a0_C: float = 0.0015
 """熱伝達特性_a0"""
-a_r_C_d_t_a2: float = -0.0316
+a_r_C_t_t_a4: float = 0
+"""コンプレッサ効率特性_a4"""
+a_r_C_t_t_a3: float = 0
+"""コンプレッサ効率特性_a3"""
+a_r_C_t_t_a2: float = -0.0316
 """コンプレッサ効率特性_a2"""
-a_r_C_d_t_a1: float = 0.2944
+a_r_C_t_t_a1: float = 0.2944
 """コンプレッサ効率特性_a1"""
-airvolume_coeff_minimum_C: float = 0.17
-"""風量特性_中間期及び最小風量"""
+a_r_C_t_t_a0: float = 0
+"""コンプレッサ効率特性_a0"""
+airvolume_coeff_a4_C: float = 0
+"""風量特性_a4"""
+airvolume_coeff_a3_C: float = 0
+"""風量特性_a3"""
+airvolume_coeff_a2_C: float = 0
+"""風量特性_a2"""
 airvolume_coeff_a1_C: float = 0.092
 """風量特性_a1"""
-airvolume_coeff_a2_C: float = -0.06
-"""風量特性_a2"""
+airvolume_coeff_a0_C: float = -0.06
+"""風量特性_a0"""
+P_fan_C_d_t_a4: float = 0
+"""ファン消費電力_a4"""
 P_fan_C_d_t_a3: float = 1.4675
 """ファン消費電力_a3"""
 P_fan_C_d_t_a2: float = 8.5886
@@ -128,83 +158,117 @@ def set_constants(input: dict):
   if 'q_rtd_C_limit' in input:
     global q_rtd_C_limit
     q_rtd_C_limit = float(input['q_rtd_C_limit'])
+  if 'fix_latent_load' in input:
+    global fix_latent_load
+    fix_latent_load = float(input['fix_latent_load'])
   #以下、潜熱評価モデル追加対応
-  if ['H_A']['A_f_hex_small'] in input:
-    global A_f_hex_small_H
-    A_f_hex_small_H = float(input['H_A']['A_f_hex_small'])
-  if ['H_A']['A_e_hex_small'] in input:
-    global A_e_hex_small_H
-    A_e_hex_small_H = float(input['H_A']['A_e_hex_small'])
-  if ['H_A']['A_f_hex_large'] in input:
-    global A_f_hex_large_H
-    A_f_hex_large_H = float(input['H_A']['A_f_hex_large'])
-  if ['H_A']['A_e_hex_large'] in input:
-    global A_e_hex_large_H
-    A_e_hex_large_H = float(input['H_A']['A_e_hex_large'])
-  if ['H_A']['coil_coeff'] in input:
-    global a_c_hex_c_a1_H 
-    a_c_hex_c_a1_H = float(input['H_A']['coil_coeff'][3])
-    global a_c_hex_c_a0_H 
-    a_c_hex_c_a0_H = float(input['H_A']['coil_coeff'][4])
-  if ['H_A']['compressor_coeff'] in input:
-    global a_r_H_t_t_a2 
-    a_r_H_t_t_a2 = float(input['H_A']['compressor_coeff'][2])
-    global a_r_H_t_t_a1 
-    a_r_H_t_t_a1 = float(input['H_A']['compressor_coeff'][3])
-  if ['H_A']['airvolume_coeff_minimum'] in input:
-    global airvolume_coeff_minimum_H 
-    airvolume_coeff_minimum_H = float(input['H_A']['airvolume_coeff_minimum'][0])
-  if ['H_A']['airvolume_coeff'] in input:
-    global airvolume_coeff_a1_H 
-    airvolume_coeff_a1_H = float(input['H_A']['airvolume_coeff'][3])
-    global airvolume_coeff_a0_H 
-    airvolume_coeff_a0_H = float(input['H_A']['airvolume_coeff'][4])
-  if ['H_A']['fan_coeff'] in input:
-    global P_fan_H_d_t_a3 
-    P_fan_H_d_t_a3 = float(input['H_A']['fan_coeff'][1])
-    global P_fan_H_d_t_a2 
-    P_fan_H_d_t_a2 = float(input['H_A']['fan_coeff'][2])
-    global P_fan_H_d_t_a1 
-    P_fan_H_d_t_a1 = float(input['H_A']['fan_coeff'][3])
-    global P_fan_H_d_t_a0 
-    P_fan_H_d_t_a0 = float(input['H_A']['fan_coeff'][4])
-  if ['C_A']['A_f_hex_small'] in input:
-    global A_f_hex_small_C
-    A_f_hex_small_C = float(input['C_A']['A_f_hex_small'])
-  if ['C_A']['A_e_hex_small'] in input:
-    global A_e_hex_small_C
-    A_e_hex_small_C = float(input['C_A']['A_e_hex_small'])
-  if ['C_A']['A_f_hex_large'] in input:
-    global A_f_hex_large_C
-    A_f_hex_large_C = float(input['C_A']['A_f_hex_large'])
-  if ['C_A']['A_e_hex_large'] in input:
-    global A_e_hex_large_C
-    A_e_hex_large_C = float(input['C_A']['A_e_hex_large'])
-  if ['C_A']['coil_coeff'] in input:
-    global a_c_hex_c_a1_C 
-    a_c_hex_c_a1_C = float(input['C_A']['coil_coeff'][3])
-    global a_c_hex_c_a0_C
-    a_c_hex_c_a0_C = float(input['C_A']['coil_coeff'][4])
-  if ['C_A']['compressor_coeff'] in input:
-    global a_r_C_t_t_a2 
-    a_r_C_t_t_a2 = float(input['C_A']['compressor_coeff'][2])
-    global a_r_C_t_t_a1 
-    a_r_C_t_t_a1 = float(input['C_A']['compressor_coeff'][3])
-  if ['C_A']['airvolume_coeff_minimum'] in input:
-    global airvolume_coeff_minimum_C 
-    airvolume_coeff_minimum_C = float(input['C_A']['airvolume_coeff_minimum'][0])
-  if ['C_A']['airvolume_coeff'] in input:
-    global airvolume_coeff_a1_C 
-    airvolume_coeff_a1_C = float(input['C_A']['airvolume_coeff'][3])
-    global airvolume_coeff_a0_C 
-    airvolume_coeff_a0_C = float(input['C_A']['airvolume_coeff'][4])
-  if ['C_A']['fan_coeff'] in input:
-    global P_fan_C_d_t_a3 
-    P_fan_C_d_t_a3 = float(input['C_A']['fan_coeff'][1])
-    global P_fan_C_d_t_a2 
-    P_fan_C_d_t_a2 = float(input['C_A']['fan_coeff'][2])
-    global P_fan_C_d_t_a1 
-    P_fan_C_d_t_a1 = float(input['C_A']['fan_coeff'][3])
-    global P_fan_C_d_t_a0 
-    P_fan_C_d_t_a0 = float(input['C_A']['fan_coeff'][4])
+  if 'H_A' in input:
+    if 'A_f_hex_small' in input:
+      global A_f_hex_small_H
+      A_f_hex_small_H = float(input['H_A']['A_f_hex_small'])
+    if 'A_e_hex_small' in input:
+      global A_e_hex_small_H
+      A_e_hex_small_H = float(input['H_A']['A_e_hex_small'])
+    if 'A_f_hex_large' in input:
+      global A_f_hex_large_H
+      A_f_hex_large_H = float(input['H_A']['A_f_hex_large'])
+    if 'A_e_hex_large' in input:
+      global A_e_hex_large_H
+      A_e_hex_large_H = float(input['H_A']['A_e_hex_large'])
+    if 'compressor_coeff' in input:
+      global a_r_H_t_t_a4 
+      a_r_H_t_t_a4 = float(input['H_A']['compressor_coeff'][0])
+      global a_r_H_t_t_a3 
+      a_r_H_t_t_a3 = float(input['H_A']['compressor_coeff'][1])
+      global a_r_H_t_t_a2 
+      a_r_H_t_t_a2 = float(input['H_A']['compressor_coeff'][2])
+      global a_r_H_t_t_a1 
+      a_r_H_t_t_a1 = float(input['H_A']['compressor_coeff'][3])
+      global a_r_H_t_t_a0 
+      a_r_H_t_t_a0 = float(input['H_A']['compressor_coeff'][4])
+    if 'airvolume_coeff_minimum' in input:
+      global airvolume_coeff_minimum_H 
+      airvolume_coeff_minimum_H = float(input['H_A']['airvolume_coeff_minimum'][0])
+    if 'airvolume_coeff' in input:
+      global airvolume_coeff_a4_H 
+      airvolume_coeff_a4_H = float(input['H_A']['airvolume_coeff'][0])
+      global airvolume_coeff_a3_H 
+      airvolume_coeff_a3_H = float(input['H_A']['airvolume_coeff'][1])
+      global airvolume_coeff_a2_H 
+      airvolume_coeff_a2_H = float(input['H_A']['airvolume_coeff'][2])
+      global airvolume_coeff_a1_H 
+      airvolume_coeff_a1_H = float(input['H_A']['airvolume_coeff'][3])
+      global airvolume_coeff_a0_H 
+      airvolume_coeff_a0_H = float(input['H_A']['airvolume_coeff'][4])
+    if 'fan_coeff' in input:
+      global P_fan_H_d_t_a4 
+      P_fan_H_d_t_a4 = float(input['H_A']['fan_coeff'][0])
+      global P_fan_H_d_t_a3 
+      P_fan_H_d_t_a3 = float(input['H_A']['fan_coeff'][1])
+      global P_fan_H_d_t_a2 
+      P_fan_H_d_t_a2 = float(input['H_A']['fan_coeff'][2])
+      global P_fan_H_d_t_a1 
+      P_fan_H_d_t_a1 = float(input['H_A']['fan_coeff'][3])
+      global P_fan_H_d_t_a0 
+      P_fan_H_d_t_a0 = float(input['H_A']['fan_coeff'][4])
+  if 'C_A' in input:
+    if 'A_f_hex_small' in input:
+      global A_f_hex_small_C
+      A_f_hex_small_C = float(input['C_A']['A_f_hex_small'])
+    if 'A_e_hex_small' in input:
+      global A_e_hex_small_C
+      A_e_hex_small_C = float(input['C_A']['A_e_hex_small'])
+    if 'A_f_hex_large' in input:
+      global A_f_hex_large_C
+      A_f_hex_large_C = float(input['C_A']['A_f_hex_large'])
+    if 'A_e_hex_large' in input:
+      global A_e_hex_large_C
+      A_e_hex_large_C = float(input['C_A']['A_e_hex_large'])
+    if 'heat_transfer_coeff' in input:
+      global a_c_hex_c_a4_C 
+      a_c_hex_c_a4_C = float(input['C_A']['heat_transfer_coeff'][0])
+      global a_c_hex_c_a3_C 
+      a_c_hex_c_a3_C = float(input['C_A']['heat_transfer_coeff'][1])
+      global a_c_hex_c_a2_C 
+      a_c_hex_c_a2_C = float(input['C_A']['heat_transfer_coeff'][2])
+      global a_c_hex_c_a1_C 
+      a_c_hex_c_a1_C = float(input['C_A']['heat_transfer_coeff'][3])
+      global a_c_hex_c_a0_C
+      a_c_hex_c_a0_C = float(input['C_A']['heat_transfer_coeff'][4])
+    if 'compressor_coeff' in input:
+      global a_r_C_t_t_a4 
+      a_r_C_t_t_a4 = float(input['C_A']['compressor_coeff'][0])
+      global a_r_C_t_t_a3 
+      a_r_C_t_t_a3 = float(input['C_A']['compressor_coeff'][1])
+      global a_r_C_t_t_a2 
+      a_r_C_t_t_a2 = float(input['C_A']['compressor_coeff'][2])
+      global a_r_C_t_t_a1 
+      a_r_C_t_t_a1 = float(input['C_A']['compressor_coeff'][3])
+      global a_r_C_t_t_a0 
+      a_r_C_t_t_a0 = float(input['C_A']['compressor_coeff'][4])
+    if 'airvolume_coeff_minimum' in input:
+      global airvolume_coeff_minimum_C 
+      airvolume_coeff_minimum_C = float(input['C_A']['airvolume_coeff_minimum'][0])
+    if 'airvolume_coeff' in input:
+      global airvolume_coeff_a4_C
+      airvolume_coeff_a4_C = float(input['C_A']['airvolume_coeff'][0])
+      global airvolume_coeff_a3_C 
+      airvolume_coeff_a3_C = float(input['C_A']['airvolume_coeff'][1])
+      global airvolume_coeff_a2_C 
+      airvolume_coeff_a2_C = float(input['C_A']['airvolume_coeff'][2])
+      global airvolume_coeff_a1_C 
+      airvolume_coeff_a1_C = float(input['C_A']['airvolume_coeff'][3])
+      global airvolume_coeff_a0_C 
+      airvolume_coeff_a0_C = float(input['C_A']['airvolume_coeff'][4])
+    if 'fan_coeff' in input:
+      global P_fan_C_d_t_a4 
+      P_fan_C_d_t_a4 = float(input['C_A']['fan_coeff'][0])
+      global P_fan_C_d_t_a3 
+      P_fan_C_d_t_a3 = float(input['C_A']['fan_coeff'][1])
+      global P_fan_C_d_t_a2 
+      P_fan_C_d_t_a2 = float(input['C_A']['fan_coeff'][2])
+      global P_fan_C_d_t_a1 
+      P_fan_C_d_t_a1 = float(input['C_A']['fan_coeff'][3])
+      global P_fan_C_d_t_a0 
+      P_fan_C_d_t_a0 = float(input['C_A']['fan_coeff'][4])
     

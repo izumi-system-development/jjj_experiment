@@ -38,7 +38,7 @@ import jjjexperiment.constants as constants
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, fix_latent_load):
+             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i):
     """
 
     Args:
@@ -60,7 +60,6 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
       duct_insulation: 
       L_H_d_t_i: 
       L_CL_d_t_i: 
-      fix_latent_load:
 
     Returns:
 
@@ -165,7 +164,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
 
     # (40)
     Q_hat_hs_d_t = calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen_d_t, n_p_d_t, q_p_H,
-                                     q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region, fix_latent_load)
+                                     q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region)
 
     # (39)
     V_hs_min = get_V_hs_min(V_vent_g_i)
@@ -1279,7 +1278,7 @@ def get_V_hs_vent_d_t(V_vent_g_i, general_ventilation):
 # 9.7 VAV調整前の熱源機の風量
 # ============================================================================
 def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
-    """ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_風量特性
+    """ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_
     Args:
       Q_hat_hs_d_t: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の出力（MJ/h）
       region: 地域区分
@@ -1292,21 +1291,32 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
 
     V_dash_hs_supply_d_t = np.zeros(24 * 365)
     # 暖房期：顕熱2.5kW未満
-    f1 = np.logical_and(H, Q_hat_hs_d_t < 2500)
+    Q_hat_hs_d_t_kw = Q_hat_hs_d_t / 3600 * 1000
+    f1 = np.logical_and(H, Q_hat_hs_d_t_kw < 2.5)
+    V_dash_hs_supply_d_t[f1] = constants.airvolume_coeff_minimum
     # 暖房期：顕熱2.5kW以上    
-    f2 = np.logical_and(H, Q_hat_hs_d_t >= 2500)
-    V_dash_hs_supply_d_t[f1] = 0.17
-    V_dash_hs_supply_d_t[f2] = 0.092 * Q_hat_hs_d_t - 0.06
+    f2 = np.logical_and(H, Q_hat_hs_d_t_kw >= 2.5)
+    V_dash_hs_supply_d_t[f2] =    ( \
+        constants.airvolume_coeff_a4_H * Q_hat_hs_d_t ** 4
+            + constants.airvolume_coeff_a3_H * Q_hat_hs_d_t ** 3 \
+            + constants.airvolume_coeff_a2_H * Q_hat_hs_d_t ** 2
+            + constants.airvolume_coeff_a1_H * Q_hat_hs_d_t \
+            + constants.airvolume_coeff_a0_H)[f2]
 
     # 冷房期：顕熱2.5kW未満
-    f3 = np.logical_and(C, Q_hat_hs_d_t < 2500)
+    f3 = np.logical_and(C, Q_hat_hs_d_t_kw < 2.5)
+    V_dash_hs_supply_d_t[f3] = constants.airvolume_coeff_minimum
     # 冷房期：顕熱2.5kW以上    
-    f4 = np.logical_and(C, Q_hat_hs_d_t >= 2500)
-    V_dash_hs_supply_d_t[f3] = 0.17
-    V_dash_hs_supply_d_t[f4] = 0.092 * Q_hat_hs_d_t - 0.06
+    f4 = np.logical_and(C, Q_hat_hs_d_t_kw >= 2.5)
+    V_dash_hs_supply_d_t[f4] =    ( \
+        constants.airvolume_coeff_a4_C * Q_hat_hs_d_t_kw ** 4
+            + constants.airvolume_coeff_a3_C * Q_hat_hs_d_t_kw ** 3 \
+            + constants.airvolume_coeff_a2_C * Q_hat_hs_d_t_kw ** 2
+            + constants.airvolume_coeff_a1_C * Q_hat_hs_d_t_kw \
+            + constants.airvolume_coeff_a0_C)[f4]
 
     # 中間期
-    V_dash_hs_supply_d_t[M] = 0.17
+    V_dash_hs_supply_d_t[M] = constants.airvolume_coeff_minimum
 
     return V_dash_hs_supply_d_t
     
@@ -1425,7 +1435,7 @@ def get_V_hs_min(V_vent_g_i):
     return np.sum(V_vent_g_i[:5], axis=0)
 
 
-def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen_d_t, n_p_d_t, q_p_H, q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region, fix_latent_load):
+def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen_d_t, n_p_d_t, q_p_H, q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region):
     """(40-1a)(40-1b)(40-2a)(40-2b)(40-2c)(40-3)
 
     Args:
@@ -1445,7 +1455,6 @@ def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen
       w_gen_d_t: param Theta_ex_d_t: 日付dの時刻tにおける外気温度（℃）
       L_wtr: 水の蒸発潜熱（kJ/kg）
       region: 地域区分
-      fix_latent_load: 潜熱負荷計算の不具合修正適用
       Theta_ex_d_t: returns: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の暖房出力（MJ/h）
 
     Returns:
@@ -1477,7 +1486,7 @@ def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen
                       + mu_C * A_A * J_d_t[C] + q_gen_d_t[C] + n_p_d_t[C] * q_p_CS) * 3600 * 10 ** -6
 
     # (40-2c)
-    if fix_latent_load == 2:
+    if constants.fix_latent_load == 2:
       Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
                        * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
     

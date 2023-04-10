@@ -16,7 +16,7 @@ import jjjexperiment.jjj_section4_3 as rac
 import jjjexperiment.section3_1_e2 as uf
 import pyhees.section3_1 as ld
 
-def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, fix_latent_load, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
+def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
             type, input_C_af_H, input_C_af_C, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile, outdoorFile):
     """未処理負荷と機器の計算に必要な変数を取得"""
@@ -180,7 +180,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     # (40)　熱源機の風量を計算するための熱源機の出力
     Q_hat_hs_d_t = dc.calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen_d_t, n_p_d_t, q_p_H,
-                                     q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region, fix_latent_load)
+                                     q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region)
     df_output['Q_hat_hs_d_t'] = Q_hat_hs_d_t
 
     # (39)　熱源機の最低風量
@@ -194,12 +194,18 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
         # (37)
         Q_hs_rtd_H = dc.get_Q_hs_rtd_H(q_hs_rtd_H)
-    elif type == 'ルームエアコンディショナ活用型全館空調システム':
+    elif type == 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）':
         # (38)　冷房時の熱源機の定格出力
         Q_hs_rtd_C = dc.get_Q_hs_rtd_C(q_rtd_C)             #ルームエアコンディショナの定格能力 q_rtd_C を入力するよう書き換え
 
         # (37)　暖房時の熱源機の定格出力
         Q_hs_rtd_H = dc.get_Q_hs_rtd_H(q_rtd_H)             #ルームエアコンディショナの定格能力 q_rtd_H を入力するよう書き換え
+    elif type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+        # (38)　冷房時の熱源機の定格出力
+        Q_hs_rtd_C = dc.get_Q_hs_rtd_C(q_rtd_C)
+
+        # (37)　暖房時の熱源機の定格出力
+        Q_hs_rtd_H = dc.get_Q_hs_rtd_H(q_rtd_H)
     else:
         raise Exception('設備機器の種類の入力が不正です。')
     
@@ -223,12 +229,12 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             updated_V_hs_dsgn_C = V_hs_dsgn_C or 0
         else:
             updated_V_hs_dsgn_C = None
-        if type == 3:
-            V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t)
+        if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+            V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region)
             df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
         else:
             V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t(V_hs_min, updated_V_hs_dsgn_H, updated_V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region)
-        df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
+            df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
 
     # (45)　風量バランス
     r_supply_des_i = dc.get_r_supply_des_i(A_HCZ_i)
@@ -296,7 +302,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output['L_star_H_d_t_i_5'] = L_star_H_d_t_i[4] 
 
     ####################################################################################################################
-    if type == 'ダクト式セントラル空調機':
+    if type == 'ダクト式セントラル空調機' or type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
         # (33)
         L_star_CL_d_t = dc.get_L_star_CL_d_t(L_star_CL_d_t_i)
         df_output['L_star_CL_d_t'] = L_star_CL_d_t
@@ -644,21 +650,20 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
     # (3)
     q_hs_H_d_t = dc_a.get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
 
-    if type == 'ダクト式セントラル空調機':
-        # (37)
+    if type == 'ダクト式セントラル空調機' or 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    # (37)
         E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
-
 
         # (20)
         e_th_mid_H = dc_a.calc_e_th_mid_H(type, V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C)
-    
+
         # (19)
         e_th_rtd_H = dc_a.calc_e_th_rtd_H(type, V_fan_rtd_H, q_hs_rtd_C)
-    
+
         # (17)
         e_th_H_d_t = dc_a.calc_e_th_H_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t, q_hs_rtd_C)
 
-        if type == 3: ##ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_コンプレッサ効率特性
+        if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）': #コンプレッサ効率特性
             e_r_H_d_t = dc_a.get_e_r_H_d_t_2023(q_hs_H_d_t)
         else:    
             # (11)
@@ -672,16 +677,16 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
         
             # (9)
             e_r_H_d_t = dc_a.get_e_r_H_d_t(q_hs_H_d_t, q_hs_rtd_H, q_hs_min_H, q_hs_mid_H, e_r_mid_H, e_r_min_H, e_r_rtd_H)
-    
+
         # (7)
         e_hs_H_d_t = dc_a.get_e_hs_H_d_t(e_th_H_d_t, e_r_H_d_t)
-    
+
         # (5)
         E_E_comp_H_d_t = dc_a.get_E_E_comp_H_d_t(q_hs_H_d_t, e_hs_H_d_t)
-    
+
         # (1)
         E_E_H_d_t = E_E_comp_H_d_t + E_E_fan_H_d_t
-    elif type == 'ルームエアコンディショナ活用型全館空調システム':
+    elif type == 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）':
         E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
         
         E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H, outdoorFile)
@@ -691,7 +696,7 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
 
     return E_E_H_d_t, q_hs_H_d_t, E_E_fan_H_d_t
 
-def get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t,V_hs_supply_d_t, region):
+def get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region):
     """(4a-1)(4b-1)(4c-1)(4a-2)(4b-2)(4c-2)(4a-3)(4b-3)(4c-3)
 
     :param Theta_hs_out_d_t:日付dの時刻tにおける熱源機の出口における空気温度（℃）
@@ -728,7 +733,7 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t,
     # (4)
     q_hs_CS_d_t, q_hs_CL_d_t = get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
-    if type == 'ダクト式セントラル空調機':
+    if type == 'ダクト式セントラル空調機' or 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
         # (4)
         q_hs_C_d_t = dc_a.get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
@@ -744,17 +749,20 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t,
         # (18)
         e_th_C_d_t = dc_a.calc_e_th_C_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t, q_hs_rtd_C)
 
-        # (12)
-        e_r_rtd_C = dc_a.get_e_r_rtd_C(e_th_rtd_C, q_hs_rtd_C, P_hs_rtd_C, P_fan_rtd_C)
-
-        # (16)
-        e_r_min_C = dc_a.get_e_r_min_C(e_r_rtd_C)
-
-        # (14)
-        e_r_mid_C = dc_a.get_e_r_mid_C(e_r_rtd_C, e_th_mid_C, q_hs_mid_C, P_hs_mid_C, P_fan_mid_C, EquipmentSpec)
-
-        # (10)
-        e_r_C_d_t = dc_a.get_e_r_C_d_t(q_hs_C_d_t, q_hs_rtd_C, q_hs_min_C, q_hs_mid_C, e_r_mid_C, e_r_min_C, e_r_rtd_C)
+        if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）': #コンプレッサ効率特性
+            e_r_C_d_t = dc_a.get_e_r_C_d_t_2023(q_hs_C_d_t)
+        else:    
+            # (11)
+            e_r_rtd_C = dc_a.get_e_r_rtd_C(e_th_rtd_C, q_hs_rtd_C, P_hs_rtd_C, P_fan_rtd_C)
+        
+            # (15)
+            e_r_min_C = dc_a.get_e_r_min_C(e_r_rtd_C)
+        
+            # (13)
+            e_r_mid_C = dc_a.get_e_r_mid_C(e_r_rtd_C, e_th_mid_C, q_hs_mid_C, P_hs_mid_C, P_fan_mid_C, EquipmentSpec)
+        
+            # (9)
+            e_r_C_d_t = dc_a.get_e_r_C_d_t(q_hs_C_d_t, q_hs_rtd_C, q_hs_min_C, q_hs_mid_C, e_r_mid_C, e_r_min_C, e_r_rtd_C)
 
         # (8)
         e_hs_C_d_t = dc_a.get_e_hs_C_d_t(e_th_C_d_t, e_r_C_d_t)
@@ -764,7 +772,7 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t,
 
         # (2)
         E_E_C_d_t = E_E_comp_C_d_t + E_E_fan_C_d_t
-    elif type == 'ルームエアコンディショナ活用型全館空調システム':
+    elif type == 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）':
         E_E_CRAC_C_d_t = rac.calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6 / 1000, q_hs_CL_d_t * 3.6 / 1000, input_C_af_C, outdoorFile)
 
         # (38)
