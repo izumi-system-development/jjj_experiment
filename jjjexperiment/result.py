@@ -35,13 +35,13 @@ class ResultSummary:
     def e_rtd_C(self):
         """ 定格冷房エネルギー消費効率(efficiency of rated cooling)
         """
-        return self._q_max_C
+        return self._e_rtd_C
 
     @property
     def e_rtd_H(self):
         """ 定格暖房エネルギー消費効率(efficiency of rated heating)
         """
-        return self._q_max_H
+        return self._e_rtd_H
 
     @property
     def E_C(self):
