@@ -20,11 +20,12 @@ from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
 import jjjexperiment.calc
 import jjjexperiment.constants
 import jjjexperiment.input
+from jjjexperiment.result import ResultSummary
 
 import pandas as pd
 from datetime import datetime
 
-def calc(input_data : dict):
+def calc(input_data : dict, test_mode=False):
     df_output1 = pd.DataFrame(index = ['合計値'])
     df_output2 = pd.DataFrame(index = pd.date_range(datetime(2022, 1, 1, 1, 0, 0), datetime(2023, 1, 1, 0, 0, 0), freq = 'h'))
 
@@ -321,3 +322,11 @@ def calc(input_data : dict):
     df_output2['q_hs_CS_d_t [Wh/h]']        = q_hs_CS_d_t
     df_output2['q_hs_CL_d_t [Wh/h]']        = q_hs_CL_d_t
     df_output2.to_csv(case_name + '_output2.csv', encoding = 'cp932')
+
+    if test_mode:
+        return ResultSummary(
+            q_rtd_C, q_rtd_H,
+            q_max_C, q_max_H,
+            e_rtd_C, e_rtd_H, E_C, E_H)
+    else:
+        pass
