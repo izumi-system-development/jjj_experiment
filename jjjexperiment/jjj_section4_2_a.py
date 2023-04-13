@@ -56,7 +56,7 @@ from scipy import optimize
 # ============================================================================
 
 # 日付dの時刻tにおける1時間当たりの暖房時の消費電力量（kWh/h）(1)
-def calc_E_E_H_d_t(type,Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t,
+def calc_E_E_H_d_t(type, Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t,
            q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, P_hs_mid_H, P_hs_rtd_H, P_fan_rtd_H, P_fan_mid_H, q_hs_min_H, q_hs_mid_H,
            V_fan_rtd_H, V_fan_mid_H, EquipmentSpec, region):
     """
@@ -97,13 +97,13 @@ def calc_E_E_H_d_t(type,Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_hs
     E_E_fan_H_d_t = get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t)
 
     # (20)
-    e_th_mid_H = calc_e_th_mid_H(type,V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C)
+    e_th_mid_H = calc_e_th_mid_H(type, V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C)
 
     # (19)
-    e_th_rtd_H = calc_e_th_rtd_H(type,V_fan_rtd_H, q_hs_rtd_H)
+    e_th_rtd_H = calc_e_th_rtd_H(type, V_fan_rtd_H, q_hs_rtd_H, q_hs_rtd_C)
 
     # (17)
-    e_th_H_d_t = calc_e_th_H_d_t(type,Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t,q_hs_rtd_C)
+    e_th_H_d_t = calc_e_th_H_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t,q_hs_rtd_C)
     
     # (11)
     e_r_rtd_H = get_e_r_rtd_H(e_th_rtd_H, q_hs_rtd_H, P_hs_rtd_H, P_fan_rtd_H)
@@ -743,13 +743,14 @@ def calc_e_th_C_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_o
 # A.4.4.2 JIS試験におけるヒートポンプサイクルの理論効率
 # ============================================================================
 
-def calc_e_th_rtd_H(type, V_fan_rtd_H, q_hs_rtd_C):
+def calc_e_th_rtd_H(type, V_fan_rtd_H, q_hs_rtd_H, q_hs_rtd_C):
     """(19)
 
     Args:
       type: 暖房設備機器の種類
       V_fan_rtd_H: 定格暖房能力運転時の送風機の風量（m3/h）
-      q_hs_rtd_C: 定格暖房能力（W）
+      q_hs_rtd_H: 定格暖房能力（W）
+      q_hs_rtd_C: 定格冷房能力（W）
       alpha_c_hex_H: 暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
 
     Returns:
@@ -757,10 +758,10 @@ def calc_e_th_rtd_H(type, V_fan_rtd_H, q_hs_rtd_C):
 
     """
     # (35)
-    alpha_c_hex_H = get_alpha_c_hex_H(type,V_fan_rtd_H,q_hs_rtd_C)
+    alpha_c_hex_H = get_alpha_c_hex_H(type, V_fan_rtd_H, q_hs_rtd_C)
 
     # (33)
-    Theta_sur_f_hex_H = get_Theta_sur_f_hex_H_JIS(type, V_fan_rtd_H, q_hs_rtd_C, alpha_c_hex_H, q_hs_rtd_C)
+    Theta_sur_f_hex_H = get_Theta_sur_f_hex_H_JIS(type, V_fan_rtd_H, q_hs_rtd_H, alpha_c_hex_H, q_hs_rtd_C)
 
     # (23)
     Theta_ref_cnd_H = get_Theta_ref_cnd_H(Theta_sur_f_hex_H)
@@ -1286,7 +1287,7 @@ def get_q_hs_CL(type, Theta_surf_hex_C, V_fan_x_C, alpha_dash_c_hex_C, q_hs_rtd_
 # A.5.2 熱交換器表面の顕熱伝達率
 # ============================================================================
 
-def get_alpha_c_hex_H(type,V_fan_x_H,q_hs_rtd_C):
+def get_alpha_c_hex_H(type, V_fan_x_H, q_hs_rtd_C):
     """(35)
 
     Args:
@@ -1301,7 +1302,7 @@ def get_alpha_c_hex_H(type,V_fan_x_H,q_hs_rtd_C):
     # 表5より
     V_hs_supply = V_fan_x_H
     
-    A_f_hex = get_A_f_hex(type,q_hs_rtd_C)
+    A_f_hex = get_A_f_hex(type, q_hs_rtd_C)
 
     alpha_c_hex_H = (-0.0017 * ((V_hs_supply / 3600) / A_f_hex) ** 2 \
                      + 0.044 * ((V_hs_supply / 3600) / A_f_hex) + 0.0271) * 10 ** 3
@@ -1309,7 +1310,7 @@ def get_alpha_c_hex_H(type,V_fan_x_H,q_hs_rtd_C):
     return alpha_c_hex_H
 
 
-def get_alpha_c_hex_C(type,V_fan_x_C, X_hs_in,q_hs_rtd_C):
+def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
     """(36)
 
     Args:
