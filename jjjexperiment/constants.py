@@ -24,7 +24,7 @@ C_hm_C: float = 1.15
 """室内機吸い込み湿度に関する冷房出力補正係数"""
 q_rtd_C_limit: float = 5600
 """定格冷房能力の最大値"""
-fix_latent_load: float = 2
+fix_latent_load: int = 1
 """潜熱負荷計算の不具合修正"""
 #以下、潜熱評価モデル追加対応(暖房)
 A_f_hex_small_H: float = 0.2
@@ -160,7 +160,7 @@ def set_constants(input: dict):
     q_rtd_C_limit = float(input['q_rtd_C_limit'])
   if 'fix_latent_load' in input:
     global fix_latent_load
-    fix_latent_load = float(input['fix_latent_load'])
+    fix_latent_load = int(input['fix_latent_load'])
   #以下、潜熱評価モデル追加対応
   if 'H_A' in input:
     if 'A_f_hex_small' in input:

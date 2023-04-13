@@ -1487,11 +1487,10 @@ def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen
 
     # (40-2c)
     if constants.fix_latent_load == 2:
-      Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
-                       * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
-    
-    else:
         Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] / 1000 - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
+                       * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
+    else:
+        Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
                        * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
 
     # (40-2a)
