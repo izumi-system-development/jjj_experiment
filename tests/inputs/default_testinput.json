@@ -32,7 +32,7 @@
     "R_g": 0.15,
     "hs_CAV": "1",
     "H_A": {
-        "type": 3,
+        "type": 1,
         "duct_insulation": 1,
         "VAV": 1,
         "general_ventilation": 1,
@@ -60,7 +60,7 @@
         "f_SFP_H": 0.144
     },
     "C_A": {
-        "type": 3,
+        "type": 1,
         "duct_insulation": 1,
         "VAV": 1,
         "general_ventilation": 1,
