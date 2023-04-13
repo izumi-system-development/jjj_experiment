@@ -7,7 +7,7 @@ import pprint
 
 from pyhees.section2_1_b import get_f_prim
 
-from jjjexperiment.jjj_section4_1 import calc_heating_load, calc_cooling_load, get_virtual_heating_devices, get_alpha_UT_H_A, calc_E_E_H_hs_A_d_t, calc_E_E_C_hs_d_t
+from jjjexperiment.jjj_section4_1 import calc_heating_load, calc_cooling_load, get_virtual_heating_devices, get_alpha_UT_H_A
 from pyhees.section4_1_a import calc_heating_mode
 
 # ダクト式セントラル空調機
