@@ -188,7 +188,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output3['V_hs_min'] = [V_hs_min]
 
     ####################################################################################################################
-    if type == 'ダクト式セントラル空調機':
+    if type == 'ダクト式セントラル空調機' or type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
         # (38)
         Q_hs_rtd_C = dc.get_Q_hs_rtd_C(q_hs_rtd_C)
 
@@ -200,12 +200,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
         # (37)　暖房時の熱源機の定格出力
         Q_hs_rtd_H = dc.get_Q_hs_rtd_H(q_rtd_H)             #ルームエアコンディショナの定格能力 q_rtd_H を入力するよう書き換え
-    elif type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
-        # (38)　冷房時の熱源機の定格出力
-        Q_hs_rtd_C = dc.get_Q_hs_rtd_C(q_rtd_C)
-
-        # (37)　暖房時の熱源機の定格出力
-        Q_hs_rtd_H = dc.get_Q_hs_rtd_H(q_rtd_H)
     else:
         raise Exception('設備機器の種類の入力が不正です。')
     
