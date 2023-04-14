@@ -341,7 +341,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_hs_max_H_d_t = dc.get_Q_hs_max_H_d_t(q_hs_rtd_H, C_df_H_d_t)
         df_output['Q_hs_max_H_d_t'] = Q_hs_max_H_d_t
 
-    elif type == 'ルームエアコンディショナ活用型全館空調システム':
+    elif type == 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）':
         # (24)　デフロストに関する暖房出力補正係数
         C_df_H_d_t = dc.get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
         df_output['C_df_H_d_t'] = C_df_H_d_t
