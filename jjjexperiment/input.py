@@ -88,7 +88,9 @@ def get_heating(input: dict, region: int, A_A: float):
     if int(input['H_A']['type']) == 1:
         H_A['type'] = 'ダクト式セントラル空調機'
     elif int(input['H_A']['type']) == 2:
-        H_A['type'] = 'ルームエアコンディショナ活用型全館空調システム'
+        H_A['type'] = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'
+    elif int(input['H_A']['type']) == 3:
+        H_A['type'] = 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）'
     else:
         raise Exception('暖房設備機器の種類の入力が不正です。')
 
@@ -175,7 +177,9 @@ def get_cooling(input: dict, region: int, A_A: float):
     if int(input['C_A']['type']) == 1:
         C_A['type'] = 'ダクト式セントラル空調機'
     elif int(input['C_A']['type']) == 2:
-        C_A['type'] = 'ルームエアコンディショナ活用型全館空調システム'
+        C_A['type'] = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'
+    elif int(input['C_A']['type']) == 3:
+        C_A['type'] = 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル'
     else:
         raise Exception('冷房設備機器の種類の入力が不正です。')
 

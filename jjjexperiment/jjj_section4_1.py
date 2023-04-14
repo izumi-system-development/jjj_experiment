@@ -523,11 +523,12 @@ def get_E_E_aux_ass_d_t(SHC, heating_flag_d, region, sol_region):
     return E_E_aux_ass_d_t
 
 
-def calc_E_E_hs_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, CG,
+def calc_E_E_hs_d_t(type,region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, CG,
                     L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i):
     """暖房設備機器等の消費電力量（kWh/h）を計算する
 
     Args:
+      type: 暖房設備機器の種類
       region(int): 省エネルギー地域区分
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
@@ -552,7 +553,7 @@ def calc_E_E_hs_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, spec_MR,
 
     """
     if H_A is not None:
-        return calc_E_E_H_hs_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i, region)
+        return calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i, region)
     elif (spec_MR is not None or spec_OR is not None) and L_T_H_d_t_i is not None:
         if is_hotwaterheatingonly(spec_MR, spec_OR):
             # 居室のみを暖房する方式でかつ主たる居室とその他の居室ともに温水暖房を設置する場合 (8a)
@@ -1560,10 +1561,11 @@ def calc_E_M_hs_d_t(region, A_A, A_MR, A_OR, H_A, spec_MR, spec_OR, spec_HS, L_H
 # 6.3.1 住戸全体を連続的に暖房する方式 
 # ---------------------------------------------------
 
-def calc_E_E_H_hs_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, region):
+def calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, q_hs_H_d_t, region):
     """住戸全体を連続的に暖房する方式における暖房設備機器の消費電力量（kWh/h）を計算する
 
     Args:
+      type: 暖房設備機器の種類
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
@@ -1575,6 +1577,7 @@ def calc_E_E_H_hs_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_H_d_t_i, L
       L_H_d_t_i(ndarray): 暖房区画i=1-5それぞれの暖房負荷
       L_CS_d_t_i(ndarray): 冷房区画i=1-5それぞれの冷房顕熱負荷
       L_CL_d_t_i(ndarray): 冷房区画i=1-5それぞれの冷房潜熱負荷
+      q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
       region(int): 省エネルギー地域区分
 
     Returns:
@@ -1603,7 +1606,7 @@ def calc_E_E_H_hs_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_H_d_t_i, L
         P_hs_rtd_H = dc_spec.get_P_hs_rtd_H(q_hs_rtd_H)
         V_fan_rtd_H = dc_spec.get_V_fan_rtd_H(q_hs_rtd_H)
         V_fan_mid_H = dc_spec. get_V_fan_mid_H(q_hs_mid_H)
-        P_fan_rtd_H = dc_spec.get_P_fan_rtd_H(V_fan_rtd_H)
+        P_fan_rtd_H = dc_spec.get_P_fan_rtd_H(type, V_fan_rtd_H,q_hs_H_d_t)
         P_fan_mid_H = dc_spec.get_P_fan_mid_H(V_fan_mid_H)
         P_hs_mid_H = np.NAN
     elif H_A['EquipmentSpec'] == '定格能力試験の値を入力する':
@@ -1652,12 +1655,14 @@ def calc_E_E_H_hs_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_H_d_t_i, L
 
     # 電力消費量の計算
     E_E_H_d_t = dc_a.calc_E_E_H_d_t(
+        type=type,
         Theta_hs_out_d_t=Theta_hs_out_d_t,
         Theta_hs_in_d_t=Theta_hs_in_d_t,
         V_hs_supply_d_t=V_hs_supply_d_t,
         V_hs_vent_d_t=V_hs_vent_d_t,
         C_df_H_d_t=C_df_H_d_t,
         q_hs_rtd_H=q_hs_rtd_H,
+        q_hs_rtd_C=q_hs_rtd_C,
         V_hs_dsgn_H=V_hs_dsgn_H,
         P_hs_mid_H=P_hs_mid_H,
         P_hs_rtd_H=P_hs_rtd_H,
@@ -1668,7 +1673,7 @@ def calc_E_E_H_hs_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_H_d_t_i, L
         V_fan_rtd_H=V_fan_rtd_H,
         V_fan_mid_H=V_fan_mid_H,
         EquipmentSpec=EquipmentSpec,
-        region=region
+        region=region,
     )
 
     return E_E_H_d_t
@@ -2587,10 +2592,11 @@ def calc_E_M_C_d_t(**args):
 # 7.3 冷房設備機器のエネルギー消費量 
 # ===================================================
 
-def calc_E_E_C_hs_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t):
+def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t):
     """冷房設備機器の消費電力量（kWh/h）(22a, 23a)を取得する
 
     Args:
+      type: 暖房設備機器の種類
       region(int): 省エネルギー地域区分
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
@@ -2681,6 +2687,7 @@ def calc_E_E_C_hs_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, C_MR, 
                                                                        L_H_d_t, L_CS_d_t, L_CL_d_t)
 
         E_E_C_d_t_i = dc_a.get_E_E_C_d_t(
+            type=type,
             Theta_hs_out_d_t=Theta_hs_out_d_t,
             Theta_hs_in_d_t=Theta_hs_in_d_t,
             X_hs_out_d_t=X_hs_out_d_t,

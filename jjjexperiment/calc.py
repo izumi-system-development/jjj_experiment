@@ -223,8 +223,12 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             updated_V_hs_dsgn_C = V_hs_dsgn_C or 0
         else:
             updated_V_hs_dsgn_C = None
-        V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t(V_hs_min, updated_V_hs_dsgn_H, updated_V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region)
-    df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
+        if type == 3:
+            V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t)
+            df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
+        else:
+            V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t(V_hs_min, updated_V_hs_dsgn_H, updated_V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region)
+        df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
 
     # (45)　風量バランス
     r_supply_des_i = dc.get_r_supply_des_i(A_HCZ_i)
@@ -633,7 +637,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
            X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t
 
 def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t, V_hs_dsgn_H,
-        EquipmentSpec, q_hs_rtd_H, P_hs_rtd_H, V_fan_rtd_H, P_fan_rtd_H, q_hs_mid_H, P_hs_mid_H, V_fan_mid_H, P_fan_mid_H, q_hs_min_H,
+        EquipmentSpec, q_hs_rtd_H, q_hs_rtd_C, P_hs_rtd_H, V_fan_rtd_H, P_fan_rtd_H, q_hs_mid_H, P_hs_mid_H, V_fan_mid_H, P_fan_mid_H, q_hs_min_H,
         region, type, q_rtd_C, q_rtd_H, P_rac_fan_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, input_C_af_H, f_SFP_H, outdoorFile):
     """日付dの時刻tにおける1時間当たりの暖房時の消費電力量（kWh/h）(1)"""
 
@@ -646,25 +650,28 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
 
 
         # (20)
-        e_th_mid_H = dc_a.calc_e_th_mid_H(V_fan_mid_H, q_hs_mid_H)
+        e_th_mid_H = dc_a.calc_e_th_mid_H(type, V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C)
     
         # (19)
-        e_th_rtd_H = dc_a.calc_e_th_rtd_H(V_fan_rtd_H, q_hs_rtd_H)
+        e_th_rtd_H = dc_a.calc_e_th_rtd_H(type, V_fan_rtd_H, q_hs_rtd_C)
     
         # (17)
-        e_th_H_d_t = dc_a.calc_e_th_H_d_t(Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t)
-    
-        # (11)
-        e_r_rtd_H = dc_a.get_e_r_rtd_H(e_th_rtd_H, q_hs_rtd_H, P_hs_rtd_H, P_fan_rtd_H)
-    
-        # (15)
-        e_r_min_H = dc_a.get_e_r_min_H(e_r_rtd_H)
-    
-        # (13)
-        e_r_mid_H = dc_a.get_e_r_mid_H(e_r_rtd_H, e_th_mid_H, q_hs_mid_H, P_hs_mid_H, P_fan_mid_H, EquipmentSpec)
-    
-        # (9)
-        e_r_H_d_t = dc_a.get_e_r_H_d_t(q_hs_H_d_t, q_hs_rtd_H, q_hs_min_H, q_hs_mid_H, e_r_mid_H, e_r_min_H, e_r_rtd_H)
+        e_th_H_d_t = dc_a.calc_e_th_H_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t, q_hs_rtd_C)
+
+        if type == 3: ##ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_コンプレッサ効率特性
+            e_r_H_d_t = dc_a.get_e_r_H_d_t_2023(q_hs_H_d_t)
+        else:    
+            # (11)
+            e_r_rtd_H = dc_a.get_e_r_rtd_H(e_th_rtd_H, q_hs_rtd_H, P_hs_rtd_H, P_fan_rtd_H)
+        
+            # (15)
+            e_r_min_H = dc_a.get_e_r_min_H(e_r_rtd_H)
+        
+            # (13)
+            e_r_mid_H = dc_a.get_e_r_mid_H(e_r_rtd_H, e_th_mid_H, q_hs_mid_H, P_hs_mid_H, P_fan_mid_H, EquipmentSpec)
+        
+            # (9)
+            e_r_H_d_t = dc_a.get_e_r_H_d_t(q_hs_H_d_t, q_hs_rtd_H, q_hs_min_H, q_hs_mid_H, e_r_mid_H, e_r_min_H, e_r_rtd_H)
     
         # (7)
         e_hs_H_d_t = dc_a.get_e_hs_H_d_t(e_th_H_d_t, e_r_H_d_t)
@@ -729,13 +736,13 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t,
         E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP_C)
 
         # (22)
-        e_th_mid_C = dc_a.calc_e_th_mid_C(V_fan_mid_C, q_hs_mid_C)
+        e_th_mid_C = dc_a.calc_e_th_mid_C(type, V_fan_mid_C, q_hs_mid_C, q_hs_rtd_C)
 
         # (21)
-        e_th_rtd_C = dc_a.calc_e_th_rtd_C(V_fan_rtd_C, q_hs_rtd_C)
+        e_th_rtd_C = dc_a.calc_e_th_rtd_C(type, V_fan_rtd_C, q_hs_rtd_C)
 
         # (18)
-        e_th_C_d_t = dc_a.calc_e_th_C_d_t(Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t)
+        e_th_C_d_t = dc_a.calc_e_th_C_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t, q_hs_rtd_C)
 
         # (12)
         e_r_rtd_C = dc_a.get_e_r_rtd_C(e_th_rtd_C, q_hs_rtd_C, P_hs_rtd_C, P_fan_rtd_C)

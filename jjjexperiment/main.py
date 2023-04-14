@@ -165,6 +165,7 @@ def calc(input_data : dict):
         V_hs_dsgn_H = V_hs_dsgn_H,
         EquipmentSpec = H_A['EquipmentSpec'],
         q_hs_rtd_H = H_A['q_hs_rtd_H'],
+        q_hs_rtd_C = C_A['q_hs_rtd_C'],
         P_hs_rtd_H = H_A['P_hs_rtd_H'],
         V_fan_rtd_H = H_A['V_fan_rtd_H'],
         P_fan_rtd_H = H_A['P_fan_rtd_H'],
