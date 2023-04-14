@@ -221,7 +221,7 @@ def calc(input_data : dict):
     """冷房時の送風機の設計風量(m3/h)"""
 
     #P_rac_fan_rtd_C: float = dc_spec.get_P_fan_rtd_C(V_fan_rtd_C)
-    P_rac_fan_rtd_C: float = V_hs_dsgn_H * C_A['f_SFP_C']
+    P_rac_fan_rtd_C: float = V_hs_dsgn_C * C_A['f_SFP_C']
     """定格冷房能力運転時の送風機の消費電力(W)"""
 
     V_hs_dsgn_H: float = None
