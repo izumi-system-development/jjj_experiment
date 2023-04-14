@@ -644,8 +644,8 @@ def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_
     # (3)
     q_hs_H_d_t = dc_a.get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
 
-    if type == 'ダクト式セントラル空調機' or 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
-    # (37)
+    if type == 'ダクト式セントラル空調機' or type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+        # (37)
         E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
 
         # (20)
@@ -727,7 +727,7 @@ def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t,
     # (4)
     q_hs_CS_d_t, q_hs_CL_d_t = get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
-    if type == 'ダクト式セントラル空調機' or 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == 'ダクト式セントラル空調機' or type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
         # (4)
         q_hs_C_d_t = dc_a.get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
