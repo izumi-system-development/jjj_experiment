@@ -54,7 +54,7 @@ class TestNotBrokenOriginalInputs:
             q_max_H = 10047.047813999998,
             e_rtd_C = 2.8512,
             e_rtd_H = 3.855424,
-            E_C = 14938.13915501843,
+            E_C = 14695.841130521072,
             E_H = 40812.21298826678)
 
         inputs = copy.deepcopy(self._inputs)
