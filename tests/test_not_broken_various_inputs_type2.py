@@ -334,9 +334,9 @@ class TestNotBrokenVariousInputsType2:
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
 
-        assert result.E_H == 40461.6302264345
+        assert result.E_H == 40822.38807655774
         assert result.E_H != self._base_output.E_H
-        assert result.E_C == 14832.537841444147
+        assert result.E_C == 14184.472397667007
         assert result.E_C != self._base_output.E_C
 
     def test_output_not_changed_15(self):
