@@ -339,7 +339,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C == 14832.537841444147
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_14(self):
+    def test_output_not_changed_15(self):
         """ 入力内容変更時の挙動が壊れていない
             主たる居室の面積 [m2]
             A_MR
@@ -361,7 +361,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C != self._base_output.E_C
         assert result.E_C == 22378.09180122358
 
-    def test_output_not_changed_15(self):
+    def test_output_not_changed_16(self):
         """ 入力内容変更時の挙動が壊れていない
             その他の居室の面積[m2]
             A_OR
@@ -383,7 +383,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C != self._base_output.E_C
         assert result.E_C == 25009.231072133218
 
-    def test_output_not_changed_16(self):
+    def test_output_not_changed_17(self):
         """ 入力内容変更時の挙動が壊れていない
             地域区分
             region
@@ -405,7 +405,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C == 2884.2632006293015
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_17(self):
+    def test_output_not_changed_18(self):
         """ 入力内容変更時の挙動が壊れていない
             外皮面積 [m2]
             A_env
@@ -427,7 +427,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C != self._base_output.E_C
         assert result.E_C == 15119.878587850431
 
-    def test_output_not_changed_18(self):
+    def test_output_not_changed_19(self):
         """ 入力内容変更時の挙動が壊れていない
             外皮平均熱貫流率 UA [W/(m2・K)]
             U_A
@@ -449,7 +449,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C != self._base_output.E_C
         assert result.E_C == 14057.66109771598
 
-    def test_output_not_changed_19(self):
+    def test_output_not_changed_20(self):
         """ 入力内容変更時の挙動が壊れていない
             冷房期平均日射熱取得率ηAC
             eta_A_C
@@ -470,7 +470,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C == 16690.55292080024
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_20(self):
+    def test_output_not_changed_21(self):
         """ 入力内容変更時の挙動が壊れていない
             暖房期平均日射熱取得率ηAH
             eta_A_H
@@ -491,7 +491,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_H == 43202.66151700742
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_21(self):
+    def test_output_not_changed_22(self):
         """ 入力内容変更時の挙動が壊れていない
             床下空間を経由して外気を導入する換気方式の利用 （☐：評価しない or ☑：評価する）
             underfloor_ventilation
@@ -513,7 +513,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C == 12647.872661178222
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_22(self):
+    def test_output_not_changed_23(self):
         """ 入力内容変更時の挙動が壊れていない
             外気が経由する床下の面積の割合 [%]
             r_A_ufvnt
@@ -533,7 +533,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_23(self):
+    def test_output_not_changed_24(self):
         """ 入力内容変更時の挙動が壊れていない
             床下空間の断熱 （☐：断熱区画外 or ☑：断熱区画内）
             underfloor_insulation
@@ -553,7 +553,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_24(self):
+    def test_output_not_changed_25(self):
         """ 入力内容変更時の挙動が壊れていない
             空調空気を床下を通して給気する （☐：床下を通して給気しない or ☑：床下を通して給気する）
             underfloor_air_conditioning_air_supply
@@ -575,7 +575,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C != self._base_output.E_C
         assert result.E_C == 18872.3162663047
 
-    def test_output_not_changed_25(self):
+    def test_output_not_changed_26(self):
         """ 入力内容変更時の挙動が壊れていない
             地盤またはそれを覆う基礎の表面熱伝達抵抗 [(m2・K)/W]
             R_g
@@ -595,7 +595,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_26(self):
+    def test_output_not_changed_27(self):
         """ 入力内容変更時の挙動が壊れていない
             全体風量を固定する （☐：固定しない or ☑：固定する）
             hs_CAV
@@ -701,7 +701,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_H == 40896.18678654383
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_Type2_H1(self):
+    def test_output_not_changed_type2_H1(self):
         """ 入力内容変更時の挙動が壊れていない
             暖房の機器仕様を入力する1
         """
@@ -745,7 +745,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_H == 31577.30541426199
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_Type2_H2(self):
+    def test_output_not_changed_type2_H2(self):
         """ 入力内容変更時の挙動が壊れていない
             暖房の機器仕様を入力する1
         """
@@ -873,7 +873,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C == 16296.897277400154
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_Type2_R1(self):
+    def test_output_not_changed_type2_R1(self):
         """ 入力内容変更時の挙動が壊れていない
             冷房の機器仕様を入力する1
         """
@@ -916,7 +916,7 @@ class TestNotBrokenVariousInputsType2:
         assert result.E_C != self._base_output.E_C
         assert result.E_C == 14046.978599922277
 
-    def test_output_not_changed_Type2_R2(self):
+    def test_output_not_changed_type2_R2(self):
         """ 入力内容変更時の挙動が壊れていない
             冷房の機器仕様を入力する2
         """
