@@ -6,14 +6,14 @@ import copy
 from jjjexperiment.main import calc
 from jjjexperiment.result import ResultSummary
 
-class TestNotBrokenVariousInputsType1:
+class TestNotBrokenVariousInputsType2:
     """ 既存計算が壊れていないことのテスト
-        暖房・冷房ともに「ダクト式セントラル空調機」
+        暖房・冷房ともに「ルームエアコンディショナ活用型全館空調」
     """
     def setup_inputs() -> dict:
         inputs: dict = json.load(open('./tests/inputs/default_testinput.json', 'r'))
-        inputs['H_A']['type'] = 1
-        inputs['C_A']['type'] = 1
+        inputs['H_A']['type'] = 2
+        inputs['C_A']['type'] = 2
         return inputs
 
     _inputs: dict = setup_inputs()
@@ -25,8 +25,8 @@ class TestNotBrokenVariousInputsType1:
             q_max_H = 10047.047813999998,
             e_rtd_C = 2.8512,
             e_rtd_H = 3.855424,
-            E_C = 14746.052998129611,
-            E_H = 36310.32799729332)
+            E_C = 14695.841130521072,
+            E_H = 40812.21298826678)
 
     def test_output_not_changed_base(self):
         """ ベースとしている結果が確かであることを確認
@@ -60,7 +60,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 36312.73469516181
+        assert result.E_H == 40813.23277369657
         assert result.E_H != self._base_output.E_H
 
     def test_output_not_changed_02(self):
@@ -82,7 +82,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == self._base_output.E_H
 
         assert result.E_C != self._base_output.E_C
-        assert result.E_C == 14499.62278132686
+        assert result.E_C == 14178.967016020626
 
     def test_output_not_changed_03(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -103,7 +103,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == self._base_output.E_C
 
         assert result.E_H != self._base_output.E_H
-        assert result.E_H == 35890.90098587334
+        assert result.E_H == 40379.49973723975
 
     def test_output_not_changed_04(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -123,7 +123,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 36546.573126677504
+        assert result.E_H == 41330.46136603447
         assert result.E_H != self._base_output.E_H
 
     def test_output_not_changed_05(self):
@@ -144,7 +144,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 36611.49578865069
+        assert result.E_H == 41565.19129722995
         assert result.E_H != self._base_output.E_H
 
     def test_output_not_changed_06(self):
@@ -164,9 +164,9 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
 
-        assert result.E_H == 36646.91339321118
+        assert result.E_H == 41236.578091305644
         assert result.E_H != self._base_output.E_H
-        assert result.E_C == 14803.44514208752
+        assert result.E_C == 14785.070861211718
         assert result.E_C != self._base_output.E_C
 
     def test_output_not_changed_07(self):
@@ -187,7 +187,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 35836.748455098634
+        assert result.E_H == 40775.15329048871
         assert result.E_H != self._base_output.E_H
 
     def test_output_not_changed_08(self):
@@ -208,7 +208,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_H == self._base_output.E_H
 
-        assert result.E_C == 14646.69148373989
+        assert result.E_C == 14788.362569150617
         assert result.E_C != self._base_output.E_C
 
     def test_output_not_changed_09(self):
@@ -217,7 +217,6 @@ class TestNotBrokenVariousInputsType1:
             C_df_H_d_t_defrost_rac
         """
         inputs = copy.deepcopy(self._inputs)
-        # WARNING: 値変更しても変わらないけど大丈夫?
         inputs["C_df_H_d_t_defrost_rac"] = 0.88
 
         result = calc(inputs, test_mode=True)
@@ -228,8 +227,10 @@ class TestNotBrokenVariousInputsType1:
         assert result.q_max_H == self._base_output.q_max_H
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
+
+        assert result.E_H != self._base_output.E_H
+        assert result.E_H == 40228.03332635408
 
     def test_output_not_changed_10(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -237,7 +238,6 @@ class TestNotBrokenVariousInputsType1:
             defrost_temp_rac
         """
         inputs = copy.deepcopy(self._inputs)
-        # WARNING: 値変更しても変わらないけど大丈夫?
         inputs["defrost_temp_rac"] = 5.2
 
         result = calc(inputs, test_mode=True)
@@ -248,8 +248,10 @@ class TestNotBrokenVariousInputsType1:
         assert result.q_max_H == self._base_output.q_max_H
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
+
+        assert result.E_H != self._base_output.E_H
+        assert result.E_H == 40925.918843796484
 
     def test_output_not_changed_11(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -257,7 +259,6 @@ class TestNotBrokenVariousInputsType1:
             defrost_humid_rac
         """
         inputs = copy.deepcopy(self._inputs)
-        # WARNING: 値変更しても変わらないけど大丈夫?
         inputs["defrost_humid_rac"] = 82
 
         result = calc(inputs, test_mode=True)
@@ -268,8 +269,10 @@ class TestNotBrokenVariousInputsType1:
         assert result.q_max_H == self._base_output.q_max_H
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
+
+        assert result.E_H != self._base_output.E_H
+        assert result.E_H == 40481.81864211065
 
     def test_output_not_changed_12(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -277,7 +280,6 @@ class TestNotBrokenVariousInputsType1:
             C_hm_C
         """
         inputs = copy.deepcopy(self._inputs)
-        # WARNING: 値変更しても変わらないけど大丈夫?
         inputs["C_hm_C"] = 1.32
 
         result = calc(inputs, test_mode=True)
@@ -289,7 +291,9 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_H == self._base_output.E_H
-        assert result.E_C == self._base_output.E_C
+
+        assert result.E_C != self._base_output.E_C
+        assert result.E_C == 12824.79767377771
 
     def test_output_not_changed_13(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -297,7 +301,6 @@ class TestNotBrokenVariousInputsType1:
             q_rtd_C_limit
         """
         inputs = copy.deepcopy(self._inputs)
-        # WARNING: 値変更しても変わらないけど大丈夫?
         inputs["q_rtd_C_limit"] = 3500
 
         result = calc(inputs, test_mode=True)
@@ -308,8 +311,11 @@ class TestNotBrokenVariousInputsType1:
         assert result.q_max_H == self._base_output.q_max_H
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-        assert result.E_C == self._base_output.E_C
+
+        assert result.E_C != self._base_output.E_C
+        assert result.E_C == 17002.04875326623
+        assert result.E_H != self._base_output.E_H
+        assert result.E_H == 43487.16595274875
 
     def test_output_not_changed_14(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -350,10 +356,10 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
 
-        assert result.E_H == 42391.84140416556
         assert result.E_H != self._base_output.E_H
-        assert result.E_C == 21443.382718755827
+        assert result.E_H == 47702.33872845253
         assert result.E_C != self._base_output.E_C
+        assert result.E_C == 22378.09180122358
 
     def test_output_not_changed_16(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -372,12 +378,12 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
 
-        assert result.E_H == 49036.33660346446
         assert result.E_H != self._base_output.E_H
-        assert result.E_C == 24217.967340540887
+        assert result.E_H == 58567.764449747614
         assert result.E_C != self._base_output.E_C
+        assert result.E_C == 25009.231072133218
 
-    def test_output_not_changed_16(self):
+    def test_output_not_changed_17(self):
         """ 入力内容変更時の挙動が壊れていない
             地域区分
             region
@@ -394,9 +400,9 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
 
-        assert result.E_H == 141367.326695553
+        assert result.E_H == 174560.6036239345
         assert result.E_H != self._base_output.E_H
-        assert result.E_C == 3151.6467125592953
+        assert result.E_C == 2884.2632006293015
         assert result.E_C != self._base_output.E_C
 
     def test_output_not_changed_18(self):
@@ -416,10 +422,10 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
 
-        assert result.E_H == 42086.82025871831
         assert result.E_H != self._base_output.E_H
-        assert result.E_C == 14867.887750721573
+        assert result.E_H == 45819.9093469388
         assert result.E_C != self._base_output.E_C
+        assert result.E_C == 15119.878587850431
 
     def test_output_not_changed_19(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -438,10 +444,10 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
 
-        assert result.E_H == 44911.46410023861
         assert result.E_H != self._base_output.E_H
-        assert result.E_C == 14005.505611991277
+        assert result.E_H == 51145.64313095035
         assert result.E_C != self._base_output.E_C
+        assert result.E_C == 14057.66109771598
 
     def test_output_not_changed_20(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -461,7 +467,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_H == self._base_output.E_H
 
-        assert result.E_C == 16358.465844105795
+        assert result.E_C == 16690.55292080024
         assert result.E_C != self._base_output.E_C
 
     def test_output_not_changed_21(self):
@@ -482,7 +488,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 40516.98524230055
+        assert result.E_H == 43202.66151700742
         assert result.E_H != self._base_output.E_H
 
     def test_output_not_changed_22(self):
@@ -502,9 +508,9 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
 
-        assert result.E_H == 34056.175244458456
+        assert result.E_H == 38306.56455225713
         assert result.E_H != self._base_output.E_H
-        assert result.E_C == 13038.13319064152
+        assert result.E_C == 12647.872661178222
         assert result.E_C != self._base_output.E_C
 
     def test_output_not_changed_23(self):
@@ -513,7 +519,7 @@ class TestNotBrokenVariousInputsType1:
             r_A_ufvnt
         """
         inputs = copy.deepcopy(self._inputs)
-        # WARNING: 値変更しても変わらないけど大丈夫?
+        # WARNING: 値変更しても変わらないけど大丈夫? 100 -> 85.0
         inputs["r_A_ufvnt"] = 85.0
 
         result = calc(inputs, test_mode=True)
@@ -533,8 +539,8 @@ class TestNotBrokenVariousInputsType1:
             underfloor_insulation
         """
         inputs = copy.deepcopy(self._inputs)
-        # WARNING: 値変更しても変わらないけど大丈夫?
-        inputs["underfloor_insulation"] = "2"
+        # WARNING: 値変更しても変わらないけど大丈夫? '1' -> '2'
+        inputs["underfloor_insulation"] = '2'
 
         result = calc(inputs, test_mode=True)
 
@@ -564,10 +570,10 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_C == self._base_output.e_rtd_C
         assert result.e_rtd_H == self._base_output.e_rtd_H
 
-        assert result.E_H == 59669.99880864711
         assert result.E_H != self._base_output.E_H
-        assert result.E_C == 18714.44515829817
+        assert result.E_H == 67493.42767621638
         assert result.E_C != self._base_output.E_C
+        assert result.E_C == 18872.3162663047
 
     def test_output_not_changed_26(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -607,7 +613,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 34061.44658403281
+        assert result.E_H == 41606.24726343731
         assert result.E_H != self._base_output.E_H
 
     def test_output_not_changed_H1(self):
@@ -628,7 +634,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 34608.193798931
+        assert result.E_H == 38430.15407789486
         assert result.E_H != self._base_output.E_H
 
     def test_output_not_changed_H2(self):
@@ -649,7 +655,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 36291.25164821471
+        assert result.E_H == 39572.83185804524
         assert result.E_H != self._base_output.E_H
 
     def test_output_not_changed_H3(self):
@@ -670,7 +676,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 37064.91576192836
+        assert result.E_H == 41467.93507466678
         assert result.E_H != self._base_output.E_H
 
     def test_output_not_changed_H4(self):
@@ -692,25 +698,39 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 32622.96874682381
+        assert result.E_H == 40896.18678654383
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_type1_H1(self):
+    def test_output_not_changed_type2_H1(self):
         """ 入力内容変更時の挙動が壊れていない
             暖房の機器仕様を入力する1
         """
         inputs = copy.deepcopy(self._inputs)
-        # 機器仕様の入力（入力しない or 定格能力試験の値を入力する or 定格能力試験と中間能力試験の値を入力する）
-        inputs["H_A"]["input"] = 2  # ★ 定格能力試験の値を入力する
-        # ▼ 入力する場合のみ
-        inputs["H_A"]["q_hs_rtd_H"] = 30000.0     # 定格暖房能力試験 能力 [W]
-        inputs["H_A"]["q_hs_mid_H"] = 15000.0     # 中間暖房能力試験 能力 [W]
-        inputs["H_A"]["P_hs_rtd_H"] = 8570        # 定格暖房能力試験 消費電力 [W]
-        inputs["H_A"]["P_hs_mid_H"] = 4300        # 中間暖房能力試験 消費電力 [W]
-        inputs["H_A"]["V_fan_rtd_H"] = 50.0 * 60  # 定格暖房能力試験 風量 [m3/h]
-        inputs["H_A"]["V_fan_mid_H"] = 25.0 * 60  # 中間暖房能力試験 風量 [m3/h]
-        inputs["H_A"]["P_fan_rtd_H"] = 350        # 定格暖房能力試験 室内側送風機の消費電力 [W]
-        inputs["H_A"]["P_fan_mid_H"] = 170        # 中間暖房能力試験 室内側送風機の消費電力 [W]
+
+        # 暖房能力の入力（面積から能力を算出 or 性能を直接入力）
+        inputs["H_A"]["input_rac_performance"] = 1  # ★ 面積から能力を算出
+        # ▼ 入力する場合
+        inputs["H_A"]["q_rac_rtd_H"] = 1  # 暖房定格能力 [W]
+        inputs["H_A"]["q_rac_max_H"] = 1  # 暖房最大能力 [W]
+        inputs["H_A"]["e_rac_rtd_H"] = 1  # 定格エネルギー効率 [-]
+
+        # 小能力時高効率型コンプレッサー（評価しない or 搭載する）
+        inputs["H_A"]["dualcompressor"] = 2
+
+        # 設置方法の入力（設置方法を入力する or 補正係数を直接入力する）
+        inputs["H_A"]["input_C_af_H"] = 1
+        # ▼ 入力する場合
+        inputs["H_A"]["C_af_H"] = 1  # 室内機吹き出し風量に関する暖房出力補正係数の入力
+
+        # 専用チャンバーに格納される方式（該当しない or 該当する）
+        inputs["H_A"]["dedicated_chamber"] = 2
+        # フィン向きが中央位置に固定される方式（該当しない or 該当する）
+        inputs["H_A"]["fixed_fin_direction"] = 2
+
+        # ファンの比消費電力（入力しない or 入力する）
+        inputs["H_A"]["input_f_SFP_H"] = 1
+        # ▼ 入力する場合
+        inputs["H_A"]["f_SFP_H"] = 1  # ファンの比消費電力W [(m3/h)/W]
 
         result = calc(inputs, test_mode=True)
 
@@ -722,38 +742,51 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 81575.50253836498
+        assert result.E_H == 31577.30541426199
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_type1_H2(self):
+    def test_output_not_changed_type2_H2(self):
         """ 入力内容変更時の挙動が壊れていない
-            暖房の機器仕様を入力する2
+            暖房の機器仕様を入力する1
         """
         inputs = copy.deepcopy(self._inputs)
-        # 機器仕様の入力（入力しない or 定格能力試験の値を入力する or 定格能力試験と中間能力試験の値を入力する）
-        inputs["H_A"]["input"] = 2
+
+        # 暖房能力の入力（面積から能力を算出 or 性能を直接入力）
+        inputs["H_A"]["input_rac_performance"] = 2  # ★ 性能を直接入力
         # ▼ 入力する場合のみ
-        inputs["H_A"]["q_hs_rtd_H"] = 27500.0     # 定格暖房能力試験 能力 [W]
-        inputs["H_A"]["q_hs_mid_H"] = 13000.0     # 中間暖房能力試験 能力 [W]
-        inputs["H_A"]["P_hs_rtd_H"] = 7100        # 定格暖房能力試験 消費電力 [W]
-        inputs["H_A"]["P_hs_mid_H"] = 3450        # 中間暖房能力試験 消費電力 [W]
-        inputs["H_A"]["V_fan_rtd_H"] = 54.0 * 60  # 定格暖房能力試験 風量 [m3/h]
-        inputs["H_A"]["V_fan_mid_H"] = 22.0 * 60  # 中間暖房能力試験 風量 [m3/h]
-        inputs["H_A"]["P_fan_rtd_H"] = 400        # 定格暖房能力試験 室内側送風機の消費電力 [W]
-        inputs["H_A"]["P_fan_mid_H"] = 210        # 中間暖房能力試験 室内側送風機の消費電力 [W]
+        inputs["H_A"]["q_rac_rtd_H"] = 3600  # 暖房定格能力 [W]
+        inputs["H_A"]["q_rac_max_H"] = 4700  # 暖房最大能力 [W]
+        inputs["H_A"]["e_rac_rtd_H"] = 3.93  # 定格エネルギー効率 [-]
+
+        # 小能力時高効率型コンプレッサー（評価しない or 搭載する）
+        inputs["H_A"]["dualcompressor"] = 1
+
+        # 設置方法の入力（設置方法を入力する or 補正係数を直接入力する）
+        inputs["H_A"]["input_C_af_H"] = 2  # ★ 補正係数を直接入力する
+        # ▼ 入力する場合のみ
+        inputs["H_A"]["C_af_H"] = 0.914  # 室内機吹き出し風量に関する暖房出力補正係数の入力
+
+        # 専用チャンバーに格納される方式（該当しない or 該当する）
+        inputs["H_A"]["dedicated_chamber"] = 1
+        # フィン向きが中央位置に固定される方式（該当しない or 該当する）
+        inputs["H_A"]["fixed_fin_direction"] = 1
+
+        # ファンの比消費電力（入力しない or 入力する）
+        inputs["H_A"]["input_f_SFP_H"] = 2  # ★ 入力する
+        # ▼ 入力する場合のみ
+        inputs["H_A"]["f_SFP_H"] = 0.3  # ファンの比消費電力W [(m3/h)/W]
 
         result = calc(inputs, test_mode=True)
 
         assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
         assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
         assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 72987.18193043352
-        assert result.E_H != self._base_output.E_H
+        assert result.q_rtd_H == 3600.0
+        assert result.q_max_H == 4700.0
+        assert result.e_rtd_H == 3.93
+        assert result.E_H == 40540.29726496144
 
     def test_output_not_changed_R1(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -773,7 +806,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_H == self._base_output.E_H
 
-        assert result.E_C == 14980.637500033028
+        assert result.E_C == 14407.53084233618
         assert result.E_C != self._base_output.E_C
 
     def test_output_not_changed_R2(self):
@@ -794,7 +827,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_H == self._base_output.E_H
 
-        assert result.E_C == 12852.724729450114
+        assert result.E_C == 12126.41287275799
         assert result.E_C != self._base_output.E_C
 
     def test_output_not_changed_R3(self):
@@ -815,7 +848,7 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_H == self._base_output.E_H
 
-        assert result.E_C == 15191.971001329612
+        assert result.E_C == 15141.75913372107
         assert result.E_C != self._base_output.E_C
 
     def test_output_not_changed_R4(self):
@@ -837,25 +870,39 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_H == self._base_output.E_H
 
-        assert result.E_C == 13915.09558491048
+        assert result.E_C == 16296.897277400154
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_type1_R1(self):
+    def test_output_not_changed_type2_R1(self):
         """ 入力内容変更時の挙動が壊れていない
             冷房の機器仕様を入力する1
         """
         inputs = copy.deepcopy(self._inputs)
-        # 機器仕様の入力（入力しない or 定格能力試験の値を入力する or 定格能力試験と中間能力試験の値を入力する）
-        inputs["C_A"]["input"] = 2
+
+        # 冷房能力の入力（面積から能力を算出 or 性能を直接入力）
+        inputs["C_A"]["input_rac_performance"] = 1  # ★ 面積から能力を算出
         # ▼ 入力する場合のみ
-        inputs["C_A"]["q_hs_rtd_C"] = 30000.0     # 定格暖房能力試験 能力 [W]
-        inputs["C_A"]["q_hs_mid_C"] = 15000.0     # 中間暖房能力試験 能力 [W]
-        inputs["C_A"]["P_hs_rtd_C"] = 8570        # 定格暖房能力試験 消費電力 [W]
-        inputs["C_A"]["P_hs_mid_C"] = 4300        # 中間暖房能力試験 消費電力 [W]
-        inputs["C_A"]["V_fan_rtd_C"] = 50.0 * 60  # 定格暖房能力試験 風量 [m3/h]
-        inputs["C_A"]["V_fan_mid_C"] = 25.0 * 60  # 中間暖房能力試験 風量 [m3/h]
-        inputs["C_A"]["P_fan_rtd_C"] = 350        # 定格暖房能力試験 室内側送風機の消費電力 [W]
-        inputs["C_A"]["P_fan_mid_C"] = 170        # 中間暖房能力試験 室内側送風機の消費電力 [W]
+        # inputs["C_A"]["q_rac_rtd_C"] = 1  # 冷房定格能力 [W]
+        # inputs["C_A"]["q_rac_max_C"] = 1  # 冷房最大能力 [W]
+        # inputs["C_A"]["e_rac_rtd_C"] = 1  # 定格エネルギー効率 [-]
+
+        # 小能力時高効率型コンプレッサー（評価しない or 搭載する）
+        inputs["C_A"]["dualcompressor"] = 2
+
+        # 設置方法の入力（設置方法を入力する or 補正係数を直接入力する）
+        inputs["C_A"]["input_C_af_C"] = 1  # ★ 設置方法を入力する
+        # ▼ 入力する場合のみ
+        # inputs["C_A"]["C_af_C"] = 1  # 室内機吹き出し風量に関する暖房出力補正係数の入力
+
+        # 専用チャンバーに格納される方式（該当しない or 該当する）
+        inputs["C_A"]["dedicated_chamber"] = 2
+        # フィン向きが中央位置に固定される方式（該当しない or 該当する）
+        inputs["C_A"]["fixed_fin_direction"] = 2
+
+        # ファンの比消費電力（入力しない or 入力する）
+        inputs["C_A"]["input_f_SFP_C"] = 1  # ★ 入力しない
+        # ▼ 入力する場合のみ
+        # inputs["C_A"]["f_SFP_C"] = 1  # ファンの比消費電力W [(m3/h)/W]
 
         result = calc(inputs, test_mode=True)
 
@@ -867,36 +914,50 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
 
         assert result.E_C != self._base_output.E_C
-        assert result.E_C == 19187.38971453038
+        assert result.E_C == 14046.978599922277
 
-    def test_output_not_changed_type1_R2(self):
+    def test_output_not_changed_type2_R2(self):
         """ 入力内容変更時の挙動が壊れていない
             冷房の機器仕様を入力する2
         """
-        # 機器仕様の入力（入力しない or 定格能力試験の値を入力する or 定格能力試験と中間能力試験の値を入力する）
         inputs = copy.deepcopy(self._inputs)
+
+        # 冷房能力の入力（面積から能力を算出 or 性能を直接入力）
+        inputs["C_A"]["input_rac_performance"] = 2  # ★ 面積から能力を算出
         # ▼ 入力する場合のみ
-        inputs["C_A"]["input"] = 2
-        inputs["C_A"]["q_hs_rtd_C"] = 27500.0     # 定格暖房能力試験 能力 [W]
-        inputs["C_A"]["q_hs_mid_C"] = 13000.0     # 中間暖房能力試験 能力 [W]
-        inputs["C_A"]["P_hs_rtd_C"] = 7100        # 定格暖房能力試験 消費電力 [W]
-        inputs["C_A"]["P_hs_mid_C"] = 3450        # 中間暖房能力試験 消費電力 [W]
-        inputs["C_A"]["V_fan_rtd_C"] = 54.0 * 60  # 定格暖房能力試験 風量 [m3/h]
-        inputs["C_A"]["V_fan_mid_C"] = 22.0 * 60  # 中間暖房能力試験 風量 [m3/h]
-        inputs["C_A"]["P_fan_rtd_C"] = 400        # 定格暖房能力試験 室内側送風機の消費電力 [W]
-        inputs["C_A"]["P_fan_mid_C"] = 210        # 中間暖房能力試験 室内側送風機の消費電力 [W]
+        inputs["C_A"]["q_rac_rtd_C"] = 2800  # 冷房定格能力 [W]
+        inputs["C_A"]["q_rac_max_C"] = 3400  # 冷房最大能力 [W]
+        inputs["C_A"]["e_rac_rtd_C"] = 2.59  # 定格エネルギー効率 [-]
+
+        # 小能力時高効率型コンプレッサー（評価しない or 搭載する）
+        inputs["C_A"]["dualcompressor"] = 1
+
+        # 設置方法の入力（設置方法を入力する or 補正係数を直接入力する）
+        inputs["C_A"]["input_C_af_C"] = 2  # ★ 補正係数を直接入力する
+        # ▼ 入力する場合のみ
+        inputs["C_A"]["C_af_C"] = 0.980  # 室内機吹き出し風量に関する冷房出力補正係数の入力
+
+        # 専用チャンバーに格納される方式（該当しない or 該当する）
+        inputs["C_A"]["dedicated_chamber"] = 1
+        # フィン向きが中央位置に固定される方式（該当しない or 該当する）
+        inputs["C_A"]["fixed_fin_direction"] = 1
+
+        # ファンの比消費電力（入力しない or 入力する）
+        inputs["C_A"]["input_f_SFP_C"] = 2  # ★ 入力する
+        # ▼ 入力する場合のみ
+        inputs["C_A"]["f_SFP_C"] = 0.3  # ファンの比消費電力W [(m3/h)/W]
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_C != self._base_output.E_C
-        assert result.E_C == 19238.129853353777
+        # WARNING: 暖房についても結果が変わるのは大丈夫?
+        assert result.q_rtd_C == 2800.0
+        assert result.q_rtd_H == 3300.1000000000004
+        assert result.q_max_C == 3400.0
+        assert result.q_max_H == 5569.280000000001
+        assert result.e_rtd_C == 2.59
+        assert result.e_rtd_H == 3.6543
+        assert result.E_C == 21336.043883848488
+        assert result.E_H == 46940.16551587674
 
     def test_output_not_changed_HEX1(self):
         """ 入力内容変更時の挙動が壊れていない
@@ -917,5 +978,6 @@ class TestNotBrokenVariousInputsType1:
         assert result.e_rtd_H == self._base_output.e_rtd_H
         assert result.E_C == self._base_output.E_C
 
-        assert result.E_H == 34414.79844612079
+        assert result.E_H == 38022.75810040755
         assert result.E_H != self._base_output.E_H
+
