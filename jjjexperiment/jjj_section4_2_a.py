@@ -1357,7 +1357,7 @@ def get_A_f_hex(type: str, q_hs_rtd_C: float) -> float:
 
     Args:
       type: 暖房設備の種類
-      q_hs_rtd_C: 熱源機の冷房時の定格出力 (MJ/h)
+      q_hs_rtd_C: 熱源機の冷房時の定格出力 (W)
 
     """
     if type == PROCESS_TYPE_3:
@@ -1370,7 +1370,7 @@ def get_A_e_hex(type: str, q_hs_rtd_C: float) -> float:
 
     Args:
       type: 暖房設備の種類
-      q_hs_rtd_C: 熱源機の冷房時の定格出力 (MJ/h)
+      q_hs_rtd_C: 熱源機の冷房時の定格出力 (W)
 
     """
     if type == PROCESS_TYPE_3:
