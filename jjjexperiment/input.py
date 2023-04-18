@@ -2,6 +2,8 @@ import numpy as np
 import pyhees.section4_2_b as dc_spec
 import pyhees.section4_3_a as rac_spec
 
+from constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+
 def get_basic(input: dict):
     """基本情報の設定
 
@@ -86,11 +88,11 @@ def get_heating(input: dict, region: int, A_A: float):
 
     # 暖房設備機器の種類
     if int(input['H_A']['type']) == 1:
-        H_A['type'] = 'ダクト式セントラル空調機'
+        H_A['type'] = PROCESS_TYPE_1
     elif int(input['H_A']['type']) == 2:
-        H_A['type'] = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'
+        H_A['type'] = PROCESS_TYPE_2
     elif int(input['H_A']['type']) == 3:
-        H_A['type'] = 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）'
+        H_A['type'] = PROCESS_TYPE_3
     else:
         raise Exception('暖房設備機器の種類の入力が不正です。')
 
@@ -175,11 +177,11 @@ def get_cooling(input: dict, region: int, A_A: float):
 
     # 冷房設備機器の種類
     if int(input['C_A']['type']) == 1:
-        C_A['type'] = 'ダクト式セントラル空調機'
+        C_A['type'] = PROCESS_TYPE_1
     elif int(input['C_A']['type']) == 2:
-        C_A['type'] = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'
+        C_A['type'] = PROCESS_TYPE_2
     elif int(input['C_A']['type']) == 3:
-        C_A['type'] = 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）'
+        C_A['type'] = PROCESS_TYPE_3
     else:
         raise Exception('冷房設備機器の種類の入力が不正です。')
 

@@ -18,9 +18,11 @@ import pyhees.section3_1 as ld
 from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
 
 import jjjexperiment.calc
-import jjjexperiment.constants
 import jjjexperiment.input
 from jjjexperiment.result import ResultSummary
+
+import jjjexperiment.constants
+from constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 
 import pandas as pd
 from datetime import datetime
@@ -119,23 +121,24 @@ def calc(input_data : dict, test_mode=False):
 
     """定格暖房能力運転時の送風機の風量(m3/h)"""
 
-    if H_A['type'] == 'ダクト式セントラル空調機':
+    if H_A['type'] == PROCESS_TYPE_1:
         if 'V_hs_dsgn_H' in H_A:
             V_hs_dsgn_H = H_A['V_hs_dsgn_H']
         else:
             V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(H_A['V_fan_rtd_H'])
-    elif H_A['type'] == 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）':
+    elif H_A['type'] == PROCESS_TYPE_2:
         if 'V_hs_dsgn_H' in H_A:
             V_hs_dsgn_H = H_A['V_hs_dsgn_H']
         else:
             V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(V_rac_fan_rtd_H)
-    elif H_A['type'] == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    elif H_A['type'] == PROCESS_TYPE_3:
         # P_rac_fan_rtd_H: float = dc_spec.get_P_fan_rtd_H(H_A['type'], H_A['V_fan_rtd_H'], q_hs_H_d_t)
+
         if 'V_hs_dsgn_H' in H_A:
             V_hs_dsgn_H = H_A['V_hs_dsgn_H']
         else:
-            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(V_rac_fan_rtd_H)        
-    else: 
+            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(V_rac_fan_rtd_H)
+    else:
         raise Exception("暖房方式が不正です。")
     """暖房時の送風機の設計風量(m3/h)"""
 
@@ -214,22 +217,22 @@ def calc(input_data : dict, test_mode=False):
 
     V_fan_rtd_C: float = dc_spec.get_V_fan_rtd_C(q_rtd_C)
     """定格冷房能力運転時の送風機の風量(m3/h)"""
-    if C_A['type'] == 'ダクト式セントラル空調機':
+    if C_A['type'] == PROCESS_TYPE_1:
         if 'V_hs_dsgn_C' in C_A:
             V_hs_dsgn_C = C_A['V_hs_dsgn_C']
         else:
             V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(C_A['V_fan_rtd_C'])
-    elif C_A['type'] == 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）':
+    elif C_A['type'] == PROCESS_TYPE_2:
         if 'V_hs_dsgn_C' in C_A:
             V_hs_dsgn_C = C_A['V_hs_dsgn_C']
         else:
             V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(V_fan_rtd_C)
-    elif C_A['type'] == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    elif C_A['type'] == PROCESS_TYPE_3:
         if 'V_hs_dsgn_C' in C_A:
             V_hs_dsgn_C = C_A['V_hs_dsgn_C']
         else:
             V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(C_A['V_fan_rtd_C'])
-    else: 
+    else:
         raise Exception("冷房方式が不正です。")
     """冷房時の送風機の設計風量(m3/h)"""
 

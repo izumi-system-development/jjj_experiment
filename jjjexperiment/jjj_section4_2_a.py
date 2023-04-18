@@ -44,6 +44,7 @@ from pyhees.section11_1 import \
 import numpy as np
 
 import jjjexperiment.constants as constants
+from constants import PROCESS_TYPE_3
 
 from scipy import optimize
 
@@ -1331,7 +1332,7 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
     c_p_w = get_c_p_w()
 
     # (36b) 熱伝達特性
-    if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == PROCESS_TYPE_3:
       a = np.clip(V_hs_supply, 360, None)
       alpha_dash_c_hex_C = constants.a_c_hex_c_a4_C * (a / 3000) **4 + \
           constants.a_c_hex_c_a3_C * (a / 3000) **3 + constants.a_c_hex_c_a2_C * (a / 3000) **2 + \
@@ -1353,7 +1354,7 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
 # 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
 # コイル特性
 def get_A_f_hex(type, q_hs_rtd_C):
-    if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == PROCESS_TYPE_3:
       if q_hs_rtd_C < 5600:
         return constants.A_f_hex_small_H
       else:
@@ -1363,7 +1364,7 @@ def get_A_f_hex(type, q_hs_rtd_C):
 
 # 室内機熱交換器の表面積のうち熱交換に有効な面積 (m2)
 def get_A_e_hex(type, q_hs_rtd_C):
-    if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == PROCESS_TYPE_3:
       constants.A_e_hex_large_H = 3
       if q_hs_rtd_C < 5600:
         return constants.A_e_hex_small_H
