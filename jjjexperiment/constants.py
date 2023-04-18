@@ -30,6 +30,7 @@ q_rtd_C_limit: float = 5600
 """定格冷房能力の最大値"""
 fix_latent_load: int = 1
 """潜熱負荷計算の不具合修正"""
+
 #以下、潜熱評価モデル追加対応(暖房)
 A_f_hex_small_H: float = 0.2
 """定格冷却能力が5.6kW未満の場合のA_f,hex"""
@@ -39,6 +40,7 @@ A_f_hex_large_H: float = 0.3
 """定格冷却能力が5.6kW以上の場合のA_f,hex"""
 A_e_hex_large_H: float = 10.6
 """定格冷却能力が5.6kW以上の場合のA_e,hex"""
+
 a_r_H_t_t_a4: float = 0
 """コンプレッサ効率特性_a4"""
 a_r_H_t_t_a3: float = 0

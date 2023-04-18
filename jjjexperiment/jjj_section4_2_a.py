@@ -1351,25 +1351,30 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
 # A.5.3 熱交換器の表面積
 # ============================================================================
 
-# 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
 # コイル特性
-def get_A_f_hex(type, q_hs_rtd_C):
+def get_A_f_hex(type: str, q_hs_rtd_C: float) -> float:
+    """ 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
+
+    Args:
+      type: 暖房設備の種類
+      q_hs_rtd_C: 熱源機の冷房時の定格出力 (MJ/h)
+
+    """
     if type == PROCESS_TYPE_3:
-      if q_hs_rtd_C < 5600:
-        return constants.A_f_hex_small_H
-      else:
-        return constants.A_f_hex_large_H
+      return constants.A_f_hex_small_H if q_hs_rtd_C < 5600 else constants.A_f_hex_large_H
     else:
       return 0.23559
 
-# 室内機熱交換器の表面積のうち熱交換に有効な面積 (m2)
-def get_A_e_hex(type, q_hs_rtd_C):
+def get_A_e_hex(type: str, q_hs_rtd_C: float) -> float:
+    """ 室内機熱交換器の表面積のうち熱交換に有効な面積 (m2)
+
+    Args:
+      type: 暖房設備の種類
+      q_hs_rtd_C: 熱源機の冷房時の定格出力 (MJ/h)
+
+    """
     if type == PROCESS_TYPE_3:
-      constants.A_e_hex_large_H = 3
-      if q_hs_rtd_C < 5600:
-        return constants.A_e_hex_small_H
-      else:
-        return constants.A_e_hex_large_H
+      return constants.A_e_hex_small_H if q_hs_rtd_C < 5600 else constants.A_e_hex_large_H
     else:
       return 6.396
 
