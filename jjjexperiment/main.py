@@ -22,7 +22,7 @@ import jjjexperiment.input
 from jjjexperiment.result import ResultSummary
 
 import jjjexperiment.constants
-from constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 
 import pandas as pd
 from datetime import datetime

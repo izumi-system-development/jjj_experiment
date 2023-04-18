@@ -4,7 +4,7 @@
 # ============================================================================
 
 import jjjexperiment.constants as constants
-from constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+from jjjexperiment.constants import PROCESS_TYPE_3
 
 # ============================================================================
 # B.2 熱源機

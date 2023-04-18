@@ -2,7 +2,7 @@ import numpy as np
 import pyhees.section4_2_b as dc_spec
 import pyhees.section4_3_a as rac_spec
 
-from constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 
 def get_basic(input: dict):
     """基本情報の設定
