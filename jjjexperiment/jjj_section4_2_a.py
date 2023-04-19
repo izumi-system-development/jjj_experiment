@@ -1364,7 +1364,6 @@ def get_A_f_hex(type, q_hs_rtd_C):
 # 室内機熱交換器の表面積のうち熱交換に有効な面積 (m2)
 def get_A_e_hex(type, q_hs_rtd_C):
     if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
-      constants.A_e_hex_large_H = 3
       if q_hs_rtd_C < 5600:
         return constants.A_e_hex_small_H
       else:

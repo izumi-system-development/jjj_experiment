@@ -34,11 +34,14 @@ from pyhees.section11_3 import \
     load_schedule, \
     get_schedule_ac
 
+from jjjexperiment.jjj_section4_3 import \
+    get_C_af_C
+
 import jjjexperiment.constants as constants
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i):
+             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_C):
     """
 
     Args:
@@ -59,7 +62,9 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
       VAV: 
       duct_insulation: 
       L_H_d_t_i: 
-      L_CL_d_t_i: 
+      L_CL_d_t_i:
+      type:
+      input_C_af_C:
 
     Returns:
 
@@ -228,7 +233,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     SHF_dash_d_t = get_SHF_dash_d_t(L_star_CS_d_t, L_star_dash_C_d_t)
 
     # (27)
-    Q_hs_max_C_d_t = get_Q_hs_max_C_d_t(q_hs_rtd_C)
+    Q_hs_max_C_d_t = get_Q_hs_max_C_d_t(type, q_hs_rtd_C, input_C_af_C)
 
     # (26)
     Q_hs_max_CL_d_t = get_Q_hs_max_CL_d_t(Q_hs_max_C_d_t, SHF_dash_d_t, L_star_dash_CL_d_t)
@@ -240,7 +245,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     C_df_H_d_t = get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
 
     # (23)
-    Q_hs_max_H_d_t = get_Q_hs_max_H_d_t(q_hs_rtd_H, C_df_H_d_t)
+    Q_hs_max_H_d_t = get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_C)
 
     # (20)
     X_star_hs_in_d_t = get_X_star_hs_in_d_t(X_star_NR_d_t)
@@ -1030,12 +1035,14 @@ def get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region
 # 9.5.1 熱源機の最大暖房出力
 # ============================================================================
 
-def get_Q_hs_max_H_d_t(q_hs_rtd_H, C_df_H_d_t):
+def get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_C):
     """(23)
 
     Args:
+      type: 暖房設備機器の種類
       q_hs_rtd_H: 熱源機の定格暖房能力 (W)
       C_df_H_d_t: 日付dの時刻tにおけるデフロストに関する暖房出力補正係数（-）
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       熱源機の最大暖房出力 (MJ/h)
@@ -1043,9 +1050,14 @@ def get_Q_hs_max_H_d_t(q_hs_rtd_H, C_df_H_d_t):
     """
     alpha_max_H = get_alpha_max_H()
 
+    C_af_C = get_C_af_C(input_C_af_C)
+
     Q_hs_max_H_d_t = np.zeros(24 * 365)
 
     if q_hs_rtd_H is not None:
+      if type == "ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）":
+          Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * C_af_C * 3600 * 10 ** -6
+      else:
         Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * 3600 * 10 ** -6
 
     return Q_hs_max_H_d_t
@@ -1108,22 +1120,29 @@ def get_Q_hs_max_CL_d_t(Q_hs_max_C_d_t, SHF_dash_d_t, L_star_dash_CL_d_t):
 
 
 # 最大冷房出力 [MJ/h] (27)
-def get_Q_hs_max_C_d_t(q_hs_rtd_C):
+def get_Q_hs_max_C_d_t(type, q_hs_rtd_C, input_C_af_C):
     """(27)
 
     Args:
+      type: 暖房設備機器の種類
       q_hs_rtd_C: 熱源機の冷房時の定格出力[m^3/h]
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       最大冷房出力 [MJ/h]
 
     """
     alpha_max_C = get_alpha_max_C()
+    
+    C_af_C = get_C_af_C(input_C_af_C)
 
     Q_hs_max_C_d_t = np.zeros(24 * 365)
 
     if q_hs_rtd_C is not None:
-        Q_hs_max_C_d_t = q_hs_rtd_C * alpha_max_C * 3600 * 10 ** -6
+        if type == "ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）":
+          Q_hs_max_C_d_t = q_hs_rtd_C * alpha_max_C * C_af_C * 3600 * 10 ** -6
+        else:    
+          Q_hs_max_C_d_t = q_hs_rtd_C * alpha_max_C * 3600 * 10 ** -6
 
     return Q_hs_max_C_d_t
 
