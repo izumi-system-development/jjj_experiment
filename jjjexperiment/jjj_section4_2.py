@@ -1050,15 +1050,14 @@ def get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_C):
     """
     alpha_max_H = get_alpha_max_H()
 
-    C_af_C = get_C_af_C(input_C_af_C)
-
     Q_hs_max_H_d_t = np.zeros(24 * 365)
 
     if q_hs_rtd_H is not None:
-      if type == "ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）":
-          Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * C_af_C * 3600 * 10 ** -6
-      else:
-        Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * 3600 * 10 ** -6
+        if type == "ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）":
+            C_af_C = get_C_af_C(input_C_af_C)
+            Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * C_af_C * 3600 * 10 ** -6
+        else:
+            Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * 3600 * 10 ** -6
 
     return Q_hs_max_H_d_t
 
@@ -1134,15 +1133,14 @@ def get_Q_hs_max_C_d_t(type, q_hs_rtd_C, input_C_af_C):
     """
     alpha_max_C = get_alpha_max_C()
     
-    C_af_C = get_C_af_C(input_C_af_C)
-
     Q_hs_max_C_d_t = np.zeros(24 * 365)
 
     if q_hs_rtd_C is not None:
         if type == "ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）":
-          Q_hs_max_C_d_t = q_hs_rtd_C * alpha_max_C * C_af_C * 3600 * 10 ** -6
+            C_af_C = get_C_af_C(input_C_af_C)
+            Q_hs_max_C_d_t = q_hs_rtd_C * alpha_max_C * C_af_C * 3600 * 10 ** -6
         else:    
-          Q_hs_max_C_d_t = q_hs_rtd_C * alpha_max_C * 3600 * 10 ** -6
+            Q_hs_max_C_d_t = q_hs_rtd_C * alpha_max_C * 3600 * 10 ** -6
 
     return Q_hs_max_C_d_t
 
