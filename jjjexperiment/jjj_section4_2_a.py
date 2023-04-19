@@ -1300,16 +1300,16 @@ def get_alpha_c_hex_H(type, V_fan_x_H, q_hs_rtd_C):
       暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
 
     """
-    # 表5より
-    V_hs_supply = V_fan_x_H
-    
+    # 熱源機の風量 (m3/h)
+    V_hs_supply = V_fan_x_H  # 表5より
+
+    # 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
     A_f_hex = get_A_f_hex(type, q_hs_rtd_C)
 
     alpha_c_hex_H = (-0.0017 * ((V_hs_supply / 3600) / A_f_hex) ** 2 \
                      + 0.044 * ((V_hs_supply / 3600) / A_f_hex) + 0.0271) * 10 ** 3
 
     return alpha_c_hex_H
-
 
 def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
     """(36)
@@ -1324,11 +1324,16 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
       冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）および 冷房時の室内熱交換器表面の潜熱伝達率（kg/(m2・s)）
 
     """
-    # 表5より
-    V_hs_supply = V_fan_x_C
+    # 熱源機の風量 (m3/h)
+    V_hs_supply = V_fan_x_C  # 表5より
 
-    A_f_hex = get_A_f_hex(type,q_hs_rtd_C)
+    # 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
+    A_f_hex = get_A_f_hex(type, q_hs_rtd_C)
+
+    # 空気の比熱 (J/(kg・K))
     c_p_air = get_c_p_air()
+
+    # 水蒸気の比熱 (J/(kg・K))
     c_p_w = get_c_p_w()
 
     # (36b) 熱伝達特性
@@ -1482,32 +1487,28 @@ def get_f_SFP(f_SFP):
 # A.8 空気・水蒸気・水の物性値
 # ============================================================================
 
-# 空気の比熱 (J/Kg・K)
 def get_c_p_air():
-    """ """
+    """ 空気の比熱 (J/Kg・K)
+    """
     return 1006.0
 
-
-# 空気の密度 (kg/m3)
 def get_rho_air():
-    """ """
+    """ 空気の密度 (kg/m3)
+    """
     return 1.2
 
-
-# 水蒸気の定圧比熱  (J/Kg・K)
 def get_c_p_w():
-    """ """
+    """ 水蒸気の定圧比熱 (J/Kg・K)
+    """
     return 1.846
 
-
-# 水の蒸発潜熱 (kJ/kg) (39)
 def get_L_wtr():
-    """ """
+    """(39) 水の蒸発潜熱 (kJ/kg)
+    """
     Theta = get_Theta()
     return 2500.8 - 2.3668 * Theta
 
-
-# 冷房時を仮定した温度 (℃)
 def get_Theta():
-    """ """
+    """ 冷房時を仮定した温度 (℃)
+    """
     return 27
