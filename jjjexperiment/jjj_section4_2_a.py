@@ -916,13 +916,13 @@ def calc_e_th_mid_C(type, V_fan_mid_C, q_hs_mid_C, q_hs_rtd_C):
     """(22)
 
     Args:
-      V_fan_rtd_H: 定格冷房能力運転時の送風機の風量（m3/h）
+      V_fan_rtd_H: 定格冷房能力運転時の送風機の風量 (m3/h)
       V_fan_mid_C: param q_hs_mid_C:
-      q_hs_mid_C: 
-      q_hs_rtd_C: 熱源機の定格冷房能力（-）
+      q_hs_mid_C: 熱源機の中間冷房能力 (W)
+      q_hs_rtd_C: 熱源機の定格冷房能力 (W)
 
     Returns:
-      定格冷房能力運転時のヒートポンプサイクルサイクルの理論効率（-）
+      中間冷房能力運転時のヒートポンプサイクルサイクルの理論効率（-）
 
     """
     # 表5より
