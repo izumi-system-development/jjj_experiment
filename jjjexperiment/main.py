@@ -117,30 +117,21 @@ def calc(input_data : dict, test_mode=False):
     """冷房潜熱負荷の全区画合計 [MJ/h]"""
 
     ##### 暖房消費電力の計算（kWh/h）
-    V_rac_fan_rtd_H: float = dc_spec.get_V_fan_rtd_H(q_rtd_H)
 
-    """定格暖房能力運転時の送風機の風量(m3/h)"""
+    def get_V_hs_dsgn_H(H_A: dict, q_rtd_H: float):
+        if H_A['type'] == PROCESS_TYPE_1:
+            return dc_spec.get_V_fan_dsgn_H(H_A['V_fan_rtd_H'])
 
-    if H_A['type'] == PROCESS_TYPE_1:
-        if 'V_hs_dsgn_H' in H_A:
-            V_hs_dsgn_H = H_A['V_hs_dsgn_H']
+        # WARNING: 暖房時・冷房時 間で方式の分岐が微妙に異なっています
+        # TODO: 意図的かどうかチェックし、問題なければこの行を除去する
+        elif H_A['type'] == (PROCESS_TYPE_2 or PROCESS_TYPE_3):
+            V_rac_fan_rtd_H = dc_spec.get_V_fan_rtd_H(q_rtd_H)
+            return dc_spec.get_V_fan_dsgn_H(V_rac_fan_rtd_H)
         else:
-            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(H_A['V_fan_rtd_H'])
-    elif H_A['type'] == PROCESS_TYPE_2:
-        if 'V_hs_dsgn_H' in H_A:
-            V_hs_dsgn_H = H_A['V_hs_dsgn_H']
-        else:
-            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(V_rac_fan_rtd_H)
-    elif H_A['type'] == PROCESS_TYPE_3:
-        # P_rac_fan_rtd_H: float = dc_spec.get_P_fan_rtd_H(H_A['type'], H_A['V_fan_rtd_H'], q_hs_H_d_t)
+            raise Exception("暖房方式が不正です。")
 
-        if 'V_hs_dsgn_H' in H_A:
-            V_hs_dsgn_H = H_A['V_hs_dsgn_H']
-        else:
-            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(V_rac_fan_rtd_H)
-    else:
-        raise Exception("暖房方式が不正です。")
-    """暖房時の送風機の設計風量(m3/h)"""
+    V_hs_dsgn_H = H_A['V_hs_dsgn_H'] if 'V_hs_dsgn_H' in H_A else get_V_hs_dsgn_H(H_A, q_rtd_H)
+    """ 暖房時の送風機の設計風量 [m3/h] """
 
     #P_rac_fan_rtd_H: float = dc_spec.get_P_fan_rtd_H(V_rac_fan_rtd_H)
     P_rac_fan_rtd_H: float = V_hs_dsgn_H * H_A['f_SFP_H']
@@ -215,25 +206,19 @@ def calc(input_data : dict, test_mode=False):
 
     ##### 冷房消費電力の計算（kWh/h）
 
-    V_fan_rtd_C: float = dc_spec.get_V_fan_rtd_C(q_rtd_C)
-    """定格冷房能力運転時の送風機の風量(m3/h)"""
-    if C_A['type'] == PROCESS_TYPE_1:
-        if 'V_hs_dsgn_C' in C_A:
-            V_hs_dsgn_C = C_A['V_hs_dsgn_C']
+    def get_V_hs_dsgn_C(C_A: dict, q_rtd_C: float):
+        if C_A['type'] == (PROCESS_TYPE_1 or PROCESS_TYPE_3):
+            return dc_spec.get_V_fan_dsgn_C(C_A['V_fan_rtd_C'])
+
+        # WARNING: 暖房時・冷房時 間で方式の分岐が微妙に異なっています
+        # TODO: 意図的かどうかチェックし、問題なければこの行を除去する
+        elif C_A['type'] == PROCESS_TYPE_2:
+            V_rac_fan_rtd_C = dc_spec.get_V_fan_rtd_C(q_rtd_C)
+            return dc_spec.get_V_fan_dsgn_C(V_rac_fan_rtd_C)
         else:
-            V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(C_A['V_fan_rtd_C'])
-    elif C_A['type'] == PROCESS_TYPE_2:
-        if 'V_hs_dsgn_C' in C_A:
-            V_hs_dsgn_C = C_A['V_hs_dsgn_C']
-        else:
-            V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(V_fan_rtd_C)
-    elif C_A['type'] == PROCESS_TYPE_3:
-        if 'V_hs_dsgn_C' in C_A:
-            V_hs_dsgn_C = C_A['V_hs_dsgn_C']
-        else:
-            V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(C_A['V_fan_rtd_C'])
-    else:
-        raise Exception("冷房方式が不正です。")
+            raise Exception("冷房方式が不正です。")
+
+    V_hs_dsgn_C = C_A['V_hs_dsgn_C'] if 'V_hs_dsgn_C' in C_A else get_V_hs_dsgn_C(C_A, q_rtd_C)
     """冷房時の送風機の設計風量(m3/h)"""
 
     #P_rac_fan_rtd_C: float = dc_spec.get_P_fan_rtd_C(V_fan_rtd_C)
