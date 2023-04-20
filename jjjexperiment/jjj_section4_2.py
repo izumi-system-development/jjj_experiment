@@ -35,6 +35,7 @@ from pyhees.section11_3 import \
     get_schedule_ac
 
 from jjjexperiment.jjj_section4_3 import \
+    get_C_af_H, \
     get_C_af_C
 
 import jjjexperiment.constants as constants
@@ -1055,7 +1056,7 @@ def get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_H):
 
     if q_hs_rtd_H is not None:
         if type == "ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）":
-            C_af_H = get_C_af_C(input_C_af_H)
+            C_af_H = get_C_af_H(input_C_af_H)
             Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * C_af_H * 3600 * 10 ** -6
         else:
             Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * 3600 * 10 ** -6
