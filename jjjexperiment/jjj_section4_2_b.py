@@ -231,7 +231,7 @@ def get_P_fan_rtd_H(type, V_fan_rtd_H, q_hs_H_d_t):
 
     """
     if type == PROCESS_TYPE_3:
-      x = q_hs_H_d_t / 1000
+      x = q_hs_H_d_t / 1000  # WARNING: 例外的に四次式では kW 単位で計算しています
       return constants.P_fan_H_d_t_a4 * x**4 + constants.P_fan_H_d_t_a3 * x**3 + constants.P_fan_H_d_t_a2 * x**2 + constants.P_fan_H_d_t_a1 * x + constants.P_fan_H_d_t_a0
     else:
       return 8.0 * (V_fan_rtd_H / 60) + 20.7
@@ -264,7 +264,7 @@ def get_P_fan_rtd_C(type, V_fan_rtd_C, q_hs_C_d_t):
 
     """
     if type == PROCESS_TYPE_3:
-      x = q_hs_C_d_t / 1000
+      x = q_hs_C_d_t / 1000 # WARNING: 例外的に四次式では kW 単位で計算しています
       return constants.P_fan_C_d_t_a4 * x**4 + constants.P_fan_C_d_t_a3 * x**3 + constants.P_fan_C_d_t_a2 * x**2 + constants.P_fan_C_d_t_a1 * x + constants.P_fan_C_d_t_a0
     else:
       return 8.0 * (V_fan_rtd_C / 60) + 20.7
