@@ -71,3 +71,13 @@ class TestNotBrokenOriginalInputs:
         assert result.e_rtd_H == expected.e_rtd_H
         assert result.E_C == expected.E_C
         assert result.E_H == expected.E_H
+
+    def test_存在しないタイプで例外発生(self):
+        """ 定義されていないタイプで計算されたとき,例外でストップすることを確認
+        """
+        inputs = copy.deepcopy(self._inputs)
+        inputs["H_A"]["type"] = 4
+        inputs["C_A"]["type"] = 4
+
+        with pytest.raises(Exception):
+            calc(inputs, test_mode=True)
