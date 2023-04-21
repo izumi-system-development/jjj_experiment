@@ -137,7 +137,7 @@ def calc(input_data : dict, test_mode=False):
     P_rac_fan_rtd_H: float = V_hs_dsgn_H * H_A['f_SFP_H']
     """定格暖房能力運転時の送風機の消費電力(W)"""
 
-    V_hs_dsgn_C: float = None
+    V_hs_dsgn_C: float = None  # 暖房負荷計算時には 空のまま使用
     """冷房時の送風機の設計風量(m3/h)"""
 
     Q_UT_H_d_t_i: np.ndarray

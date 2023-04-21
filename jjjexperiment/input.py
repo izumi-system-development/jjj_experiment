@@ -5,9 +5,11 @@ import pyhees.section4_3_a as rac_spec
 from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 
 def get_basic(input: dict):
-    """基本情報の設定
+    """ 基本情報の設定
 
-    :return: 住宅タイプ、住宅建て方、床面積、地域区分、年間日射地域区分
+    Returns:
+    (住宅タイプ, 住宅建て方, 床面積, 面積の合計[m2], 主たる居室の面積[m2], その他の居室の面積[m2], 地域区分, 年間日射地域区分)
+
     """
     # 住宅タイプ
     type = '一般住宅'

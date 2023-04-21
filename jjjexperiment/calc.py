@@ -647,7 +647,12 @@ def calc_E_E_H_d_t(
         q_rtd_C, q_hs_rtd_C,                               # 定格冷房時
         q_rtd_H, e_rtd_H, P_rac_fan_rtd_H, V_fan_rtd_H, P_fan_rtd_H, q_hs_rtd_H, P_hs_rtd_H,  # 定格暖房時
         type, region, dualcompressor_H, EquipmentSpec, input_C_af_H, f_SFP_H, outdoorFile):  # その他
-    """ 日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h) (1)
+    """ (1)
+    Returns:
+        E_E_H_d_t:     日付dの時刻tにおける1時間当たりの暖房時の消費電力量[kWh/h]
+        q_hs_H_d_t:    日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力[W]
+        E_E_fan_H_d_t: 日付dの時刻tにおける1時間当たりの暖房時消費電力量の送風機による付加分[kWh/h]
+
     """
     # (3) 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力(W)
     q_hs_H_d_t = dc_a.get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
@@ -699,6 +704,7 @@ def calc_E_E_H_d_t(
 
     return E_E_H_d_t, q_hs_H_d_t, E_E_fan_H_d_t
 
+# TODO: calc_ と get_ の使い分けは意図的なのかチェックする
 def get_E_E_C_d_t(
         Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t,  # 空気温度
         V_hs_supply_d_t, V_hs_vent_d_t, V_hs_dsgn_C,      # 風量
@@ -708,7 +714,13 @@ def get_E_E_C_d_t(
         q_max_C,                                           # 最大冷房時
         q_hs_rtd_C, P_hs_rtd_C, V_fan_rtd_C, P_fan_rtd_C, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C,  # 定格冷房時
         type, region, dualcompressor_C, EquipmentSpec, input_C_af_C, f_SFP_C, outdoorFile):  # その他
-    """ 日付dの時刻tにおける1時間当たりの冷房時の消費電力量(kWh/h) (1)
+    """ (1)
+    Returns:
+        E_E_C_d_t:     日付dの時刻tにおける1時間当たりの冷房時の消費電力量[kWh/h]
+        E_E_fan_C_d_t: 日付dの時刻tにおける1時間当たりの冷房時消費電力量の送風機による付加分[kWh/h]
+        q_hs_CS_d_t:   日付dの時刻tにおける1時間当たりの熱源機の平均冷房顕熱能力[W]
+        q_hs_CL_d_t:   日付dの時刻tにおける1時間当たりの熱源機の平均冷房潜熱能力[W]
+
     """
     # (4) 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力(-)
     q_hs_CS_d_t, q_hs_CL_d_t = dc_a.get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
