@@ -1,8 +1,17 @@
-from jjjexperiment.jjj_section4_2_a import get_A_f_hex, get_A_e_hex
-from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+import json
+import copy
+import numpy as np
 
+import jjjexperiment.input as input
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 import jjjexperiment.constants as consts
 
+from jjjexperiment.calc \
+    import calc_E_E_H_d_t, get_E_E_C_d_t, calc_Q_UT_A
+from jjjexperiment.jjj_section4_1 \
+    import calc_heating_load, calc_cooling_load
+from jjjexperiment.jjj_section4_2_a \
+    import get_A_f_hex, get_A_e_hex, get_alpha_c_hex_C, get_alpha_c_hex_H
 
 class Testコイル特性:
 
@@ -76,3 +85,475 @@ class Testコイル特性:
         consts.A_e_hex_large_H = self.expected_T3['A_e_hex_custom']
         assert self.expected_T3['A_f_hex_custom'] == get_A_f_hex(PROCESS_TYPE_3, 5700)
         assert self.expected_T3['A_e_hex_custom'] == get_A_e_hex(PROCESS_TYPE_3, 5700)
+
+class Test熱伝達特性_冷房:
+
+    def test_室内熱交換器表面_熱伝達率_方式3_変化(self):
+        """ 方式3(潜熱評価モデル)時のみ 計算結果が変化する
+        """
+        fixture = {
+            'V': 120,
+            'X': 0.010376,  # 表5 より
+            'q': 800,
+        }
+        a1, a1_dash = get_alpha_c_hex_C(
+            type = PROCESS_TYPE_1,
+            V_fan_x_C  = fixture['V'],
+            X_hs_in    = fixture['X'],
+            q_hs_rtd_C = fixture['q'])
+        a2, a2_dash = get_alpha_c_hex_C(
+            type = PROCESS_TYPE_2,
+            V_fan_x_C  = fixture['V'],
+            X_hs_in    = fixture['X'],
+            q_hs_rtd_C = fixture['q'])
+        a3, a3_dash = get_alpha_c_hex_C(
+            type = PROCESS_TYPE_3,
+            V_fan_x_C  = fixture['V'],
+            X_hs_in    = fixture['X'],
+            q_hs_rtd_C = fixture['q'])
+
+        assert a1 == a2, "結果が変わるべきでない両者の結果に差があります"
+        assert a3 != a1 and a3 != a2, "変更されるべき 顕熱伝達率計算が変化していません"
+        assert a1_dash == a2_dash, "結果が変わるべきでない両者の結果に差があります"
+        assert a3_dash != a1_dash and a3_dash != a2_dash, "変更されるべき 潜熱伝達率計算が変化していません"
+
+
+class Test熱伝達特性_暖房:
+
+    def test_室内熱交換器表面_熱伝達率_方式3_変化(self):
+        """ 方式3(潜熱評価モデル)時のみ 計算結果が変化する
+        """
+        fixture = {
+            'V': 120,
+            'q': 800,
+        }
+        a1 = get_alpha_c_hex_H(
+            type = PROCESS_TYPE_1,
+            V_fan_x_H = fixture['V'],
+            q_hs_rtd_C = fixture['q'])
+        a2 = get_alpha_c_hex_H(
+            type = PROCESS_TYPE_2,
+            V_fan_x_H = fixture['V'],
+            q_hs_rtd_C = fixture['q'])
+        a3 = get_alpha_c_hex_H(
+            type = PROCESS_TYPE_3,
+            V_fan_x_H = fixture['V'],
+            q_hs_rtd_C = fixture['q'])
+
+        assert a1 == a2, "結果が変わるべきでない両者の結果に差があります"
+        assert a3 != a1 and a3 != a2, "変更されるべき 熱伝達率計算が変化していません"
+
+
+class Testコンプレッサ効率特性_暖房:
+
+    _inputs = json.load(open('./tests/inputs/default_testinput.json', 'r'))
+
+    def prepareArgs(self) -> dict:
+
+        self._inputs["H_A"]["input_V_hs_dsgn_H"] = 2  # ユーザー入力ON
+        consts.set_constants(self._inputs)
+
+        # 個別の変数に展開
+        _, _, A_A, A_MR, A_OR, region, sol_region = input.get_basic(self._inputs)
+        ENV, NV_MR, NV_OR, TS, r_A_ufvnt, uflr_insul, uflr_air_cdtn_air_spl, hs_CAV = input.get_env(self._inputs)
+        mode_H, H_A, _, _, _  = input.get_heating(self._inputs, region, A_A)
+        mode_C, C_A, _, _     = input.get_cooling(self._inputs, region, A_A)
+        q_rtd_C, q_rtd_H, q_max_C, q_max_H, _, e_rtd_H, _, dualcompressor_H, input_C_af_C, input_C_af_H \
+            = input.get_CRAC_spec(self._inputs)
+
+        # 設計風量[m3/h]
+        V_hs_dsgn_H = H_A['V_hs_dsgn_H']  # NOTE: ユーザー入力ON時のみ可
+
+        # 送風機の消費電力[W] = 設計風量[m3/h] * 比消費電力[W/(m3/h)]
+        P_rac_fan_rtd_H = V_hs_dsgn_H * H_A['f_SFP_H']
+
+        fixtures = {
+            "case_name": "-",
+            "climateFile": "-",
+            "outdoorFile": "-",
+            "loadFile": "-",
+            "Q": 2.647962191872085,
+            "mu_C": 0.07170453031312457,
+            "mu_H": 0.11011767155229846,
+            "YUCACO_r_A_ufvnt": 0.7089130102430821,
+            "HEX": None,
+            "SHC": None,
+            "R_g": None,
+            "spec_MR": None,
+            "spec_OR": None,
+            "mode_MR": None,
+            "mode_OR": None,
+        }
+
+        L_H_d_t_i: np.ndarray  # H: 暖房負荷 [MJ/h]
+        L_H_d_t_i, _ = calc_heating_load(
+            region = region,
+            sol_region = sol_region,
+            A_A = A_A, A_MR = A_MR, A_OR = A_OR,
+            NV_MR = NV_MR, NV_OR = NV_OR, TS = TS,
+            r_A_ufvnt = r_A_ufvnt,
+            underfloor_insulation = uflr_insul,
+            mode_H = mode_H, mode_C = mode_C,
+            Q =    fixtures["Q"],
+            mu_H = fixtures["mu_H"],
+            mu_C = fixtures["mu_C"],
+            spec_MR = fixtures["spec_MR"],
+            spec_OR = fixtures["spec_OR"],
+            mode_MR = fixtures["mode_MR"],
+            mode_OR = fixtures["mode_OR"],
+            HEX = fixtures["HEX"],
+            SHC = fixtures["SHC"])
+
+        L_CS_d_t_i: np.ndarray  # CS: 冷房・顕熱負荷 [MJ/h]
+        L_CL_d_t_i: np.ndarray  # CL: 冷房・潜熱負荷 [MJ/h]
+        L_CS_d_t_i, L_CL_d_t_i = calc_cooling_load(
+            region = region,
+            A_A = A_A, A_MR = A_MR, A_OR = A_OR,
+            NV_MR = NV_MR, NV_OR = NV_OR, TS = TS,
+            r_A_ufvnt = r_A_ufvnt,
+            underfloor_insulation = uflr_insul,
+            mode_C = mode_C, mode_H = mode_H,
+            Q =    fixtures["Q"],
+            mu_H = fixtures["mu_H"],
+            mu_C = fixtures["mu_C"],
+            mode_MR = fixtures["mode_MR"],
+            mode_OR = fixtures["mode_OR"],
+            HEX =     fixtures["HEX"])
+
+        _, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, _, _, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t \
+            = calc_Q_UT_A(
+                case_name = 'default',
+                A_A  = A_A,
+                A_MR = A_MR,
+                A_OR = A_OR,
+                A_env = ENV['A_env'],
+                mu_H  = fixtures["mu_H"],
+                mu_C  = fixtures["mu_C"],
+                q_hs_rtd_H = H_A['q_hs_rtd_H'],
+                q_hs_rtd_C = None,  # NOTE: 除外する
+                q_rtd_H = q_rtd_H,
+                q_rtd_C = q_rtd_C,
+                q_max_H = q_max_H,
+                q_max_C = q_max_C,
+                V_hs_dsgn_H = V_hs_dsgn_H,
+                V_hs_dsgn_C = None,  # NOTE: 除外する
+                Q = fixtures["Q"],
+                VAV = H_A['VAV'],
+                general_ventilation = H_A['general_ventilation'],
+                hs_CAV = hs_CAV,
+                duct_insulation = H_A['duct_insulation'],
+                region = region,
+                L_H_d_t_i  = L_H_d_t_i,
+                L_CS_d_t_i = L_CS_d_t_i,
+                L_CL_d_t_i = L_CL_d_t_i,
+                type = H_A['type'],  # NOTE: 別の type と混合注意
+                input_C_af_H = input_C_af_H,
+                input_C_af_C = input_C_af_C,
+                underfloor_insulation = uflr_insul,
+                underfloor_air_conditioning_air_supply = uflr_air_cdtn_air_spl,
+                YUCACO_r_A_ufvnt = fixtures["YUCACO_r_A_ufvnt"],
+                R_g = fixtures["R_g"],
+                climateFile = fixtures["climateFile"],
+                outdoorFile = fixtures["outdoorFile"]
+            )
+
+        return {
+            "Theta_hs_out_d_t": Theta_hs_out_d_t,
+            "Theta_hs_in_d_t":  Theta_hs_in_d_t,
+            "Theta_ex_d_t":     Theta_ex_d_t,
+            "V_hs_supply_d_t":  V_hs_supply_d_t,
+            "V_hs_vent_d_t":   V_hs_vent_d_t,
+            "V_hs_dsgn_H":     V_hs_dsgn_H,
+            "C_df_H_d_t":      C_df_H_d_t,
+            "P_rac_fan_rtd_H": P_rac_fan_rtd_H,
+            "q_hs_min_H":  H_A['q_hs_min_H'],
+            "q_hs_mid_H":  H_A['q_hs_mid_H'],
+            "P_hs_mid_H":  H_A['P_hs_mid_H'],
+            "V_fan_mid_H": H_A['V_fan_mid_H'],
+            "P_fan_mid_H": H_A['P_fan_mid_H'],
+            "q_max_C": q_max_C,
+            "q_max_H": q_max_H,
+            "q_rtd_C": q_rtd_C,
+            "q_hs_rtd_C": C_A['q_hs_rtd_C'],
+            "q_rtd_H": q_rtd_H,
+            "e_rtd_H": e_rtd_H,
+            "V_fan_rtd_H": H_A['V_fan_rtd_H'],
+            "P_fan_rtd_H": H_A['P_fan_mid_H'],
+            "q_hs_rtd_H":  H_A['q_hs_rtd_H'],
+            "P_hs_rtd_H":  H_A['P_hs_rtd_H'],
+            "type":   H_A['type'],
+            "region": region,
+            "dualcompressor_H": dualcompressor_H,
+            "input_C_af_H":  input_C_af_H,
+            "EquipmentSpec": H_A['EquipmentSpec'],
+            "f_SFP_H":       H_A['f_SFP_H'],
+            "outdoorFile":   fixtures["outdoorFile"],
+        }
+
+    _testBaseArgs: dict
+
+    @classmethod
+    def setup_class(cls):
+        """ 暖房方式 以外の引数は共通として、方式ごとの挙動差のみを確認する
+        """
+        cls._testBaseArgs = cls.prepareArgs(cls)
+
+    def test_時間別消費電力量_方式1_方式3_送風機不変(self):
+
+        self._testBaseArgs["type"] = PROCESS_TYPE_1
+        _, _, E_E_fan_H_d_t1 = calc_E_E_H_d_t(**self._testBaseArgs)
+        self._testBaseArgs["type"] = PROCESS_TYPE_3
+        _, _, E_E_fan_H_d_t3 = calc_E_E_H_d_t(**self._testBaseArgs)
+
+        assert np.array_equal(E_E_fan_H_d_t1, E_E_fan_H_d_t3), "誤って送風機分の消費電力にも方式による差が生じています"
+
+    def test_時間別消費電力量_方式1_方式3_合計値変化(self):
+
+        self._testBaseArgs["type"] = PROCESS_TYPE_1
+        E_E_H_d_t1, _, _ = calc_E_E_H_d_t(**self._testBaseArgs)
+        self._testBaseArgs["type"] = PROCESS_TYPE_3
+        E_E_H_d_t3, _, _ = calc_E_E_H_d_t(**self._testBaseArgs)
+
+        assert not np.array_equal(E_E_H_d_t1, E_E_H_d_t3), "方式によって消費電力の計算値には差が生じなければなりません"
+
+    def test_時間別消費電力量_方式1_方式2_両方変化(self):
+
+        self._testBaseArgs["type"] = PROCESS_TYPE_1
+        E_E_H_d_t1, _, E_E_fan_H_d_t1 = calc_E_E_H_d_t(**self._testBaseArgs)
+        self._testBaseArgs["type"] = PROCESS_TYPE_2
+        E_E_H_d_t2, _, E_E_fan_H_d_t2 = calc_E_E_H_d_t(**self._testBaseArgs)
+
+        assert not np.array_equal(E_E_fan_H_d_t1, E_E_fan_H_d_t2), "誤って送風機分の消費電力にも方式による差が生じています"
+        assert not np.array_equal(E_E_H_d_t1, E_E_H_d_t2), "方式によって消費電力の計算値には差が生じなければなりません"
+
+    def test_時間別消費電力量_方式3_係数設定有効(self):
+        """ コンプレッサ効率特性曲線のパラメータ設定が結果に反映されていることを確認
+        """
+        self._testBaseArgs["type"] = PROCESS_TYPE_3
+        # コンプレッサ効率特性 係数は Type3 でのみ有効
+        coeffs_01 = [0, 0, -0.444, 0.444, 0]
+        coeffs_02 = [0, 0.153, -0.53, 0.53, 0]
+
+        inputs = copy.deepcopy(self._inputs)
+
+        inputs['H_A']['compressor_coeff'] = coeffs_01
+        consts.set_constants(inputs)
+        E_E_H_d_t_T301, _, E_E_fan_H_d_t_T301 = calc_E_E_H_d_t(**self._testBaseArgs)
+
+        inputs['H_A']['compressor_coeff'] = coeffs_02
+        consts.set_constants(inputs)
+        E_E_H_d_t_T302, _, E_E_fan_H_d_t_T302 = calc_E_E_H_d_t(**self._testBaseArgs)
+
+        assert not np.array_equal(E_E_H_d_t_T301, E_E_H_d_t_T302), "コンプレッサ効率特性曲線の係数が結果に反映されていません"
+        assert np.array_equal(E_E_fan_H_d_t_T301, E_E_fan_H_d_t_T302), "誤って送風機分の消費電力にも方式による差が生じています"
+
+class Testコンプレッサ効率特性_冷房:
+
+    _inputs = json.load(open('./tests/inputs/default_testinput.json', 'r'))
+
+    def prepareArgs(self) -> dict:
+
+        self._inputs["C_A"]["input_V_hs_dsgn_C"] = 2  # ユーザー入力ON
+        consts.set_constants(self._inputs)
+
+        # 個別の変数に展開
+        _, _, A_A, A_MR, A_OR, region, sol_region = input.get_basic(self._inputs)
+        ENV, NV_MR, NV_OR, TS, r_A_ufvnt, uflr_insul, uflr_air_cdtn_air_spl, hs_CAV = input.get_env(self._inputs)
+        mode_H, H_A, _, _, _  = input.get_heating(self._inputs, region, A_A)
+        mode_C, C_A, _, _     = input.get_cooling(self._inputs, region, A_A)
+        q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, _, dualcompressor_C, _, input_C_af_C, input_C_af_H \
+            = input.get_CRAC_spec(self._inputs)
+
+        # 設計風量[m3/h]
+        V_hs_dsgn_C = C_A['V_hs_dsgn_C']  # NOTE: ユーザー入力ON時のみ可
+
+        # 送風機の消費電力[W] = 設計風量[m3/h] * 比消費電力[W/(m3/h)]
+        P_rac_fan_rtd_C = V_hs_dsgn_C * C_A['f_SFP_C']
+
+        fixtures = {
+            "case_name": "-",
+            "climateFile": "-",
+            "outdoorFile": "-",
+            "loadFile": "-",
+            "Q": 2.647962191872085,
+            "mu_C": 0.07170453031312457,
+            "mu_H": 0.11011767155229846,
+            "YUCACO_r_A_ufvnt": 0.7089130102430821,
+            "HEX": None,
+            "SHC": None,
+            "R_g": None,
+            "spec_MR": None,
+            "spec_OR": None,
+            "mode_MR": None,
+            "mode_OR": None,
+        }
+
+        L_H_d_t_i: np.ndarray  # H: 暖房負荷 [MJ/h]
+        L_H_d_t_i, _ = calc_heating_load(
+            region = region,
+            sol_region = sol_region,
+            A_A = A_A, A_MR = A_MR, A_OR = A_OR,
+            NV_MR = NV_MR, NV_OR = NV_OR, TS = TS,
+            r_A_ufvnt = r_A_ufvnt,
+            underfloor_insulation = uflr_insul,
+            mode_H = mode_H, mode_C = mode_C,
+            Q =    fixtures["Q"],
+            mu_H = fixtures["mu_H"],
+            mu_C = fixtures["mu_C"],
+            spec_MR = fixtures["spec_MR"],
+            spec_OR = fixtures["spec_OR"],
+            mode_MR = fixtures["mode_MR"],
+            mode_OR = fixtures["mode_OR"],
+            HEX = fixtures["HEX"],
+            SHC = fixtures["SHC"])
+
+        L_CS_d_t_i: np.ndarray  # CS: 冷房・顕熱負荷 [MJ/h]
+        L_CL_d_t_i: np.ndarray  # CL: 冷房・潜熱負荷 [MJ/h]
+        L_CS_d_t_i, L_CL_d_t_i = calc_cooling_load(
+            region = region,
+            A_A = A_A, A_MR = A_MR, A_OR = A_OR,
+            NV_MR = NV_MR, NV_OR = NV_OR, TS = TS,
+            r_A_ufvnt = r_A_ufvnt,
+            underfloor_insulation = uflr_insul,
+            mode_C = mode_C, mode_H = mode_H,
+            Q =    fixtures["Q"],
+            mu_H = fixtures["mu_H"],
+            mu_C = fixtures["mu_C"],
+            mode_MR = fixtures["mode_MR"],
+            mode_OR = fixtures["mode_OR"],
+            HEX =     fixtures["HEX"])
+
+        _, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, _ \
+            = calc_Q_UT_A(
+                case_name = fixtures['case_name'],
+                A_A  = A_A,
+                A_MR = A_MR,
+                A_OR = A_OR,
+                A_env = ENV['A_env'],
+                mu_H  = fixtures['mu_H'],
+                mu_C  = fixtures['mu_C'],
+                q_hs_rtd_H = None,  # NOTE: 除外する
+                q_hs_rtd_C = C_A['q_hs_rtd_C'],
+                q_rtd_H = q_rtd_H,
+                q_rtd_C = q_rtd_C,
+                q_max_H = q_max_H,
+                q_max_C = q_max_C,
+                V_hs_dsgn_H = None,  # NOTE: 除外する
+                V_hs_dsgn_C = V_hs_dsgn_C,
+                Q = fixtures['Q'],
+                VAV = H_A['VAV'],
+                general_ventilation = H_A['general_ventilation'],
+                hs_CAV = hs_CAV,
+                duct_insulation = H_A['duct_insulation'],
+                region = region,
+                L_H_d_t_i  = L_H_d_t_i,
+                L_CS_d_t_i = L_CS_d_t_i,
+                L_CL_d_t_i = L_CL_d_t_i,
+                type = H_A['type'],  # NOTE: 別の type と混合注意
+                input_C_af_H = input_C_af_H,
+                input_C_af_C = input_C_af_C,
+                underfloor_insulation = uflr_insul,
+                underfloor_air_conditioning_air_supply = uflr_air_cdtn_air_spl,
+                YUCACO_r_A_ufvnt = fixtures['YUCACO_r_A_ufvnt'],
+                R_g = fixtures['R_g'],
+                climateFile = fixtures['climateFile'],
+                outdoorFile = fixtures['outdoorFile']
+            )
+
+        return {
+            "Theta_hs_out_d_t": Theta_hs_out_d_t,
+            "Theta_hs_in_d_t":  Theta_hs_in_d_t,
+            "Theta_ex_d_t": Theta_ex_d_t,
+            "V_hs_supply_d_t": V_hs_supply_d_t,
+            "V_hs_vent_d_t": V_hs_vent_d_t,
+            "V_hs_dsgn_C": V_hs_dsgn_C,
+            "X_hs_out_d_t": X_hs_out_d_t,
+            "X_hs_in_d_t": X_hs_in_d_t,
+            "q_hs_min_C":  C_A['q_hs_min_C'],
+            "q_hs_mid_C":  C_A['q_hs_mid_C'],
+            "P_hs_mid_C":  C_A['P_hs_mid_C'],
+            "V_fan_mid_C": C_A['V_fan_mid_C'],
+            "P_fan_mid_C": C_A['P_fan_mid_C'],
+            "q_max_C": q_max_C,
+            "q_hs_rtd_C":  C_A['q_hs_rtd_C'],
+            "P_hs_rtd_C":  C_A['P_hs_rtd_C'],
+            "V_fan_rtd_C": C_A['V_fan_rtd_C'],
+            "P_fan_rtd_C": C_A['P_fan_mid_C'],
+            "q_rtd_C": q_rtd_C,
+            "e_rtd_C": e_rtd_C,
+            "P_rac_fan_rtd_C": P_rac_fan_rtd_C,
+            "type":   C_A['type'],
+            "region": region,
+            "dualcompressor_C": dualcompressor_C,
+            "input_C_af_C":  input_C_af_C,
+            "EquipmentSpec": C_A['EquipmentSpec'],
+            "f_SFP_C": C_A['f_SFP_C'],
+            "outdoorFile": fixtures['outdoorFile'],
+        }
+
+    _testBaseArgs: dict
+
+    @classmethod
+    def setup_class(cls):
+        """ 冷房方式 以外の引数は共通として、方式ごとの挙動差のみを確認する
+        """
+        cls._testBaseArgs = cls.prepareArgs(cls)
+
+    def test_時間別消費電力量_方式1_方式3_送風機不変(self):
+
+        self._testBaseArgs["type"] = PROCESS_TYPE_1
+        _, E_E_fan_C_d_t_T1, _, _ = get_E_E_C_d_t(**self._testBaseArgs)
+        self._testBaseArgs["type"] = PROCESS_TYPE_3
+        _, E_E_fan_C_d_t_T3, _, _ = get_E_E_C_d_t(**self._testBaseArgs)
+
+        assert np.array_equal(E_E_fan_C_d_t_T1, E_E_fan_C_d_t_T3), "誤って送風機分の消費電力にも方式による差が生じています"
+
+    def test_時間別消費電力量_方式1_方式3_平均冷房能力不変(self):
+
+        self._testBaseArgs["type"] = PROCESS_TYPE_1
+        _, _, q_hs_CS_d_t_T1, q_hs_CL_d_t_T1 = get_E_E_C_d_t(**self._testBaseArgs)
+        self._testBaseArgs["type"] = PROCESS_TYPE_3
+        _, _, q_hs_CS_d_t_T3, q_hs_CL_d_t_T3 = get_E_E_C_d_t(**self._testBaseArgs)
+
+        assert np.array_equal(q_hs_CS_d_t_T1, q_hs_CS_d_t_T3), "誤って平均冷房顕熱能力にも方式による差が生じています"
+        assert np.array_equal(q_hs_CL_d_t_T1, q_hs_CL_d_t_T3), "誤って平均冷房潜熱能力にも方式による差が生じています"
+
+    def test_時間別消費電力量_方式1_方式3_合計値変化(self):
+
+        self._testBaseArgs["type"] = PROCESS_TYPE_1
+        E_E_C_d_t_T1, _, _, _ = get_E_E_C_d_t(**self._testBaseArgs)
+        self._testBaseArgs["type"] = PROCESS_TYPE_3
+        E_E_C_d_t_T3, _, _, _ = get_E_E_C_d_t(**self._testBaseArgs)
+
+        assert not np.array_equal(E_E_C_d_t_T1, E_E_C_d_t_T3), "方式によって消費電力の計算値には差が生じなければなりません"
+
+    def test_時間別消費電力量_方式1_方式2_両方変化(self):
+
+        self._testBaseArgs["type"] = PROCESS_TYPE_1
+        E_E_C_d_t_T1, E_E_fan_C_d_t_T1, _, _ = get_E_E_C_d_t(**self._testBaseArgs)
+        self._testBaseArgs["type"] = PROCESS_TYPE_2
+        E_E_C_d_t_T2, E_E_fan_C_d_t_T2, _, _ = get_E_E_C_d_t(**self._testBaseArgs)
+
+        assert not np.array_equal(E_E_fan_C_d_t_T1, E_E_fan_C_d_t_T2), "誤って送風機分の消費電力にも方式による差が生じています"
+        assert not np.array_equal(E_E_C_d_t_T1, E_E_C_d_t_T2), "方式によって消費電力の計算値には差が生じなければなりません"
+
+    def test_時間別消費電力量_方式3_係数設定有効(self):
+        """ コンプレッサ効率特性曲線のパラメータ設定が結果に反映されていることを確認
+        """
+        self._testBaseArgs["type"] = PROCESS_TYPE_3
+        # コンプレッサ効率特性 係数は Type3 でのみ有効
+        coeffs_01 = [0, 0, -0.444, 0.444, 0]
+        coeffs_02 = [0, 0.153, -0.53, 0.53, 0]
+
+        inputs = copy.deepcopy(self._inputs)
+
+        inputs['C_A']['compressor_coeff'] = coeffs_01
+        consts.set_constants(inputs)
+        E_E_C_d_t_T301, E_E_fan_C_d_t_T301, _, _ = get_E_E_C_d_t(**self._testBaseArgs)
+
+        inputs['C_A']['compressor_coeff'] = coeffs_02
+        consts.set_constants(inputs)
+        E_E_C_d_t_T302, E_E_fan_C_d_t_T302, _, _ = get_E_E_C_d_t(**self._testBaseArgs)
+
+        assert not np.array_equal(E_E_C_d_t_T301, E_E_C_d_t_T302), "コンプレッサ効率特性曲線の係数が結果に反映されていません"
+        assert np.array_equal(E_E_fan_C_d_t_T301, E_E_fan_C_d_t_T302), "誤って送風機分の消費電力にも方式による差が生じています"
