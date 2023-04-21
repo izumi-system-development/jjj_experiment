@@ -730,7 +730,7 @@ class TestNotBrokenVariousInputsType2:
         # ファンの比消費電力（入力しない or 入力する）
         inputs["H_A"]["input_f_SFP_H"] = 1
         # ▼ 入力する場合
-        inputs["H_A"]["f_SFP_H"] = 1  # ファンの比消費電力W [(m3/h)/W]
+        inputs["H_A"]["f_SFP_H"] = 1  # ファンの比消費電力 [W/(m3/h)]
 
         result = calc(inputs, test_mode=True)
 
@@ -774,7 +774,7 @@ class TestNotBrokenVariousInputsType2:
         # ファンの比消費電力（入力しない or 入力する）
         inputs["H_A"]["input_f_SFP_H"] = 2  # ★ 入力する
         # ▼ 入力する場合のみ
-        inputs["H_A"]["f_SFP_H"] = 0.3  # ファンの比消費電力W [(m3/h)/W]
+        inputs["H_A"]["f_SFP_H"] = 0.3  # ファンの比消費電力 [W/(m3/h)]
 
         result = calc(inputs, test_mode=True)
 
