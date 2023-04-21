@@ -124,7 +124,7 @@ def calc(input_data : dict, test_mode=False):
 
         # WARNING: 暖房時・冷房時 間で方式の分岐が微妙に異なっています
         # TODO: 意図的かどうかチェックし、問題なければこの行を除去する
-        elif H_A['type'] == (PROCESS_TYPE_2 or PROCESS_TYPE_3):
+        elif H_A['type'] == PROCESS_TYPE_2 or H_A['type'] == PROCESS_TYPE_3:
             V_rac_fan_rtd_H = dc_spec.get_V_fan_rtd_H(q_rtd_H)
             return dc_spec.get_V_fan_dsgn_H(V_rac_fan_rtd_H)
         else:
@@ -207,7 +207,7 @@ def calc(input_data : dict, test_mode=False):
     ##### 冷房消費電力の計算（kWh/h）
 
     def get_V_hs_dsgn_C(C_A: dict, q_rtd_C: float):
-        if C_A['type'] == (PROCESS_TYPE_1 or PROCESS_TYPE_3):
+        if C_A['type'] == PROCESS_TYPE_1 or C_A['type'] == PROCESS_TYPE_3:
             return dc_spec.get_V_fan_dsgn_C(C_A['V_fan_rtd_C'])
 
         # WARNING: 暖房時・冷房時 間で方式の分岐が微妙に異なっています

@@ -189,7 +189,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output3['V_hs_min'] = [V_hs_min]
 
     ####################################################################################################################
-    if type == (PROCESS_TYPE_1 or PROCESS_TYPE_3):
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
         # (38)
         Q_hs_rtd_C = dc.get_Q_hs_rtd_C(q_hs_rtd_C)
 
@@ -297,7 +297,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output['L_star_H_d_t_i_5'] = L_star_H_d_t_i[4] 
 
     ####################################################################################################################
-    if type == (PROCESS_TYPE_1 or PROCESS_TYPE_3):
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
         # (33)
         L_star_CL_d_t = dc.get_L_star_CL_d_t(L_star_CL_d_t_i)
         df_output['L_star_CL_d_t'] = L_star_CL_d_t
@@ -652,7 +652,7 @@ def calc_E_E_H_d_t(
     # (3) 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力(W)
     q_hs_H_d_t = dc_a.get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
 
-    if type == (PROCESS_TYPE_1 or PROCESS_TYPE_3):
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
 
         """ e_th: ヒートポンプサイクルの理論効率(-) """
 
@@ -713,7 +713,7 @@ def get_E_E_C_d_t(
     # (4) 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力(-)
     q_hs_CS_d_t, q_hs_CL_d_t = dc_a.get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
-    if type == (PROCESS_TYPE_1 or PROCESS_TYPE_3):
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
         # (4)
         q_hs_C_d_t = dc_a.get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
