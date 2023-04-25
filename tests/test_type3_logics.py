@@ -10,6 +10,8 @@ from jjjexperiment.calc \
     import calc_E_E_H_d_t, get_E_E_C_d_t, calc_Q_UT_A
 from jjjexperiment.jjj_section4_1 \
     import calc_heating_load, calc_cooling_load
+from jjjexperiment.jjj_section4_2 \
+    import get_V_dash_hs_supply_d_t_2023, get_season_array_d_t
 from jjjexperiment.jjj_section4_2_a \
     import get_A_f_hex, get_A_e_hex, get_alpha_c_hex_C, get_alpha_c_hex_H
 
@@ -144,6 +146,80 @@ class Test熱伝達特性_暖房:
 
         assert a1 == a2, "結果が変わるべきでない両者の結果に差があります"
         assert a3 != a1 and a3 != a2, "変更されるべき 熱伝達率計算が変化していません"
+
+def kw2mjph(x: float) -> float:
+    """ kW -> MJ/h へ単位変換する """
+    return x * 3600 / 1000
+
+class Test風量特性_熱源機_低出力:
+
+    _inputs: dict
+    _sut: np.ndarray
+    _H: np.ndarray
+    _C: np.ndarray
+    _M: np.ndarray
+
+    @classmethod
+    def setup_class(cls):
+        """ 熱源機の出力が 2.5 kW 未満の時
+        """
+        inputs = json.load(open(INPUT_PATH, 'r'))
+        _, _, _, _, _, region, _ = input.get_basic(inputs)
+        cls._H, cls._C, cls._M = get_season_array_d_t(region)
+
+        Q_hat_hs_d_t = np.ones(24 * 365) * kw2mjph(2.4)  # 2.4 kw を設定
+        cls._sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region)
+
+    def test_暖房時_指定定数(self):
+        ii = np.where(self._H == True)[0]
+        assert np.all(self._sut[ii] == consts.airvolume_coeff_minimum)
+
+    def test_冷房時_指定定数(self):
+        ii = np.where(self._C == True)[0]
+        assert np.all(self._sut[ii] == consts.airvolume_coeff_minimum)
+
+    def test_中間期_常に指定定数(self):
+        ii = np.where(self._M == True)[0]
+        assert np.all(self._sut[ii] == consts.airvolume_coeff_minimum)
+
+class Test風量特性_熱源機_高出力:
+
+    _inputs: dict
+    _sut: np.ndarray
+    _H: np.ndarray
+    _C: np.ndarray
+    _M: np.ndarray
+
+    @classmethod
+    def setup_class(cls):
+        """ 熱源機の出力が 2.5 kW 以上の時
+        """
+        inputs = json.load(open(INPUT_PATH, 'r'))
+        fixture = {
+            # NOTE: 一次の係数のみを有効にしてバリデーション値をコントロールしている
+            'airvolume_coeff': [0, 0, 0, 0, -0.06],
+        }
+        inputs['H_A'].update(fixture)
+        inputs['C_A'].update(fixture)
+        cls._inputs = inputs
+        consts.set_constants(cls._inputs)
+        _, _, _, _, _, region, _ = input.get_basic(cls._inputs)
+        cls._H, cls._C, cls._M = get_season_array_d_t(region)
+
+        Q_hat_hs_d_t_kw = np.ones(24 * 365) * kw2mjph(2.5)  # 2.5 kw を設定
+        cls._sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t_kw, region)
+
+    def test_暖房時_四次式計算(self):
+        ii = np.where(self._H == True)[0]
+        assert np.all(self._sut[ii] == self._inputs['H_A']['airvolume_coeff'][-1])
+
+    def test_冷房時_四次式計算(self):
+        ii = np.where(self._C == True)[0]
+        assert np.all(self._sut[ii] == self._inputs['C_A']['airvolume_coeff'][-1])
+
+    def test_中間期_常に指定定数(self):
+        ii = np.where(self._M == True)[0]
+        assert np.all(self._sut[ii] == consts.airvolume_coeff_minimum)
 
 
 class Testコンプレッサ効率特性_暖房:
