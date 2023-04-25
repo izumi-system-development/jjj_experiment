@@ -196,7 +196,7 @@ class Test風量特性_熱源機_高出力:
         """
         inputs = json.load(open(INPUT_PATH, 'r'))
         fixture = {
-            # NOTE: 一次の係数のみを有効にしてバリデーション値をコントロールしている
+            # NOTE: 0次の係数のみを有効にしてバリデーション値をコントロールしている
             'airvolume_coeff': [0, 0, 0, 0, -0.06],
         }
         inputs['H_A'].update(fixture)
@@ -510,13 +510,13 @@ class Testコンプレッサ効率特性_冷房:
                 A_env = ENV['A_env'],
                 mu_H  = fixtures['mu_H'],
                 mu_C  = fixtures['mu_C'],
-                q_hs_rtd_H = None,  # NOTE: 除外する
+                q_hs_rtd_H = None,  # NOTE: 冷房時除外項目
                 q_hs_rtd_C = C_A['q_hs_rtd_C'],
                 q_rtd_H = q_rtd_H,
                 q_rtd_C = q_rtd_C,
                 q_max_H = q_max_H,
                 q_max_C = q_max_C,
-                V_hs_dsgn_H = None,  # NOTE: 除外する
+                V_hs_dsgn_H = None,  # NOTE: 冷房時除外項目
                 V_hs_dsgn_C = V_hs_dsgn_C,
                 Q = fixtures['Q'],
                 VAV = H_A['VAV'],

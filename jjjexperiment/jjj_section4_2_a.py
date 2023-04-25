@@ -23,9 +23,9 @@ from jjjexperiment.jjj_section4_2_b import \
     get_V_fan_mid_H, \
     get_V_fan_rtd_C, \
     get_V_fan_mid_C, \
-    get_P_fan_rtd_H,\
+    get_P_fan_rtd_H, \
     get_P_fan_mid_H, \
-    get_P_fan_rtd_C,\
+    get_P_fan_rtd_C, \
     get_P_fan_mid_C, \
     get_V_fan_dsgn_H, \
     get_V_fan_dsgn_C

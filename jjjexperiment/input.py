@@ -114,7 +114,7 @@ def get_heating(input: dict, region: int, A_A: float):
         H_A['q_hs_min_H'] = dc_spec.get_q_hs_min_H(H_A['q_hs_rtd_H'])
         H_A['P_hs_rtd_H'] = dc_spec.get_P_hs_rtd_H(H_A['q_hs_rtd_H'])
         H_A['V_fan_rtd_H'] = dc_spec.get_V_fan_rtd_H(H_A['q_hs_rtd_H'])
-        H_A['V_fan_mid_H'] = dc_spec. get_V_fan_mid_H(H_A['q_hs_mid_H'])
+        H_A['V_fan_mid_H'] = dc_spec.get_V_fan_mid_H(H_A['q_hs_mid_H'])
         H_A['P_fan_rtd_H'] = dc_spec.get_P_fan_rtd_H(H_A['V_fan_rtd_H'])
         H_A['P_fan_mid_H'] = dc_spec.get_P_fan_mid_H(H_A['V_fan_mid_H'])
         H_A['P_hs_mid_H'] = np.NAN
@@ -126,7 +126,7 @@ def get_heating(input: dict, region: int, A_A: float):
         H_A['P_fan_rtd_H'] = float(input['H_A']['P_fan_rtd_H'])
         H_A['q_hs_mid_H'] = dc_spec.get_q_hs_mid_H(H_A['q_hs_rtd_H'])
         H_A['q_hs_min_H'] = dc_spec.get_q_hs_min_H(H_A['q_hs_rtd_H'])
-        H_A['V_fan_mid_H'] = dc_spec. get_V_fan_mid_H(H_A['q_hs_mid_H'])
+        H_A['V_fan_mid_H'] = dc_spec.get_V_fan_mid_H(H_A['q_hs_mid_H'])
         H_A['P_fan_mid_H'] = dc_spec.get_P_fan_mid_H(H_A['V_fan_mid_H'])
         H_A['P_hs_mid_H'] = np.NAN
     elif int(input['H_A']['input']) == 3:
