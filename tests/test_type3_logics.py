@@ -13,6 +13,8 @@ from jjjexperiment.jjj_section4_1 \
 from jjjexperiment.jjj_section4_2_a \
     import get_A_f_hex, get_A_e_hex, get_alpha_c_hex_C, get_alpha_c_hex_H
 
+INPUT_PATH = './tests/inputs/default_testinput.json'
+
 class Testコイル特性:
 
     expected_T1T2 = {
@@ -146,7 +148,7 @@ class Test熱伝達特性_暖房:
 
 class Testコンプレッサ効率特性_暖房:
 
-    _inputs = json.load(open('./tests/inputs/default_testinput.json', 'r'))
+    _inputs = json.load(open(INPUT_PATH, 'r'))
 
     def prepareArgs(self) -> dict:
 
@@ -349,7 +351,7 @@ class Testコンプレッサ効率特性_暖房:
 
 class Testコンプレッサ効率特性_冷房:
 
-    _inputs = json.load(open('./tests/inputs/default_testinput.json', 'r'))
+    _inputs = json.load(open(INPUT_PATH, 'r'))
 
     def prepareArgs(self) -> dict:
 
