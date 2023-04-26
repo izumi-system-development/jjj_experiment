@@ -20,15 +20,15 @@ INPUT_PATH = './tests/inputs/default_testinput.json'
 class Testコイル特性:
 
     expected_T1T2 = {
-        'A_f_hex': 0.23559,
-        'A_e_hex': 6.396,
+        'A_f_hex': 0.23559,  # 仕様書より
+        'A_e_hex': 6.396,    # 仕様書より
     }
     expected_T3 = {
-        'A_f_hex_upper': 0.3,
-        'A_f_hex_lower': 0.2,
+        'A_f_hex_upper': 0.3,  # 仕様書より
+        'A_f_hex_lower': 0.2,  # 仕様書より
         'A_f_hex_custom': 0.23456,  # ユーザーの独自入力を想定
-        'A_e_hex_upper': 10.6,
-        'A_e_hex_lower': 6.2,
+        'A_e_hex_upper': 10.6,  # 仕様書より
+        'A_e_hex_lower': 6.2,   # 仕様書より
         'A_e_hex_custom': 6.66666,  # ユーザーの独自入力を想定
     }
 
@@ -203,6 +203,7 @@ class Test風量特性_熱源機_高出力:
         inputs['C_A'].update(fixture)
         cls._inputs = inputs
         consts.set_constants(cls._inputs)
+
         _, _, _, _, _, region, _ = input.get_basic(cls._inputs)
         cls._H, cls._C, cls._M = get_season_array_d_t(region)
 

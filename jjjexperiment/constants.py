@@ -126,6 +126,8 @@ P_fan_C_d_t_a0: float = 50
 
 
 def set_constants(input: dict):
+  """ 更新したい部分のみの辞書でも利用可能
+  """
   if 'Theta_hs_out_max_H_d_t_limit' in input:
     global Theta_hs_out_max_H_d_t_limit
     Theta_hs_out_max_H_d_t_limit = float(input['Theta_hs_out_max_H_d_t_limit'])
