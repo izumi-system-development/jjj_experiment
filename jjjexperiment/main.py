@@ -133,7 +133,6 @@ def calc(input_data : dict, test_mode=False):
     V_hs_dsgn_H = H_A['V_hs_dsgn_H'] if 'V_hs_dsgn_H' in H_A else get_V_hs_dsgn_H(H_A, q_rtd_H)
     """ 暖房時の送風機の設計風量 [m3/h] """
 
-    #P_rac_fan_rtd_H: float = dc_spec.get_P_fan_rtd_H(V_rac_fan_rtd_H)
     P_rac_fan_rtd_H: float = V_hs_dsgn_H * H_A['f_SFP_H']
     """定格暖房能力運転時の送風機の消費電力(W)"""
 
@@ -221,7 +220,6 @@ def calc(input_data : dict, test_mode=False):
     V_hs_dsgn_C = C_A['V_hs_dsgn_C'] if 'V_hs_dsgn_C' in C_A else get_V_hs_dsgn_C(C_A, q_rtd_C)
     """冷房時の送風機の設計風量(m3/h)"""
 
-    #P_rac_fan_rtd_C: float = dc_spec.get_P_fan_rtd_C(V_fan_rtd_C)
     P_rac_fan_rtd_C: float = V_hs_dsgn_C * C_A['f_SFP_C']
     """定格冷房能力運転時の送風機の消費電力(W)"""
 
