@@ -13,7 +13,7 @@ from jjjexperiment.jjj_section4_1 \
 from jjjexperiment.jjj_section4_2 \
     import get_V_dash_hs_supply_d_t_2023, get_season_array_d_t
 from jjjexperiment.jjj_section4_2_a \
-    import get_A_f_hex, get_A_e_hex, get_alpha_c_hex_C, get_alpha_c_hex_H
+    import get_A_f_hex, get_A_e_hex, get_alpha_c_hex_C, get_alpha_c_hex_H, get_E_E_fan_H_d_t, get_E_E_fan_C_d_t, get_q_hs_C_d_t, get_q_hs_H_d_t
 
 INPUT_PATH = './tests/inputs/default_testinput.json'
 
@@ -368,9 +368,150 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
     }
     return main_args, H_args, C_args, others
 
-class Testコンプレッサ効率特性_暖房:
 
-    _inputs = json.load(open(INPUT_PATH, 'r'))
+class Testファン消費電力_暖房:
+
+    def prepareArgs(self) -> dict:
+        """ 暖房用のセットアップ
+        """
+        main_args, H_args, _, others = prepare_args_for_calc_Q_UT_A()
+        H_args['q_hs_rtd_C'] = None  # NOTE: 暖房負荷の計算時には冷房の定格出力は無視する
+        main_args.update(H_args)
+
+        _, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, _, _, _, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t \
+            = calc_Q_UT_A(**main_args)
+
+        q_hs_H_d_t = get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, main_args['region'])
+
+        return {
+            'type': H_args['type'],
+            'P_fan_rtd_H': others['P_fan_rtd_H'],
+            'V_hs_vent_d_t': V_hs_vent_d_t,
+            'V_hs_supply_d_t': V_hs_supply_d_t,
+            'V_hs_dsgn_H': H_args['V_hs_dsgn_H'],
+            'q_hs_H_d_t': q_hs_H_d_t,
+            'f_SFP': others['f_SFP_H'],
+        }
+
+    _testBaseArgs: dict
+
+    @classmethod
+    def setup_class(cls):
+        """ 暖房方式 以外の引数は共通として、方式ごとの挙動差のみを確認する
+        """
+        cls._testBaseArgs = cls.prepareArgs(cls)
+
+    def test_方式1_方式2_結果一致(self):
+        self._testBaseArgs['type'] = PROCESS_TYPE_1
+        result_01 = get_E_E_fan_H_d_t(**self._testBaseArgs)
+        self._testBaseArgs['type'] = PROCESS_TYPE_2
+        result_02 = get_E_E_fan_H_d_t(**self._testBaseArgs)
+        assert np.all(result_01 == result_02)
+
+    def test_方式1_方式3_計算切替(self):
+        self._testBaseArgs['type'] = PROCESS_TYPE_1
+        result_01 = get_E_E_fan_H_d_t(**self._testBaseArgs)
+        self._testBaseArgs['type'] = PROCESS_TYPE_3
+        result_03 = get_E_E_fan_H_d_t(**self._testBaseArgs)
+        assert not np.all(result_01 == result_03)
+
+    def test_方式2_方式3_計算切替(self):
+        self._testBaseArgs['type'] = PROCESS_TYPE_2
+        result_02 = get_E_E_fan_H_d_t(**self._testBaseArgs)
+        self._testBaseArgs['type'] = PROCESS_TYPE_3
+        result_03 = get_E_E_fan_H_d_t(**self._testBaseArgs)
+        assert not np.all(result_02 == result_03)
+
+    def test_方式3_係数設定_変更反映(self):
+        """ 同じ方式3でもユーザーが設定した係数によって計算結果が異なることを確認
+        """
+        self._testBaseArgs['type'] = PROCESS_TYPE_3
+        update_info_01 = {
+            'H_A': {'fan_coeff': [0, 0, 27, -8, 13]}  # NOTE: ユーザーの独自値で設定
+        }
+        consts.set_constants(update_info_01)
+        result_03_01 = get_E_E_fan_H_d_t(**self._testBaseArgs)
+        update_info_02 = {
+            'H_A': {'fan_coeff': [0, 0, 13, 20, -6]}  # NOTE: ユーザーの独自値で設定
+        }
+        consts.set_constants(update_info_02)
+        result_03_02 = get_E_E_fan_H_d_t(**self._testBaseArgs)
+
+        assert not np.all(result_03_01 == result_03_02)
+
+
+class Testファン消費電力_冷房:
+
+    def prepareArgs(self) -> dict:
+        """ 冷房用のセットアップ
+        """
+        main_args, _, C_args, others = prepare_args_for_calc_Q_UT_A()
+        C_args['q_hs_rtd_H'] = None  # NOTE: 冷房負荷の計算時には暖房の定格出力は無視する
+        main_args.update(C_args)
+
+        _, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, _, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, _ \
+            = calc_Q_UT_A(**main_args)
+
+        q_hs_C_d_t = get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, main_args['region'])
+
+        return {
+            'type': C_args['type'],
+            'P_fan_rtd_C': others['P_fan_rtd_C'],
+            'V_hs_vent_d_t': V_hs_vent_d_t,
+            'V_hs_supply_d_t': V_hs_supply_d_t,
+            'V_hs_dsgn_C': C_args['V_hs_dsgn_C'],
+            'q_hs_C_d_t': q_hs_C_d_t,
+            'f_SFP': others['f_SFP_C'],
+        }
+
+    _testBaseArgs: dict
+
+    @classmethod
+    def setup_class(cls):
+        """ 冷房方式 以外の引数は共通として、方式ごとの挙動差のみを確認する
+        """
+        cls._testBaseArgs = cls.prepareArgs(cls)
+
+    def test_方式1_方式2_結果一致(self):
+        self._testBaseArgs['type'] = PROCESS_TYPE_1
+        result_01 = get_E_E_fan_C_d_t(**self._testBaseArgs)
+        self._testBaseArgs['type'] = PROCESS_TYPE_2
+        result_02 = get_E_E_fan_C_d_t(**self._testBaseArgs)
+        assert np.all(result_01 == result_02)
+
+    def test_方式1_方式3_計算切替(self):
+        self._testBaseArgs['type'] = PROCESS_TYPE_1
+        result_01 = get_E_E_fan_C_d_t(**self._testBaseArgs)
+        self._testBaseArgs['type'] = PROCESS_TYPE_3
+        result_03 = get_E_E_fan_C_d_t(**self._testBaseArgs)
+        assert not np.all(result_01 == result_03)
+
+    def test_方式2_方式3_計算切替(self):
+        self._testBaseArgs['type'] = PROCESS_TYPE_2
+        result_02 = get_E_E_fan_C_d_t(**self._testBaseArgs)
+        self._testBaseArgs['type'] = PROCESS_TYPE_3
+        result_03 = get_E_E_fan_C_d_t(**self._testBaseArgs)
+        assert not np.all(result_02 == result_03)
+
+    def test_方式3_係数設定_変更反映(self):
+        """ 同じ方式3でもユーザーが設定した係数によって計算結果が異なることを確認
+        """
+        self._testBaseArgs['type'] = PROCESS_TYPE_3
+        update_info_01 = {
+            'C_A': {'fan_coeff': [0, 0, 27, -8, 13]}  # NOTE: ユーザーの独自値で設定
+        }
+        consts.set_constants(update_info_01)
+        result_03_01 = get_E_E_fan_C_d_t(**self._testBaseArgs)
+        update_info_02 = {
+            'C_A': {'fan_coeff': [0, 0, 13, 20, -6]}  # NOTE: ユーザーの独自値で設定
+        }
+        consts.set_constants(update_info_02)
+        result_03_02 = get_E_E_fan_C_d_t(**self._testBaseArgs)
+
+        assert not np.all(result_03_01 == result_03_02)
+
+
+class Testコンプレッサ効率特性_暖房:
 
     def prepareArgs(self) -> dict:
         """ 暖房用のセットアップ
@@ -478,8 +619,6 @@ class Testコンプレッサ効率特性_暖房:
         assert np.array_equal(E_E_fan_H_d_t_T301, E_E_fan_H_d_t_T302), "誤って送風機分の消費電力にも方式による差が生じています"
 
 class Testコンプレッサ効率特性_冷房:
-
-    _inputs = json.load(open(INPUT_PATH, 'r'))
 
     def prepareArgs(self) -> dict:
         """ 冷房用のセットアップ
