@@ -44,7 +44,7 @@ from pyhees.section11_1 import \
 import numpy as np
 
 import jjjexperiment.constants as constants
-from jjjexperiment.constants import PROCESS_TYPE_3
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 
 from scipy import optimize
 
