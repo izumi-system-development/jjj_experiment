@@ -2,9 +2,10 @@ import pytest
 import json
 import copy
 
-# HACK:カレントディレクトリが jjj_experiment/jjjexperiment で実行時のみ動く
 from jjjexperiment.main import calc
-from jjjexperiment.result import ResultSummary
+
+from test_utils.util import  \
+    expected_inputs, expected_result_type2
 
 class Test既存計算維持_入力値切替_方式2:
     """ 既存計算が壊れていないことのテスト
@@ -18,29 +19,25 @@ class Test既存計算維持_入力値切替_方式2:
 
     _inputs: dict = setup_inputs()
 
-    _base_output = ResultSummary(
-            q_rtd_C = 5600,
-            q_rtd_H = 6685.3,
-            q_max_C = 5944.619999999999,
-            q_max_H = 10047.047813999998,
-            e_rtd_C = 2.8512,
-            e_rtd_H = 3.855424,
-            E_C = 14695.841130521072,
-            E_H = 40812.21298826678)
+    def test_前提確認_入力値(self, expected_inputs):
+        """ テストコードが想定しているインプットデータかどうか確認
+        """
+        result = calc(self._inputs, test_mode=True)
+
+        assert result['TInput'].q_rtd_C == expected_inputs.q_rtd_C
+        assert result['TInput'].q_rtd_H == expected_inputs.q_rtd_H
+        assert result['TInput'].q_max_C == expected_inputs.q_max_C
+        assert result['TInput'].q_max_H == expected_inputs.q_max_H
+        assert result['TInput'].e_rtd_C == expected_inputs.e_rtd_C
+        assert result['TInput'].e_rtd_H == expected_inputs.e_rtd_H
 
     def test_前提確認_計算結果(self, expected_result_type2):
         """ ベースとしている結果が確かであることを確認
         """
         result = calc(self._inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-        assert result.E_C == self._base_output.E_C
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
 
     def test_入力値入替_01(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -52,16 +49,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H == 40813.23277369657
-        assert result.E_H != self._base_output.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 40813.23277369657
 
     def test_入力値入替_02(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -73,16 +63,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-
-        assert result.E_C != self._base_output.E_C
-        assert result.E_C == 14178.967016020626
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 14178.967016020626
 
     def test_入力値入替_03(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -94,16 +77,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 40379.49973723975
 
-        assert result.E_H != self._base_output.E_H
-        assert result.E_H == 40379.49973723975
 
     def test_入力値入替_04(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -115,16 +92,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H == 41330.46136603447
-        assert result.E_H != self._base_output.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 41330.46136603447
 
     def test_入力値入替_05(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -136,16 +106,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H == 41565.19129722995
-        assert result.E_H != self._base_output.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 41565.19129722995
 
     def test_入力値入替_06(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -157,17 +120,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_H == 41236.578091305644
-        assert result.E_H != self._base_output.E_H
-        assert result.E_C == 14785.070861211718
-        assert result.E_C != self._base_output.E_C
+        assert result['TValue'].E_C == 14785.070861211718
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_H == 41236.578091305644
+        assert result['TValue'].E_H != expected_result_type2.E_H
 
     def test_入力値入替_07(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -179,16 +135,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H == 40775.15329048871
-        assert result.E_H != self._base_output.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 40775.15329048871
 
     def test_入力値入替_08(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -200,16 +149,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-
-        assert result.E_C == 14788.362569150617
-        assert result.E_C != self._base_output.E_C
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C == 14788.362569150617
+        assert result['TValue'].E_C != expected_result_type2.E_C
 
     def test_入力値入替_09(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -221,16 +163,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H != self._base_output.E_H
-        assert result.E_H == 40228.03332635408
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 40228.03332635408
 
     def test_入力値入替_10(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -242,16 +177,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H != self._base_output.E_H
-        assert result.E_H == 40925.918843796484
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 40925.918843796484
 
     def test_入力値入替_11(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -263,16 +191,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H != self._base_output.E_H
-        assert result.E_H == 40481.81864211065
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 40481.81864211065
+        assert result['TValue'].E_C == expected_result_type2.E_C
 
     def test_入力値入替_12(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -284,16 +205,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-
-        assert result.E_C != self._base_output.E_C
-        assert result.E_C == 12824.79767377771
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 12824.79767377771
 
     def test_入力値入替_13(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -305,17 +219,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_C != self._base_output.E_C
-        assert result.E_C == 17002.04875326623
-        assert result.E_H != self._base_output.E_H
-        assert result.E_H == 43487.16595274875
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 17002.04875326623
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 43487.16595274875
 
     def test_入力値入替_14(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -327,17 +234,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_H == 40822.38807655774
-        assert result.E_H != self._base_output.E_H
-        assert result.E_C == 14184.472397667007
-        assert result.E_C != self._base_output.E_C
+        assert result['TValue'].E_H == 40822.38807655774
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_C == 14184.472397667007
+        assert result['TValue'].E_C != expected_result_type2.E_C
 
     def test_入力値入替_15(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -349,17 +249,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_H != self._base_output.E_H
-        assert result.E_H == 47702.33872845253
-        assert result.E_C != self._base_output.E_C
-        assert result.E_C == 22378.09180122358
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 47702.33872845253
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 22378.09180122358
 
     def test_入力値入替_16(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -371,17 +264,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_H != self._base_output.E_H
-        assert result.E_H == 58567.764449747614
-        assert result.E_C != self._base_output.E_C
-        assert result.E_C == 25009.231072133218
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 58567.764449747614
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 25009.231072133218
 
     def test_入力値入替_17(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -393,17 +279,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_H == 174560.6036239345
-        assert result.E_H != self._base_output.E_H
-        assert result.E_C == 2884.2632006293015
-        assert result.E_C != self._base_output.E_C
+        assert result['TValue'].E_H == 174560.6036239345
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_C == 2884.2632006293015
+        assert result['TValue'].E_C != expected_result_type2.E_C
 
     def test_入力値入替_18(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -415,17 +294,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_H != self._base_output.E_H
-        assert result.E_H == 45819.9093469388
-        assert result.E_C != self._base_output.E_C
-        assert result.E_C == 15119.878587850431
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 45819.9093469388
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 15119.878587850431
 
     def test_入力値入替_19(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -437,17 +309,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_H != self._base_output.E_H
-        assert result.E_H == 51145.64313095035
-        assert result.E_C != self._base_output.E_C
-        assert result.E_C == 14057.66109771598
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 51145.64313095035
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 14057.66109771598
 
     def test_入力値入替_20(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -459,16 +324,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-
-        assert result.E_C == 16690.55292080024
-        assert result.E_C != self._base_output.E_C
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C == 16690.55292080024
+        assert result['TValue'].E_C != expected_result_type2.E_C
 
     def test_入力値入替_21(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -480,16 +338,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H == 43202.66151700742
-        assert result.E_H != self._base_output.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H == 43202.66151700742
+        assert result['TValue'].E_H != expected_result_type2.E_H
 
     def test_入力値入替_22(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -501,17 +352,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_H == 38306.56455225713
-        assert result.E_H != self._base_output.E_H
-        assert result.E_C == 12647.872661178222
-        assert result.E_C != self._base_output.E_C
+        assert result['TValue'].E_H == 38306.56455225713
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_C == 12647.872661178222
+        assert result['TValue'].E_C != expected_result_type2.E_C
 
     def test_入力値入替_23(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -524,14 +368,8 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-        assert result.E_C == self._base_output.E_C
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
 
     def test_入力値入替_24(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -544,14 +382,8 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-        assert result.E_C == self._base_output.E_C
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
 
     def test_入力値入替_25(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -563,17 +395,10 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-
-        assert result.E_H != self._base_output.E_H
-        assert result.E_H == 67493.42767621638
-        assert result.E_C != self._base_output.E_C
-        assert result.E_C == 18872.3162663047
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 67493.42767621638
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 18872.3162663047
 
     def test_入力値入替_26(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -586,14 +411,8 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-        assert result.E_C == self._base_output.E_C
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
 
     def test_入力値入替_27(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -605,16 +424,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H == 41606.24726343731
-        assert result.E_H != self._base_output.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 41606.24726343731
 
     def test_入力値入替_H1(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -626,16 +438,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H == 38430.15407789486
-        assert result.E_H != self._base_output.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H == 38430.15407789486
+        assert result['TValue'].E_H != expected_result_type2.E_H
 
     def test_入力値入替_H2(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -647,16 +452,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H == 39572.83185804524
-        assert result.E_H != self._base_output.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H == 39572.83185804524
+        assert result['TValue'].E_H != expected_result_type2.E_H
 
     def test_入力値入替_H3(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -668,16 +466,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H == 41467.93507466678
-        assert result.E_H != self._base_output.E_H
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 41467.93507466678
 
     def test_入力値入替_H4(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -690,18 +481,11 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H == 40896.18678654383
+        assert result['TValue'].E_H != expected_result_type2.E_H
 
-        assert result.E_H == 40896.18678654383
-        assert result.E_H != self._base_output.E_H
-
-    def test_入力値入替_H5_方式1(self, expected_result_type2):
+    def test_入力値入替_H5_方式1(self, expected_inputs, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
             暖房の機器仕様を入力する1
         """
@@ -734,16 +518,16 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
+        assert result['TInput'].q_max_H == expected_inputs.q_max_H
+        assert result['TInput'].q_max_C == expected_inputs.q_max_C
+        assert result['TInput'].q_rtd_H == expected_inputs.q_rtd_H
+        assert result['TInput'].q_rtd_C == expected_inputs.q_rtd_C
+        assert result['TInput'].e_rtd_H == expected_inputs.e_rtd_H
+        assert result['TInput'].e_rtd_C == expected_inputs.e_rtd_C
 
-        assert result.E_H == 31577.30541426199
-        assert result.E_H != self._base_output.E_H
+        assert result['TValue'].E_H != expected_result_type2.E_H
+        assert result['TValue'].E_H == 31577.30541426199
+        assert result['TValue'].E_C == expected_result_type2.E_C
 
     def test_入力値入替_H6_方式1(self, expected_inputs, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -778,15 +562,15 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.E_C == self._base_output.E_C
+        assert result['TInput'].q_max_H == 4700.0
+        assert result['TInput'].q_max_C == expected_inputs.q_max_C
+        assert result['TInput'].q_rtd_H == 3600.0
+        assert result['TInput'].q_rtd_C == expected_inputs.q_rtd_C
+        assert result['TInput'].e_rtd_H == 3.93
+        assert result['TInput'].e_rtd_C == expected_inputs.e_rtd_C
 
-        assert result.q_rtd_H == 3600.0
-        assert result.q_max_H == 4700.0
-        assert result.e_rtd_H == 3.93
-        assert result.E_H == 40540.29726496144
+        assert result['TValue'].E_H == 40540.29726496144
+        assert result['TValue'].E_C == expected_result_type2.E_C
 
     def test_入力値入替_R1(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -798,16 +582,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-
-        assert result.E_C == 14407.53084233618
-        assert result.E_C != self._base_output.E_C
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 14407.53084233618
 
     def test_入力値入替_R2(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -819,16 +596,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-
-        assert result.E_C == 12126.41287275799
-        assert result.E_C != self._base_output.E_C
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 12126.41287275799
 
     def test_入力値入替_R3(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -840,16 +610,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-
-        assert result.E_C == 15141.75913372107
-        assert result.E_C != self._base_output.E_C
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C == 15141.75913372107
+        assert result['TValue'].E_C != expected_result_type2.E_C
 
     def test_入力値入替_R4(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -862,16 +625,9 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_H == self._base_output.E_H
-
-        assert result.E_C == 16296.897277400154
-        assert result.E_C != self._base_output.E_C
+        assert result['TValue'].E_H == expected_result_type2.E_H
+        assert result['TValue'].E_C == 16296.897277400154
+        assert result['TValue'].E_C != expected_result_type2.E_C
 
     def test_入力値入替_R5_方式1(self, expected_result_type2, expected_inputs):
         """ 以前のプログラムと同じ計算結果になる
@@ -882,9 +638,9 @@ class Test既存計算維持_入力値切替_方式2:
         # 冷房能力の入力（面積から能力を算出 or 性能を直接入力）
         inputs["C_A"]["input_rac_performance"] = 1  # ★ 面積から能力を算出
         # ▼ 入力する場合のみ
-        # inputs["C_A"]["q_rac_rtd_C"] = 1  # 冷房定格能力 [W]
-        # inputs["C_A"]["q_rac_max_C"] = 1  # 冷房最大能力 [W]
-        # inputs["C_A"]["e_rac_rtd_C"] = 1  # 定格エネルギー効率 [-]
+        inputs["C_A"]["q_rac_rtd_C"] = 1  # 冷房定格能力 [W]
+        inputs["C_A"]["q_rac_max_C"] = 1  # 冷房最大能力 [W]
+        inputs["C_A"]["e_rac_rtd_C"] = 1  # 定格エネルギー効率 [-]
 
         # 小能力時高効率型コンプレッサー（評価しない or 搭載する）
         inputs["C_A"]["dualcompressor"] = 2
@@ -892,7 +648,7 @@ class Test既存計算維持_入力値切替_方式2:
         # 設置方法の入力（設置方法を入力する or 補正係数を直接入力する）
         inputs["C_A"]["input_C_af_C"] = 1  # ★ 設置方法を入力する
         # ▼ 入力する場合のみ
-        # inputs["C_A"]["C_af_C"] = 1  # 室内機吹き出し風量に関する暖房出力補正係数の入力
+        inputs["C_A"]["C_af_C"] = 1  # 室内機吹き出し風量に関する暖房出力補正係数の入力
 
         # 専用チャンバーに格納される方式（該当しない or 該当する）
         inputs["C_A"]["dedicated_chamber"] = 2
@@ -902,19 +658,20 @@ class Test既存計算維持_入力値切替_方式2:
         # ファンの比消費電力（入力しない or 入力する）
         inputs["C_A"]["input_f_SFP_C"] = 1  # ★ 入力しない
         # ▼ 入力する場合のみ
-        # inputs["C_A"]["f_SFP_C"] = 1  # ファンの比消費電力W [(m3/h)/W]
+        inputs["C_A"]["f_SFP_C"] = 1  # ファンの比消費電力W [(m3/h)/W]
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
+        assert result['TInput'].q_rtd_C == expected_inputs.q_rtd_C
+        assert result['TInput'].q_rtd_H == expected_inputs.q_rtd_H
+        assert result['TInput'].q_max_C == expected_inputs.q_max_C
+        assert result['TInput'].q_max_H == expected_inputs.q_max_H
+        assert result['TInput'].e_rtd_C == expected_inputs.e_rtd_C
+        assert result['TInput'].e_rtd_H == expected_inputs.e_rtd_H
 
-        assert result.E_C != self._base_output.E_C
-        assert result.E_C == 14046.978599922277
+        assert result['TValue'].E_H != expected_result_type2.E_C
+        assert result['TValue'].E_C != expected_result_type2.E_C
+        assert result['TValue'].E_C == 14046.978599922277
 
     def test_入力値入替_R6_方式1(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -949,15 +706,16 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        # WARNING: 暖房についても結果が変わるのは大丈夫?
-        assert result.q_rtd_C == 2800.0
-        assert result.q_rtd_H == 3300.1000000000004
-        assert result.q_max_C == 3400.0
-        assert result.q_max_H == 5569.280000000001
-        assert result.e_rtd_C == 2.59
-        assert result.e_rtd_H == 3.6543
-        assert result.E_C == 21336.043883848488
-        assert result.E_H == 46940.16551587674
+        # TODO: 暖房についても結果が変わるのは大丈夫?
+        assert result['TInput'].q_rtd_C == 2800.0
+        assert result['TInput'].q_rtd_H == 3300.1000000000004
+        assert result['TInput'].q_max_C == 3400.0
+        assert result['TInput'].q_max_H == 5569.280000000001
+        assert result['TInput'].e_rtd_C == 2.59
+        assert result['TInput'].e_rtd_H == 3.6543
+
+        assert result['TValue'].E_C == 21336.043883848488
+        assert result['TValue'].E_H == 46940.16551587674
 
     def test_入力値入替_HEX1(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
@@ -970,14 +728,6 @@ class Test既存計算維持_入力値切替_方式2:
 
         result = calc(inputs, test_mode=True)
 
-        assert result.q_rtd_C == self._base_output.q_rtd_C
-        assert result.q_rtd_H == self._base_output.q_rtd_H
-        assert result.q_max_C == self._base_output.q_max_C
-        assert result.q_max_H == self._base_output.q_max_H
-        assert result.e_rtd_C == self._base_output.e_rtd_C
-        assert result.e_rtd_H == self._base_output.e_rtd_H
-        assert result.E_C == self._base_output.E_C
-
-        assert result.E_H == 38022.75810040755
-        assert result.E_H != self._base_output.E_H
-
+        assert result['TValue'].E_C == expected_result_type2.E_C
+        assert result['TValue'].E_H == 38022.75810040755
+        assert result['TValue'].E_H != expected_result_type2.E_H
