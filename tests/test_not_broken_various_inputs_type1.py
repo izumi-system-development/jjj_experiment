@@ -6,7 +6,7 @@ import copy
 from jjjexperiment.main import calc
 from jjjexperiment.result import ResultSummary
 
-class TestNotBrokenVariousInputsType1:
+class Test既存計算維持_入力値切替_方式1:
     """ 既存計算が壊れていないことのテスト
         暖房・冷房ともに「ダクト式セントラル空調機」
     """
@@ -28,7 +28,7 @@ class TestNotBrokenVariousInputsType1:
             E_C = 14746.052998129611,
             E_H = 36310.32799729332)
 
-    def test_output_not_changed_base(self):
+    def test_前提確認_計算結果(self, expected_result_type1):
         """ ベースとしている結果が確かであることを確認
         """
         result = calc(self._inputs, test_mode=True)
@@ -42,8 +42,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_01(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_01(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             最大暖房出力時の熱源機の出口における空気温度の最大値の上限値
             Theta_hs_out_max_H_d_t_limit
         """
@@ -63,8 +63,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 36312.73469516181
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_02(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_02(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             最大冷房出力時の熱源機の出口における空気温度の最低値の下限値
             Theta_hs_out_min_C_d_t_limit
         """
@@ -84,8 +84,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C != self._base_output.E_C
         assert result.E_C == 14499.62278132686
 
-    def test_output_not_changed_03(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_03(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             デフロストに関する暖房出力補正係数（ダクトセントラル空調機）
             C_df_H_d_t_defrost_ductcentral
         """
@@ -105,8 +105,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H != self._base_output.E_H
         assert result.E_H == 35890.90098587334
 
-    def test_output_not_changed_04(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_04(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             デフロスト発生外気温度（ダクトセントラル空調機）
             defrost_temp_ductcentral
         """
@@ -126,8 +126,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 36546.573126677504
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_05(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_05(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             デフロスト発生外気相対湿度（ダクトセントラル空調機）
             defrost_humid_ductcentral
         """
@@ -147,8 +147,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 36611.49578865069
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_06(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_06(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             ダクトiの線熱損失係数
             phi_i
         """
@@ -169,8 +169,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 14803.44514208752
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_07(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_07(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             暖房時の送風機の設計風量に関する係数
             C_V_fan_dsgn_H
         """
@@ -190,8 +190,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 35836.748455098634
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_08(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_08(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             冷房時の送風機の設計風量に関する係数
             C_V_fan_dsgn_C
         """
@@ -211,8 +211,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 14646.69148373989
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_09(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_09(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             デフロストに関する暖房出力補正係数（ルームエアコンディショナー）
             C_df_H_d_t_defrost_rac
         """
@@ -231,8 +231,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_10(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_10(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             デフロスト発生外気温度（ルームエアコンディショナー）
             defrost_temp_rac
         """
@@ -251,8 +251,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_11(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_11(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             デフロスト発生外気相対湿度（ルームエアコンディショナー）
             defrost_humid_rac
         """
@@ -271,8 +271,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_12(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_12(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             室内機吸い込み湿度に関する冷房出力補正係数
             C_hm_C
         """
@@ -291,8 +291,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_13(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_13(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             定格冷房能力の最大値
             q_rtd_C_limit
         """
@@ -311,8 +311,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_14(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_14(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             面積の合計 [m2]
             A_A
         """
@@ -333,8 +333,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 14832.537841444147
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_15(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_15(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             主たる居室の面積 [m2]
             A_MR
         """
@@ -355,8 +355,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 21443.382718755827
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_16(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_16(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             その他の居室の面積[m2]
             A_OR
         """
@@ -377,8 +377,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 24217.967340540887
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_16(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_17(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             地域区分
             region
         """
@@ -399,8 +399,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 3151.6467125592953
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_18(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_18(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             外皮面積 [m2]
             A_env
         """
@@ -421,8 +421,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 14867.887750721573
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_19(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_19(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             外皮平均熱貫流率 UA [W/(m2・K)]
             U_A
         """
@@ -443,8 +443,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 14005.505611991277
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_20(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_20(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             冷房期平均日射熱取得率ηAC
             eta_A_C
         """
@@ -464,8 +464,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 16358.465844105795
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_21(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_21(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             暖房期平均日射熱取得率ηAH
             eta_A_H
         """
@@ -485,8 +485,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 40516.98524230055
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_22(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_22(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             床下空間を経由して外気を導入する換気方式の利用 （☐：評価しない or ☑：評価する）
             underfloor_ventilation
         """
@@ -507,8 +507,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 13038.13319064152
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_23(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_23(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             外気が経由する床下の面積の割合 [%]
             r_A_ufvnt
         """
@@ -527,8 +527,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_24(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_24(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             床下空間の断熱 （☐：断熱区画外 or ☑：断熱区画内）
             underfloor_insulation
         """
@@ -547,8 +547,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_25(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_25(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             空調空気を床下を通して給気する （☐：床下を通して給気しない or ☑：床下を通して給気する）
             underfloor_air_conditioning_air_supply
         """
@@ -569,8 +569,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 18714.44515829817
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_26(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_26(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             地盤またはそれを覆う基礎の表面熱伝達抵抗 [(m2・K)/W]
             R_g
         """
@@ -589,8 +589,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == self._base_output.E_H
         assert result.E_C == self._base_output.E_C
 
-    def test_output_not_changed_27(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_27(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             全体風量を固定する （☐：固定しない or ☑：固定する）
             hs_CAV
         """
@@ -610,8 +610,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 34061.44658403281
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_H1(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_H1(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             ダクトが通過する空間 （全てもしくは一部が断熱区画外である or 全て断熱区画内である）
             H_A_duct_insulation
         """
@@ -631,8 +631,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 34608.193798931
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_H2(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_H2(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             VAV方式 （採用しない or 採用する）
             H_A_VAV
         """
@@ -652,8 +652,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 36291.25164821471
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_H3(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_H3(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             全般換気機能 （あり or なし）
             H_A_general_ventilation
         """
@@ -673,8 +673,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 37064.91576192836
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_H4(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_H4(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             設計風量 [m3/h]（入力する場合のみ）
             H_A_V_hs_dsgn_H
         """
@@ -695,8 +695,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 32622.96874682381
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_type1_H1(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_H5_方式1(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             暖房の機器仕様を入力する1
         """
         inputs = copy.deepcopy(self._inputs)
@@ -725,8 +725,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 81575.50253836498
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_type1_H2(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_H6_方式1(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             暖房の機器仕様を入力する2
         """
         inputs = copy.deepcopy(self._inputs)
@@ -755,8 +755,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_H == 72987.18193043352
         assert result.E_H != self._base_output.E_H
 
-    def test_output_not_changed_R1(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_R1(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             ダクトが通過する空間（全てもしくは一部が断熱区画外である or 全て断熱区画内である）
             C_A_duct_insulation
         """
@@ -776,8 +776,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 14980.637500033028
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_R2(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_R2(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             VAV方式 (採用しない or 採用する）
             C_A_VAV
         """
@@ -797,8 +797,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 12852.724729450114
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_R3(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_R3(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             全般換気機能（あり or なし）
             C_A_general_ventilation
         """
@@ -818,8 +818,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 15191.971001329612
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_R4(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_R4(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             設計風量 [m3/h]（入力する場合のみ）
             C_A_V_hs_dsgn_C
         """
@@ -840,8 +840,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C == 13915.09558491048
         assert result.E_C != self._base_output.E_C
 
-    def test_output_not_changed_type1_R1(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_R5_方式1(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             冷房の機器仕様を入力する1
         """
         inputs = copy.deepcopy(self._inputs)
@@ -869,8 +869,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C != self._base_output.E_C
         assert result.E_C == 19187.38971453038
 
-    def test_output_not_changed_type1_R2(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_R6_方式1(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             冷房の機器仕様を入力する2
         """
         # 機器仕様の入力（入力しない or 定格能力試験の値を入力する or 定格能力試験と中間能力試験の値を入力する）
@@ -898,8 +898,8 @@ class TestNotBrokenVariousInputsType1:
         assert result.E_C != self._base_output.E_C
         assert result.E_C == 19238.129853353777
 
-    def test_output_not_changed_HEX1(self):
-        """ 入力内容変更時の挙動が壊れていない
+    def test_入力値入替_HEX1(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
             温度交換効率（設置する場合のみ）
             etr_t
         """

@@ -11,13 +11,13 @@ from jjjexperiment.main import calc
 from jjjexperiment.result import ResultSummary
 import numpy as np
 
-class TestNotBrokenOriginalInputs:
+class Test既存計算維持_デフォルト入力時:
 
     # FIXME: スマートなパスの指定方法があれば
     _inputs: dict = json.load(open('./tests/inputs/default_testinput.json', 'r'))
 
-    def test_output_not_changed_when_type1(self):
-        """ notebook のサンプル入力例が同じ結果となる
+    def test_インプットデータ_前提確認(self, expected_inputs):
+        """ テストコードが想定しているインプットデータかどうか確認
         """
         expected = ResultSummary(
             q_rtd_C = 5600,
@@ -44,8 +44,8 @@ class TestNotBrokenOriginalInputs:
         assert result.E_C == expected.E_C
         assert result.E_H == expected.E_H
 
-    def test_output_not_changed_when_type2(self):
-        """ notebook のサンプル入力例が同じ結果となる
+    def test_計算結果一致_方式2(self, expected_result_type2):
+        """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
         """
         expected = ResultSummary(
             q_rtd_C = 5600,
@@ -72,8 +72,8 @@ class TestNotBrokenOriginalInputs:
         assert result.E_C == expected.E_C
         assert result.E_H == expected.E_H
 
-    def test_存在しないタイプで例外発生(self):
-        """ 定義されていないタイプで計算されたとき,例外でストップすることを確認
+    def test_未定義の方式(self):
+        """ 定義されていないタイプで計算されたとき例外で検知できる
         """
         inputs = copy.deepcopy(self._inputs)
         inputs["H_A"]["type"] = 4
