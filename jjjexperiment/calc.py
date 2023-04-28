@@ -686,7 +686,8 @@ def calc_E_E_H_d_t(
         """ E_E: 日付dの時刻tにおける1時間当たりの暖房時の消費電力量 (kWh/h) """
 
         # (37) 送風機の付加分（kWh/h）
-        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+
         # (5) 圧縮機の分
         E_E_comp_H_d_t = dc_a.get_E_E_comp_H_d_t(
                             q_hs_H_d_t,
@@ -695,7 +696,7 @@ def calc_E_E_H_d_t(
 
     elif type == PROCESS_TYPE_2:
         E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H, outdoorFile)
-        E_E_fan_H_d_t  = dc_a.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        E_E_fan_H_d_t  = dc_a.get_E_E_fan_H_d_t(type, P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
 
         E_E_H_d_t = E_E_CRAC_H_d_t + E_E_fan_H_d_t
 
@@ -756,7 +757,7 @@ def get_E_E_C_d_t(
         """ E_E: 日付dの時刻tにおける1時間当たりの冷房時の消費電力量 (kWh/h) """
 
         # (38) 送風機の付加分 (kWh/h)
-        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP_C)
+        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP_C)
         # (6) 圧縮機の分
         E_E_comp_C_d_t = dc_a.get_E_E_comp_C_d_t(
                             q_hs_C_d_t,
@@ -766,7 +767,7 @@ def get_E_E_C_d_t(
     elif type == PROCESS_TYPE_2:
         E_E_CRAC_C_d_t = rac.calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6 / 1000, q_hs_CL_d_t * 3.6 / 1000, input_C_af_C, outdoorFile)
         # (38) 送風機の付加分 (kWh/h)
-        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
+        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(type, P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
 
         E_E_C_d_t = E_E_CRAC_C_d_t + E_E_fan_C_d_t  # (2)
 
