@@ -606,14 +606,16 @@ class Testコンプレッサ効率特性_暖房:
         coeffs_01 = [0, 0, -0.444, 0.444, 0]
         coeffs_02 = [0, 0.153, -0.53, 0.53, 0]
 
-        inputs = copy.deepcopy(self._inputs)
-
-        inputs['H_A']['compressor_coeff'] = coeffs_01
-        consts.set_constants(inputs)
+        update_info_01 = {
+            'H_A': {'compressor_coeff': coeffs_01}  # NOTE: ユーザーの独自値で設定
+        }
+        consts.set_constants(update_info_01)
         E_E_H_d_t_T301, _, E_E_fan_H_d_t_T301 = calc_E_E_H_d_t(**self._testBaseArgs)
 
-        inputs['H_A']['compressor_coeff'] = coeffs_02
-        consts.set_constants(inputs)
+        update_info_02 = {
+            'H_A': {'compressor_coeff': coeffs_02}  # NOTE: ユーザーの独自値で設定
+        }
+        consts.set_constants(update_info_02)
         E_E_H_d_t_T302, _, E_E_fan_H_d_t_T302 = calc_E_E_H_d_t(**self._testBaseArgs)
 
         assert not np.array_equal(E_E_H_d_t_T301, E_E_H_d_t_T302), "コンプレッサ効率特性曲線の係数が結果に反映されていません"
@@ -721,14 +723,16 @@ class Testコンプレッサ効率特性_冷房:
         coeffs_01 = [0, 0, -0.444, 0.444, 0]
         coeffs_02 = [0, 0.153, -0.53, 0.53, 0]
 
-        inputs = copy.deepcopy(self._inputs)
-
-        inputs['C_A']['compressor_coeff'] = coeffs_01
-        consts.set_constants(inputs)
+        update_info_01 = {
+            'C_A': {'compressor_coeff': coeffs_01}  # NOTE: ユーザーの独自値で設定
+        }
+        consts.set_constants(update_info_01)
         E_E_C_d_t_T301, E_E_fan_C_d_t_T301, _, _ = get_E_E_C_d_t(**self._testBaseArgs)
 
-        inputs['C_A']['compressor_coeff'] = coeffs_02
-        consts.set_constants(inputs)
+        update_info_02 = {
+            'C_A': {'compressor_coeff': coeffs_02}  # NOTE: ユーザーの独自値で設定
+        }
+        consts.set_constants(update_info_02)
         E_E_C_d_t_T302, E_E_fan_C_d_t_T302, _, _ = get_E_E_C_d_t(**self._testBaseArgs)
 
         assert not np.array_equal(E_E_C_d_t_T301, E_E_C_d_t_T302), "コンプレッサ効率特性曲線の係数が結果に反映されていません"
