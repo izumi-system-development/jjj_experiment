@@ -19,13 +19,15 @@ from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
 
 import jjjexperiment.calc
 import jjjexperiment.input
-from jjjexperiment.result import ResultSummary
-
 import jjjexperiment.constants
 from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 
 import pandas as pd
 from datetime import datetime
+
+# テスト関連
+# HACK: main がテストに依存しているので他の構成があれば採用する
+from test_utils.util import ResultSummary, TestInputPickups
 
 def calc(input_data : dict, test_mode=False):
     df_output1 = pd.DataFrame(index = ['合計値'])
@@ -309,10 +311,9 @@ def calc(input_data : dict, test_mode=False):
     df_output2['q_hs_CL_d_t [Wh/h]']        = q_hs_CL_d_t
     df_output2.to_csv(case_name + '_output2.csv', encoding = 'cp932')
 
+    # NOTE: 結合テストで確認したい値を返すのに使用します
     if test_mode:
-        return ResultSummary(
-            q_rtd_C, q_rtd_H,
-            q_max_C, q_max_H,
-            e_rtd_C, e_rtd_H, E_C, E_H)
-    else:
-        pass
+        i = TestInputPickups(q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H)
+        r = ResultSummary(E_C, E_H)
+        # NOTE: 今後の拡張を想定して既存コードが壊れにくい辞書型にしています
+        return {'TInput':i, 'TValue':r}
