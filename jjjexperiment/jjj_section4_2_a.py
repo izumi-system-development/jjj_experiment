@@ -23,9 +23,9 @@ from jjjexperiment.jjj_section4_2_b import \
     get_V_fan_mid_H, \
     get_V_fan_rtd_C, \
     get_V_fan_mid_C, \
-    get_P_fan_rtd_H,\
+    get_P_fan_rtd_H, \
     get_P_fan_mid_H, \
-    get_P_fan_rtd_C,\
+    get_P_fan_rtd_C, \
     get_P_fan_mid_C, \
     get_V_fan_dsgn_H, \
     get_V_fan_dsgn_C
@@ -44,6 +44,7 @@ from pyhees.section11_1 import \
 import numpy as np
 
 import jjjexperiment.constants as constants
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 
 from scipy import optimize
 
@@ -94,7 +95,7 @@ def calc_E_E_H_d_t(type, Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, V_h
     q_hs_H_d_t = get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
 
     # (37)
-    E_E_fan_H_d_t = get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t)
+    E_E_fan_H_d_t = get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t)
 
     # (20)
     e_th_mid_H = calc_e_th_mid_H(type, V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C)
@@ -168,7 +169,7 @@ def get_E_E_C_d_t(type, Theta_hs_out_d_t, Theta_hs_in_d_t,  X_hs_out_d_t, X_hs_i
     q_hs_C_d_t = get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
     # (38)
-    E_E_fan_C_d_t = get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t)
+    E_E_fan_C_d_t = get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t)
 
     # (22)
     e_th_mid_C = calc_e_th_mid_C(type, V_fan_mid_C, q_hs_mid_C, q_hs_rtd_C)
@@ -276,6 +277,39 @@ def get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t,
 
     return q_hs_C_d_t
 
+def get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region):
+    """ (4a-1)(4b-1)(4c-1)(4a-2)(4b-2)(4c-2)(4a-3)(4b-3)(4c-3)
+
+    Args:
+        Theta_hs_out_d_t:日付dの時刻tにおける熱源機の出口における空気温度 (℃)
+        Theta_hs_in_d_t:日付dの時刻tにおける熱源機の入口における空気温度 (℃)
+        X_hs_out_d_t:日付dの時刻tにおける熱源機の出口における絶対湿度 (kg/kg(DA))
+        X_hs_in_d_t:日付dの時刻tにおける熱源機の入口における絶対湿度 (kg/kg(DA))
+        V_hs_supply_d_t:日付dの時刻tにおける熱源機の風量 (m3/h)
+        region:地域区分
+
+    Returns:
+        日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力 (-)
+
+    """
+    H, C, M = get_season_array_d_t(region)
+    c_p_air = get_c_p_air()
+    rho_air = get_rho_air()
+    L_wtr = get_L_wtr()
+
+    # 暖房期および中間期 (4a-1)(4b-1)(4c-1)(4a-3)(4b-3)(4c-3)
+    q_hs_C_d_t = np.zeros(24 * 365)
+    q_hs_CS_d_t = np.zeros(24 * 365)
+    q_hs_CL_d_t = np.zeros(24 * 365)
+
+    # 冷房期 (4a-2)(4b-2)(4c-2)
+    q_hs_CS_d_t[C] = np.clip(c_p_air * rho_air * (Theta_hs_in_d_t[C] - Theta_hs_out_d_t[C]) * (V_hs_supply_d_t[C] / 3600), 0, None)
+
+    Cf = np.logical_and(C, q_hs_CS_d_t > 0)
+
+    q_hs_CL_d_t[Cf] = np.clip(L_wtr * rho_air * (X_hs_in_d_t[Cf] - X_hs_out_d_t[Cf]) * (V_hs_supply_d_t[Cf] / 3600) * 10 ** 3, 0, None)
+
+    return q_hs_CS_d_t, q_hs_CL_d_t
 
 # ============================================================================
 # A.4 圧縮機
@@ -882,13 +916,13 @@ def calc_e_th_mid_C(type, V_fan_mid_C, q_hs_mid_C, q_hs_rtd_C):
     """(22)
 
     Args:
-      V_fan_rtd_H: 定格冷房能力運転時の送風機の風量（m3/h）
+      V_fan_rtd_H: 定格冷房能力運転時の送風機の風量 (m3/h)
       V_fan_mid_C: param q_hs_mid_C:
-      q_hs_mid_C: 
-      q_hs_rtd_C: 熱源機の定格冷房能力（-）
+      q_hs_mid_C: 熱源機の中間冷房能力 (W)
+      q_hs_rtd_C: 熱源機の定格冷房能力 (W)
 
     Returns:
-      定格冷房能力運転時のヒートポンプサイクルサイクルの理論効率（-）
+      中間冷房能力運転時のヒートポンプサイクルサイクルの理論効率（-）
 
     """
     # 表5より
@@ -1299,16 +1333,16 @@ def get_alpha_c_hex_H(type, V_fan_x_H, q_hs_rtd_C):
       暖房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）
 
     """
-    # 表5より
-    V_hs_supply = V_fan_x_H
-    
+    # 熱源機の風量 (m3/h)
+    V_hs_supply = V_fan_x_H  # 表5より
+
+    # 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
     A_f_hex = get_A_f_hex(type, q_hs_rtd_C)
 
     alpha_c_hex_H = (-0.0017 * ((V_hs_supply / 3600) / A_f_hex) ** 2 \
                      + 0.044 * ((V_hs_supply / 3600) / A_f_hex) + 0.0271) * 10 ** 3
 
     return alpha_c_hex_H
-
 
 def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
     """(36)
@@ -1323,15 +1357,20 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
       冷房時の室内熱交換器表面の顕熱伝達率（W/(m2・K)）および 冷房時の室内熱交換器表面の潜熱伝達率（kg/(m2・s)）
 
     """
-    # 表5より
-    V_hs_supply = V_fan_x_C
+    # 熱源機の風量 (m3/h)
+    V_hs_supply = V_fan_x_C  # 表5より
 
-    A_f_hex = get_A_f_hex(type,q_hs_rtd_C)
+    # 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
+    A_f_hex = get_A_f_hex(type, q_hs_rtd_C)
+
+    # 空気の比熱 (J/(kg・K))
     c_p_air = get_c_p_air()
+
+    # 水蒸気の比熱 (J/(kg・K))
     c_p_w = get_c_p_w()
 
     # (36b) 熱伝達特性
-    if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == PROCESS_TYPE_3:
       a = np.clip(V_hs_supply, 360, None)
       alpha_dash_c_hex_C = constants.a_c_hex_c_a4_C * (a / 3000) **4 + \
           constants.a_c_hex_c_a3_C * (a / 3000) **3 + constants.a_c_hex_c_a2_C * (a / 3000) **2 + \
@@ -1350,24 +1389,30 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
 # A.5.3 熱交換器の表面積
 # ============================================================================
 
-# 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
 # コイル特性
-def get_A_f_hex(type, q_hs_rtd_C):
-    if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
-      if q_hs_rtd_C < 5600:
-        return constants.A_f_hex_small_H
-      else:
-        return constants.A_f_hex_large_H
+def get_A_f_hex(type: str, q_hs_rtd_C: float) -> float:
+    """ 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
+
+    Args:
+      type: 暖房設備の種類
+      q_hs_rtd_C: 熱源機の冷房時の定格出力 (W)
+
+    """
+    if type == PROCESS_TYPE_3:
+      return constants.A_f_hex_small_H if q_hs_rtd_C < 5600 else constants.A_f_hex_large_H
     else:
       return 0.23559
 
-# 室内機熱交換器の表面積のうち熱交換に有効な面積 (m2)
-def get_A_e_hex(type, q_hs_rtd_C):
-    if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
-      if q_hs_rtd_C < 5600:
-        return constants.A_e_hex_small_H
-      else:
-        return constants.A_e_hex_large_H
+def get_A_e_hex(type: str, q_hs_rtd_C: float) -> float:
+    """ 室内機熱交換器の表面積のうち熱交換に有効な面積 (m2)
+
+    Args:
+      type: 暖房設備の種類
+      q_hs_rtd_C: 熱源機の冷房時の定格出力 (W)
+
+    """
+    if type == PROCESS_TYPE_3:
+      return constants.A_e_hex_small_H if q_hs_rtd_C < 5600 else constants.A_e_hex_large_H
     else:
       return 6.396
 
@@ -1380,28 +1425,47 @@ def get_A_e_hex(type, q_hs_rtd_C):
 # A.6 送風機
 # ============================================================================
 
-def get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t, f_SFP = None):
+def get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t, f_SFP = None):
     """(37)
 
     Args:
-      P_fan_rtd_H: 定格暖房能力運転時の送風機の消費電力（W）
-      V_hs_vent_d_t: 日付dの時刻tにおける熱源機の風量のうちの全般換気分（m3/h）
-      V_hs_supply_d_t: param V_hs_dsgn_H:暖房時の設計風量（m3/h）
-      q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
-      V_hs_dsgn_H: returns: 日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
-      f_SFP: ファンの比消費電力 (W/(m3・h))
+        type: 暖房設備の種類
+        P_fan_rtd_H: 定格暖房能力運転時の送風機の消費電力（W）
+        V_hs_vent_d_t: 日付dの時刻tにおける熱源機の風量のうちの全般換気分（m3/h）
+        V_hs_supply_d_t: param V_hs_dsgn_H:暖房時の設計風量（m3/h）
+        q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
+        V_hs_dsgn_H: returns: 日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
+        f_SFP: ファンの比消費電力 (W/(m3・h))
 
     Returns:
-      日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
+        日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
 
     """
     f_SFP = get_f_SFP(f_SFP)
-    E_E_fan_H_d_t = np.zeros(24 * 365)
 
-    a = (P_fan_rtd_H - f_SFP * V_hs_vent_d_t) \
-        * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_H - V_hs_vent_d_t)) * 10 ** (-3)
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_2:
 
-    E_E_fan_H_d_t[q_hs_H_d_t > 0] = np.clip(a[q_hs_H_d_t > 0], 0, None)
+        fx = (P_fan_rtd_H - f_SFP * V_hs_vent_d_t) \
+            * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_H - V_hs_vent_d_t)) * 10 ** (-3)
+
+        E_E_fan_H_d_t = np.zeros(24 * 365)
+        E_E_fan_H_d_t[q_hs_H_d_t > 0] = np.clip(fx[q_hs_H_d_t > 0], 0, None)
+
+    # (5) ファン消費電力
+    elif type == PROCESS_TYPE_3:
+        x = q_hs_H_d_t / 1000  # WARNING: 例外的に四次式では kW 単位で計算しています
+        P_fan_H_d_t = constants.P_fan_H_d_t_a4 * x**4  \
+                    + constants.P_fan_H_d_t_a3 * x**3  \
+                    + constants.P_fan_H_d_t_a2 * x**2  \
+                    + constants.P_fan_H_d_t_a1 * x  \
+                    + constants.P_fan_H_d_t_a0
+
+        fx = (P_fan_H_d_t - f_SFP * V_hs_vent_d_t) * 10 ** (-3)
+
+        E_E_fan_H_d_t = np.zeros(24 * 365)
+        E_E_fan_H_d_t[q_hs_H_d_t > 0] = np.clip(fx[q_hs_H_d_t > 0], 0, None)
+    else:
+        raise Exception('暖房設備機器の種類の入力が不正です。')
 
     return E_E_fan_H_d_t
 
@@ -1431,28 +1495,46 @@ def get_e_rtd_C():
     e_rtd_C = 3.17
     return e_rtd_C
 
-def get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP = None):
+def get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP = None):
     """(38)
 
     Args:
-      P_fan_rtd_C: 定格冷房能力運転時の送風機の消費電力（W）
-      V_hs_vent_d_t: 日付dの時刻tにおける熱源機の風量のうちの全般換気分（m3/h）
-      V_hs_supply_d_t: param V_hs_dsgn_C:冷房時の設計風量（m3/h）
-      q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（-）
-      V_hs_dsgn_C: returns: 日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
-      f_SFP: ファンの比消費電力 (W/(m3・h))
+        type: 冷房設備の種類
+        P_fan_rtd_C: 定格冷房能力運転時の送風機の消費電力（W）
+        V_hs_vent_d_t: 日付dの時刻tにおける熱源機の風量のうちの全般換気分（m3/h）
+        V_hs_supply_d_t: param V_hs_dsgn_C:冷房時の設計風量（m3/h）
+        V_hs_dsgn_C: returns: 日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
+        q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（-）
+        f_SFP: ファンの比消費電力 (W/(m3・h))
 
     Returns:
-      日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
+        日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
 
     """
     f_SFP = get_f_SFP(f_SFP)
-    E_E_fan_C_d_t = np.zeros(24 * 365)
 
-    a = (P_fan_rtd_C - f_SFP * V_hs_vent_d_t) \
-        * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_C - V_hs_vent_d_t)) * 10 ** (-3)
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_2:
 
-    E_E_fan_C_d_t[q_hs_C_d_t > 0] = np.clip(a[q_hs_C_d_t > 0], 0, None)
+        fx = (P_fan_rtd_C - f_SFP * V_hs_vent_d_t) \
+            * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_C - V_hs_vent_d_t)) * 10 ** (-3)
+
+        E_E_fan_C_d_t = np.zeros(24 * 365)
+        E_E_fan_C_d_t[q_hs_C_d_t > 0] = np.clip(fx[q_hs_C_d_t > 0], 0, None)
+
+    elif type == PROCESS_TYPE_3:
+        x = q_hs_C_d_t / 1000  # WARNING: 例外的に四次式では kW 単位で計算しています
+        P_fan_C_d_t = constants.P_fan_C_d_t_a4 * x**4  \
+                    + constants.P_fan_C_d_t_a3 * x**3  \
+                    + constants.P_fan_C_d_t_a2 * x**2  \
+                    + constants.P_fan_C_d_t_a1 * x  \
+                    + constants.P_fan_C_d_t_a0
+
+        fx = (P_fan_C_d_t - f_SFP * V_hs_vent_d_t) * 10 ** (-3)
+
+        E_E_fan_C_d_t = np.zeros(24 * 365)
+        E_E_fan_C_d_t[q_hs_C_d_t > 0] = np.clip(fx[q_hs_C_d_t > 0], 0, None)
+    else:
+        raise Exception('冷房設備機器の種類の入力が不正です。')
 
     return E_E_fan_C_d_t
 
@@ -1475,32 +1557,28 @@ def get_f_SFP(f_SFP):
 # A.8 空気・水蒸気・水の物性値
 # ============================================================================
 
-# 空気の比熱 (J/Kg・K)
 def get_c_p_air():
-    """ """
+    """ 空気の比熱 (J/Kg・K)
+    """
     return 1006.0
 
-
-# 空気の密度 (kg/m3)
 def get_rho_air():
-    """ """
+    """ 空気の密度 (kg/m3)
+    """
     return 1.2
 
-
-# 水蒸気の定圧比熱  (J/Kg・K)
 def get_c_p_w():
-    """ """
+    """ 水蒸気の定圧比熱 (J/Kg・K)
+    """
     return 1.846
 
-
-# 水の蒸発潜熱 (kJ/kg) (39)
 def get_L_wtr():
-    """ """
+    """(39) 水の蒸発潜熱 (kJ/kg)
+    """
     Theta = get_Theta()
     return 2500.8 - 2.3668 * Theta
 
-
-# 冷房時を仮定した温度 (℃)
 def get_Theta():
-    """ """
+    """ 冷房時を仮定した温度 (℃)
+    """
     return 27

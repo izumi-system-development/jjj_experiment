@@ -2,10 +2,14 @@ import numpy as np
 import pyhees.section4_2_b as dc_spec
 import pyhees.section4_3_a as rac_spec
 
-def get_basic(input: dict):
-    """基本情報の設定
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 
-    :return: 住宅タイプ、住宅建て方、床面積、地域区分、年間日射地域区分
+def get_basic(input: dict):
+    """ 基本情報の設定
+
+    Returns:
+    (住宅タイプ, 住宅建て方, 床面積, 面積の合計[m2], 主たる居室の面積[m2], その他の居室の面積[m2], 地域区分, 年間日射地域区分)
+
     """
     # 住宅タイプ
     type = '一般住宅'
@@ -86,11 +90,11 @@ def get_heating(input: dict, region: int, A_A: float):
 
     # 暖房設備機器の種類
     if int(input['H_A']['type']) == 1:
-        H_A['type'] = 'ダクト式セントラル空調機'
+        H_A['type'] = PROCESS_TYPE_1
     elif int(input['H_A']['type']) == 2:
-        H_A['type'] = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'
+        H_A['type'] = PROCESS_TYPE_2
     elif int(input['H_A']['type']) == 3:
-        H_A['type'] = 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）'
+        H_A['type'] = PROCESS_TYPE_3
     else:
         raise Exception('暖房設備機器の種類の入力が不正です。')
 
@@ -110,7 +114,7 @@ def get_heating(input: dict, region: int, A_A: float):
         H_A['q_hs_min_H'] = dc_spec.get_q_hs_min_H(H_A['q_hs_rtd_H'])
         H_A['P_hs_rtd_H'] = dc_spec.get_P_hs_rtd_H(H_A['q_hs_rtd_H'])
         H_A['V_fan_rtd_H'] = dc_spec.get_V_fan_rtd_H(H_A['q_hs_rtd_H'])
-        H_A['V_fan_mid_H'] = dc_spec. get_V_fan_mid_H(H_A['q_hs_mid_H'])
+        H_A['V_fan_mid_H'] = dc_spec.get_V_fan_mid_H(H_A['q_hs_mid_H'])
         H_A['P_fan_rtd_H'] = dc_spec.get_P_fan_rtd_H(H_A['V_fan_rtd_H'])
         H_A['P_fan_mid_H'] = dc_spec.get_P_fan_mid_H(H_A['V_fan_mid_H'])
         H_A['P_hs_mid_H'] = np.NAN
@@ -122,7 +126,7 @@ def get_heating(input: dict, region: int, A_A: float):
         H_A['P_fan_rtd_H'] = float(input['H_A']['P_fan_rtd_H'])
         H_A['q_hs_mid_H'] = dc_spec.get_q_hs_mid_H(H_A['q_hs_rtd_H'])
         H_A['q_hs_min_H'] = dc_spec.get_q_hs_min_H(H_A['q_hs_rtd_H'])
-        H_A['V_fan_mid_H'] = dc_spec. get_V_fan_mid_H(H_A['q_hs_mid_H'])
+        H_A['V_fan_mid_H'] = dc_spec.get_V_fan_mid_H(H_A['q_hs_mid_H'])
         H_A['P_fan_mid_H'] = dc_spec.get_P_fan_mid_H(H_A['V_fan_mid_H'])
         H_A['P_hs_mid_H'] = np.NAN
     elif int(input['H_A']['input']) == 3:
@@ -175,11 +179,11 @@ def get_cooling(input: dict, region: int, A_A: float):
 
     # 冷房設備機器の種類
     if int(input['C_A']['type']) == 1:
-        C_A['type'] = 'ダクト式セントラル空調機'
+        C_A['type'] = PROCESS_TYPE_1
     elif int(input['C_A']['type']) == 2:
-        C_A['type'] = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'
+        C_A['type'] = PROCESS_TYPE_2
     elif int(input['C_A']['type']) == 3:
-        C_A['type'] = 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）'
+        C_A['type'] = PROCESS_TYPE_3
     else:
         raise Exception('冷房設備機器の種類の入力が不正です。')
 

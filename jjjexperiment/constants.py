@@ -1,3 +1,8 @@
+# FIXME: PROCESS_TYPE の置き場はこのファイル以外で最適な場所があれば移動する
+PROCESS_TYPE_1 = 'ダクト式セントラル空調機'
+PROCESS_TYPE_2 = 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）'
+PROCESS_TYPE_3 = 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）'
+
 Theta_hs_out_max_H_d_t_limit: float = 45
 """最大暖房出力時の熱源機の出口における空気温度の最大値の上限値"""
 Theta_hs_out_min_C_d_t_limit: float = 15
@@ -26,6 +31,7 @@ q_rtd_C_limit: float = 5600
 """定格冷房能力の最大値"""
 fix_latent_load: int = 1
 """潜熱負荷計算の不具合修正"""
+
 #以下、潜熱評価モデル追加対応(暖房)
 A_f_hex_small_H: float = 0.2
 """定格冷却能力が5.6kW未満の場合のA_f,hex"""
@@ -35,6 +41,7 @@ A_f_hex_large_H: float = 0.3
 """定格冷却能力が5.6kW以上の場合のA_f,hex"""
 A_e_hex_large_H: float = 10.6
 """定格冷却能力が5.6kW以上の場合のA_e,hex"""
+
 a_r_H_t_t_a4: float = 0
 """コンプレッサ効率特性_a4"""
 a_r_H_t_t_a3: float = 0
@@ -119,6 +126,8 @@ P_fan_C_d_t_a0: float = 50
 
 
 def set_constants(input: dict):
+  """ 更新したい部分のみの辞書でも利用可能
+  """
   if 'Theta_hs_out_max_H_d_t_limit' in input:
     global Theta_hs_out_max_H_d_t_limit
     Theta_hs_out_max_H_d_t_limit = float(input['Theta_hs_out_max_H_d_t_limit'])
@@ -163,19 +172,19 @@ def set_constants(input: dict):
     fix_latent_load = int(input['fix_latent_load'])
   #以下、潜熱評価モデル追加対応
   if 'H_A' in input:
-    if 'A_f_hex_small' in input:
+    if 'A_f_hex_small' in input['H_A']:
       global A_f_hex_small_H
       A_f_hex_small_H = float(input['H_A']['A_f_hex_small'])
-    if 'A_e_hex_small' in input:
+    if 'A_e_hex_small' in input['H_A']:
       global A_e_hex_small_H
       A_e_hex_small_H = float(input['H_A']['A_e_hex_small'])
-    if 'A_f_hex_large' in input:
+    if 'A_f_hex_large' in input['H_A']:
       global A_f_hex_large_H
       A_f_hex_large_H = float(input['H_A']['A_f_hex_large'])
-    if 'A_e_hex_large' in input:
+    if 'A_e_hex_large' in input['H_A']:
       global A_e_hex_large_H
       A_e_hex_large_H = float(input['H_A']['A_e_hex_large'])
-    if 'compressor_coeff' in input:
+    if 'compressor_coeff' in input['H_A']:
       global a_r_H_t_t_a4 
       a_r_H_t_t_a4 = float(input['H_A']['compressor_coeff'][0])
       global a_r_H_t_t_a3 
@@ -186,10 +195,10 @@ def set_constants(input: dict):
       a_r_H_t_t_a1 = float(input['H_A']['compressor_coeff'][3])
       global a_r_H_t_t_a0 
       a_r_H_t_t_a0 = float(input['H_A']['compressor_coeff'][4])
-    if 'airvolume_coeff_minimum' in input:
+    if 'airvolume_coeff_minimum' in input['H_A']:
       global airvolume_coeff_minimum_H 
       airvolume_coeff_minimum_H = float(input['H_A']['airvolume_coeff_minimum'][0])
-    if 'airvolume_coeff' in input:
+    if 'airvolume_coeff' in input['H_A']:
       global airvolume_coeff_a4_H 
       airvolume_coeff_a4_H = float(input['H_A']['airvolume_coeff'][0])
       global airvolume_coeff_a3_H 
@@ -200,7 +209,7 @@ def set_constants(input: dict):
       airvolume_coeff_a1_H = float(input['H_A']['airvolume_coeff'][3])
       global airvolume_coeff_a0_H 
       airvolume_coeff_a0_H = float(input['H_A']['airvolume_coeff'][4])
-    if 'fan_coeff' in input:
+    if 'fan_coeff' in input['H_A']:
       global P_fan_H_d_t_a4 
       P_fan_H_d_t_a4 = float(input['H_A']['fan_coeff'][0])
       global P_fan_H_d_t_a3 
@@ -212,19 +221,19 @@ def set_constants(input: dict):
       global P_fan_H_d_t_a0 
       P_fan_H_d_t_a0 = float(input['H_A']['fan_coeff'][4])
   if 'C_A' in input:
-    if 'A_f_hex_small' in input:
+    if 'A_f_hex_small' in input['C_A']:
       global A_f_hex_small_C
       A_f_hex_small_C = float(input['C_A']['A_f_hex_small'])
-    if 'A_e_hex_small' in input:
+    if 'A_e_hex_small' in input['C_A']:
       global A_e_hex_small_C
       A_e_hex_small_C = float(input['C_A']['A_e_hex_small'])
-    if 'A_f_hex_large' in input:
+    if 'A_f_hex_large' in input['C_A']:
       global A_f_hex_large_C
       A_f_hex_large_C = float(input['C_A']['A_f_hex_large'])
-    if 'A_e_hex_large' in input:
+    if 'A_e_hex_large' in input['C_A']:
       global A_e_hex_large_C
       A_e_hex_large_C = float(input['C_A']['A_e_hex_large'])
-    if 'heat_transfer_coeff' in input:
+    if 'heat_transfer_coeff' in input['C_A']:
       global a_c_hex_c_a4_C 
       a_c_hex_c_a4_C = float(input['C_A']['heat_transfer_coeff'][0])
       global a_c_hex_c_a3_C 
@@ -235,7 +244,7 @@ def set_constants(input: dict):
       a_c_hex_c_a1_C = float(input['C_A']['heat_transfer_coeff'][3])
       global a_c_hex_c_a0_C
       a_c_hex_c_a0_C = float(input['C_A']['heat_transfer_coeff'][4])
-    if 'compressor_coeff' in input:
+    if 'compressor_coeff' in input['C_A']:
       global a_r_C_t_t_a4 
       a_r_C_t_t_a4 = float(input['C_A']['compressor_coeff'][0])
       global a_r_C_t_t_a3 
@@ -246,10 +255,10 @@ def set_constants(input: dict):
       a_r_C_t_t_a1 = float(input['C_A']['compressor_coeff'][3])
       global a_r_C_t_t_a0 
       a_r_C_t_t_a0 = float(input['C_A']['compressor_coeff'][4])
-    if 'airvolume_coeff_minimum' in input:
+    if 'airvolume_coeff_minimum' in input['C_A']:
       global airvolume_coeff_minimum_C 
       airvolume_coeff_minimum_C = float(input['C_A']['airvolume_coeff_minimum'][0])
-    if 'airvolume_coeff' in input:
+    if 'airvolume_coeff' in input['C_A']:
       global airvolume_coeff_a4_C
       airvolume_coeff_a4_C = float(input['C_A']['airvolume_coeff'][0])
       global airvolume_coeff_a3_C 
@@ -260,7 +269,7 @@ def set_constants(input: dict):
       airvolume_coeff_a1_C = float(input['C_A']['airvolume_coeff'][3])
       global airvolume_coeff_a0_C 
       airvolume_coeff_a0_C = float(input['C_A']['airvolume_coeff'][4])
-    if 'fan_coeff' in input:
+    if 'fan_coeff' in input['C_A']:
       global P_fan_C_d_t_a4 
       P_fan_C_d_t_a4 = float(input['C_A']['fan_coeff'][0])
       global P_fan_C_d_t_a3 

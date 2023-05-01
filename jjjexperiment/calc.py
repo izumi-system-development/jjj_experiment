@@ -8,6 +8,7 @@ from pyhees.section11_1 import calc_h_ex, load_climate, load_outdoor, get_Theta_
 # ダクト式セントラル空調機
 import jjjexperiment.jjj_section4_2 as dc
 import jjjexperiment.jjj_section4_2_a as dc_a
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
 
 # エアーコンディショナー
 import jjjexperiment.jjj_section4_3 as rac
@@ -188,13 +189,13 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output3['V_hs_min'] = [V_hs_min]
 
     ####################################################################################################################
-    if type == 'ダクト式セントラル空調機' or type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
         # (38)
         Q_hs_rtd_C = dc.get_Q_hs_rtd_C(q_hs_rtd_C)
 
         # (37)
         Q_hs_rtd_H = dc.get_Q_hs_rtd_H(q_hs_rtd_H)
-    elif type == 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）':
+    elif type == PROCESS_TYPE_2:
         # (38)　冷房時の熱源機の定格出力
         Q_hs_rtd_C = dc.get_Q_hs_rtd_C(q_rtd_C)             #ルームエアコンディショナの定格能力 q_rtd_C を入力するよう書き換え
 
@@ -202,9 +203,9 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_hs_rtd_H = dc.get_Q_hs_rtd_H(q_rtd_H)             #ルームエアコンディショナの定格能力 q_rtd_H を入力するよう書き換え
     else:
         raise Exception('設備機器の種類の入力が不正です。')
-    
+
     df_output3['Q_hs_rtd_C'] = [Q_hs_rtd_C]
-    df_output3['Q_hs_rtd_H'] = [Q_hs_rtd_H] 
+    df_output3['Q_hs_rtd_H'] = [Q_hs_rtd_H]
     ####################################################################################################################
 
     # (36)　VAV 調整前の熱源機の風量
@@ -223,7 +224,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             updated_V_hs_dsgn_C = V_hs_dsgn_C or 0
         else:
             updated_V_hs_dsgn_C = None
-        if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+        if type == PROCESS_TYPE_3:
             V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region)
             df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
         else:
@@ -296,7 +297,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output['L_star_H_d_t_i_5'] = L_star_H_d_t_i[4] 
 
     ####################################################################################################################
-    if type == 'ダクト式セントラル空調機' or type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
         # (33)
         L_star_CL_d_t = dc.get_L_star_CL_d_t(L_star_CL_d_t_i)
         df_output['L_star_CL_d_t'] = L_star_CL_d_t
@@ -341,7 +342,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_hs_max_H_d_t = dc.get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_H)
         df_output['Q_hs_max_H_d_t'] = Q_hs_max_H_d_t
 
-    elif type == 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）':
+    elif type == PROCESS_TYPE_2:
         # (24)　デフロストに関する暖房出力補正係数
         C_df_H_d_t = dc.get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
         df_output['C_df_H_d_t'] = C_df_H_d_t
@@ -636,144 +637,140 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     return E_C_UT_d_t, Q_UT_H_d_t_i, Q_UT_CS_d_t_i, Q_UT_CL_d_t_i, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, \
            X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t
 
-def calc_E_E_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t, V_hs_dsgn_H,
-        EquipmentSpec, q_hs_rtd_H, q_hs_rtd_C, P_hs_rtd_H, V_fan_rtd_H, P_fan_rtd_H, q_hs_mid_H, P_hs_mid_H, V_fan_mid_H, P_fan_mid_H, q_hs_min_H,
-        region, type, q_rtd_C, q_rtd_H, P_rac_fan_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, input_C_af_H, f_SFP_H, outdoorFile):
-    """日付dの時刻tにおける1時間当たりの暖房時の消費電力量（kWh/h）(1)"""
+def calc_E_E_H_d_t(
+        Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t,  # 空気温度
+        V_hs_supply_d_t, V_hs_vent_d_t, V_hs_dsgn_H,      # 風量
+        C_df_H_d_t,                                       # 暖房出力補正係数
+        q_hs_min_H,                                       # 最小暖房時
+        q_hs_mid_H, P_hs_mid_H, V_fan_mid_H, P_fan_mid_H,  # 中間暖房時
+        q_max_C, q_max_H,                                  # 最大暖房時
+        q_rtd_C, q_hs_rtd_C,                               # 定格冷房時
+        q_rtd_H, e_rtd_H, P_rac_fan_rtd_H, V_fan_rtd_H, P_fan_rtd_H, q_hs_rtd_H, P_hs_rtd_H,  # 定格暖房時
+        type, region, dualcompressor_H, EquipmentSpec, input_C_af_H, f_SFP_H, outdoorFile):  # その他
+    """ (1)
+    Returns:
+        E_E_H_d_t:     日付dの時刻tにおける1時間当たりの暖房時の消費電力量[kWh/h]
+        q_hs_H_d_t:    日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力[W]
+        E_E_fan_H_d_t: 日付dの時刻tにおける1時間当たりの暖房時消費電力量の送風機による付加分[kWh/h]
 
-    # (3)
+    """
+    # (3) 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力(W)
     q_hs_H_d_t = dc_a.get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
 
-    if type == 'ダクト式セントラル空調機' or type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
-        # (37)
-        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
 
-        # (20)
+        """ e_th: ヒートポンプサイクルの理論効率(-) """
+
+        # (20) 中間暖房能力運転時
         e_th_mid_H = dc_a.calc_e_th_mid_H(type, V_fan_mid_H, q_hs_mid_H, q_hs_rtd_C)
-
-        # (19)
+        # (19) 定格暖房能力運転時
         e_th_rtd_H = dc_a.calc_e_th_rtd_H(type, V_fan_rtd_H, q_hs_rtd_H, q_hs_rtd_C)
-
-        # (17)
+        # (17) 日付dの時刻tにおける暖房時
         e_th_H_d_t = dc_a.calc_e_th_H_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t, q_hs_rtd_C)
 
-        if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）': #コンプレッサ効率特性
+        """ e_r: ヒートポンプサイクルの理論効率に対する熱源機の効率の比(-) """
+
+        if type == PROCESS_TYPE_3:  #コンプレッサ効率特性
+            # 日付dの時刻tにおける暖房時
             e_r_H_d_t = dc_a.get_e_r_H_d_t_2023(q_hs_H_d_t)
-        else:    
-            # (11)
+        else:
+            # (11) 定格暖房能力運転時
             e_r_rtd_H = dc_a.get_e_r_rtd_H(e_th_rtd_H, q_hs_rtd_H, P_hs_rtd_H, P_fan_rtd_H)
-        
-            # (15)
+            # (15) 最小暖房能力運転時
             e_r_min_H = dc_a.get_e_r_min_H(e_r_rtd_H)
-        
-            # (13)
+            # (13) 中間暖房能力運転時
             e_r_mid_H = dc_a.get_e_r_mid_H(e_r_rtd_H, e_th_mid_H, q_hs_mid_H, P_hs_mid_H, P_fan_mid_H, EquipmentSpec)
-        
-            # (9)
+            # (9) 日付dの時刻tにおける暖房時
             e_r_H_d_t = dc_a.get_e_r_H_d_t(q_hs_H_d_t, q_hs_rtd_H, q_hs_min_H, q_hs_mid_H, e_r_mid_H, e_r_min_H, e_r_rtd_H)
 
-        # (7)
-        e_hs_H_d_t = dc_a.get_e_hs_H_d_t(e_th_H_d_t, e_r_H_d_t)
+        """ E_E: 日付dの時刻tにおける1時間当たりの暖房時の消費電力量 (kWh/h) """
 
-        # (5)
-        E_E_comp_H_d_t = dc_a.get_E_E_comp_H_d_t(q_hs_H_d_t, e_hs_H_d_t)
+        # (37) 送風機の付加分（kWh/h）
+        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
 
-        # (1)
-        E_E_H_d_t = E_E_comp_H_d_t + E_E_fan_H_d_t
-    elif type == 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）':
-        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
-        
+        # (5) 圧縮機の分
+        E_E_comp_H_d_t = dc_a.get_E_E_comp_H_d_t(
+                            q_hs_H_d_t,
+                            e_hs_H_d_t = dc_a.get_e_hs_H_d_t(e_th_H_d_t, e_r_H_d_t))  # (7) 日付dの時刻tにおける暖房時の熱源機の効率(-)
+        E_E_H_d_t = E_E_comp_H_d_t + E_E_fan_H_d_t  # (1)
+
+    elif type == PROCESS_TYPE_2:
         E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H, outdoorFile)
+        E_E_fan_H_d_t  = dc_a.get_E_E_fan_H_d_t(type, P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+
         E_E_H_d_t = E_E_CRAC_H_d_t + E_E_fan_H_d_t
+
     else:
         raise Exception('暖房設備機器の種類の入力が不正です。')
 
     return E_E_H_d_t, q_hs_H_d_t, E_E_fan_H_d_t
 
-def get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region):
-    """(4a-1)(4b-1)(4c-1)(4a-2)(4b-2)(4c-2)(4a-3)(4b-3)(4c-3)
+# TODO: calc_ と get_ の使い分けは意図的なのかチェックする
+def get_E_E_C_d_t(
+        Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t,  # 空気温度
+        V_hs_supply_d_t, V_hs_vent_d_t, V_hs_dsgn_C,      # 風量
+        X_hs_out_d_t, X_hs_in_d_t,                        # 絶対湿度
+        q_hs_min_C,                                       # 最小冷房時
+        q_hs_mid_C, P_hs_mid_C, V_fan_mid_C, P_fan_mid_C,  # 中間冷房時
+        q_max_C,                                           # 最大冷房時
+        q_hs_rtd_C, P_hs_rtd_C, V_fan_rtd_C, P_fan_rtd_C, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C,  # 定格冷房時
+        type, region, dualcompressor_C, EquipmentSpec, input_C_af_C, f_SFP_C, outdoorFile):  # その他
+    """ (1)
+    Returns:
+        E_E_C_d_t:     日付dの時刻tにおける1時間当たりの冷房時の消費電力量[kWh/h]
+        E_E_fan_C_d_t: 日付dの時刻tにおける1時間当たりの冷房時消費電力量の送風機による付加分[kWh/h]
+        q_hs_CS_d_t:   日付dの時刻tにおける1時間当たりの熱源機の平均冷房顕熱能力[W]
+        q_hs_CL_d_t:   日付dの時刻tにおける1時間当たりの熱源機の平均冷房潜熱能力[W]
 
-    :param Theta_hs_out_d_t:日付dの時刻tにおける熱源機の出口における空気温度（℃）
-    :param Theta_hs_in_d_t:日付dの時刻tにおける熱源機の入口における空気温度（℃）
-    :param X_hs_out_d_t:日付dの時刻tにおける熱源機の出口における絶対湿度（kg/kg(DA)）
-    :param X_hs_in_d_t:日付dの時刻tにおける熱源機の入口における絶対湿度（kg/kg(DA)）
-    :param V_hs_supply_d_t:日付dの時刻tにおける熱源機の風量（m3/h）
-    :param region:地域区分
-    :return:日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（-）
     """
-    H, C, M = dc_a.get_season_array_d_t(region)
-    c_p_air = dc_a.get_c_p_air()
-    rho_air = dc_a.get_rho_air()
-    L_wtr = dc_a.get_L_wtr()
+    # (4) 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力(-)
+    q_hs_CS_d_t, q_hs_CL_d_t = dc_a.get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
-    # 暖房期および中間期 (4a-1)(4b-1)(4c-1)(4a-3)(4b-3)(4c-3)
-    q_hs_C_d_t = np.zeros(24 * 365)
-    q_hs_CS_d_t = np.zeros(24 * 365)
-    q_hs_CL_d_t = np.zeros(24 * 365)
-
-    # 冷房期 (4a-2)(4b-2)(4c-2)
-    q_hs_CS_d_t[C] = np.clip(c_p_air * rho_air * (Theta_hs_in_d_t[C] - Theta_hs_out_d_t[C]) * (V_hs_supply_d_t[C] / 3600), 0, None)
-
-    Cf = np.logical_and(C, q_hs_CS_d_t > 0)
-
-    q_hs_CL_d_t[Cf] = np.clip(L_wtr * rho_air * (X_hs_in_d_t[Cf] - X_hs_out_d_t[Cf]) * (V_hs_supply_d_t[Cf] / 3600) * 10 ** 3, 0, None)
-
-    return q_hs_CS_d_t, q_hs_CL_d_t
-
-def get_E_E_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, V_hs_dsgn_C,
-        EquipmentSpec, q_hs_rtd_C, P_hs_rtd_C, V_fan_rtd_C, P_fan_rtd_C, q_hs_mid_C, P_hs_mid_C, V_fan_mid_C, P_fan_mid_C, q_hs_min_C,
-        region, type, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C, q_max_C, input_C_af_C, dualcompressor_C, f_SFP_C, outdoorFile):
-
-    # (4)
-    q_hs_CS_d_t, q_hs_CL_d_t = get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
-
-    if type == 'ダクト式セントラル空調機' or type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）':
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
         # (4)
         q_hs_C_d_t = dc_a.get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
-        # (38)
-        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP_C)
+        """ e_th: ヒートポンプサイクルの理論効率(-) """
 
-        # (22)
+        # (22) 中間冷房能力運転時
         e_th_mid_C = dc_a.calc_e_th_mid_C(type, V_fan_mid_C, q_hs_mid_C, q_hs_rtd_C)
-
-        # (21)
+        # (21) 定格冷房能力運転時
         e_th_rtd_C = dc_a.calc_e_th_rtd_C(type, V_fan_rtd_C, q_hs_rtd_C)
-
-        # (18)
+        # (18) 日付dの時刻tにおける暖房時
         e_th_C_d_t = dc_a.calc_e_th_C_d_t(type, Theta_ex_d_t, Theta_hs_in_d_t, X_hs_in_d_t, Theta_hs_out_d_t, V_hs_supply_d_t, q_hs_rtd_C)
 
-        if type == 'ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）': #コンプレッサ効率特性
+        """ e_r: ヒートポンプサイクルの理論効率に対する熱源機の効率の比(-) """
+
+        if type == PROCESS_TYPE_3:  #コンプレッサ効率特性
+            # 日付dの時刻tにおける冷房時
             e_r_C_d_t = dc_a.get_e_r_C_d_t_2023(q_hs_C_d_t)
-        else:    
-            # (11)
+        else:
+            # (11) 定格冷房能力運転時
             e_r_rtd_C = dc_a.get_e_r_rtd_C(e_th_rtd_C, q_hs_rtd_C, P_hs_rtd_C, P_fan_rtd_C)
-        
-            # (15)
+            # (15) 最小冷房能力運転時
             e_r_min_C = dc_a.get_e_r_min_C(e_r_rtd_C)
-        
-            # (13)
+            # (13) 定格冷房能力運転時
             e_r_mid_C = dc_a.get_e_r_mid_C(e_r_rtd_C, e_th_mid_C, q_hs_mid_C, P_hs_mid_C, P_fan_mid_C, EquipmentSpec)
-        
-            # (9)
+            # (9) 日付dの時刻tにおける冷房時
             e_r_C_d_t = dc_a.get_e_r_C_d_t(q_hs_C_d_t, q_hs_rtd_C, q_hs_min_C, q_hs_mid_C, e_r_mid_C, e_r_min_C, e_r_rtd_C)
 
-        # (8)
-        e_hs_C_d_t = dc_a.get_e_hs_C_d_t(e_th_C_d_t, e_r_C_d_t)
+        """ E_E: 日付dの時刻tにおける1時間当たりの冷房時の消費電力量 (kWh/h) """
 
-        # (6)
-        E_E_comp_C_d_t = dc_a.get_E_E_comp_C_d_t(q_hs_C_d_t, e_hs_C_d_t)
+        # (38) 送風機の付加分 (kWh/h)
+        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP_C)
+        # (6) 圧縮機の分
+        E_E_comp_C_d_t = dc_a.get_E_E_comp_C_d_t(
+                            q_hs_C_d_t,
+                            e_hs_C_d_t = dc_a.get_e_hs_C_d_t(e_th_C_d_t, e_r_C_d_t))  # (8)
+        E_E_C_d_t = E_E_comp_C_d_t + E_E_fan_C_d_t  # (2)
 
-        # (2)
-        E_E_C_d_t = E_E_comp_C_d_t + E_E_fan_C_d_t
-    elif type == 'ルームエアコンディショナ活用型全館空調（旧：現行省エネ法ルームエアコンモデル）':
+    elif type == PROCESS_TYPE_2:
         E_E_CRAC_C_d_t = rac.calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6 / 1000, q_hs_CL_d_t * 3.6 / 1000, input_C_af_C, outdoorFile)
+        # (38) 送風機の付加分 (kWh/h)
+        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(type, P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
 
-        # (38)
-        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
+        E_E_C_d_t = E_E_CRAC_C_d_t + E_E_fan_C_d_t  # (2)
 
-        # (2)
-        E_E_C_d_t = E_E_CRAC_C_d_t + E_E_fan_C_d_t
     else:
         raise Exception('冷房設備機器の種類の入力が不正です。')
 
