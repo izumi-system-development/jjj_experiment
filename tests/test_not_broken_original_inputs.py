@@ -4,7 +4,7 @@ import copy
 
 from jjjexperiment.main import calc
 
-from test_utils.util import  \
+from test_utils.expects import  \
     expected_result_type1, expected_result_type2, expected_inputs
 
 class Test既存計算維持_デフォルト入力時:

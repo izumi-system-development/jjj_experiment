@@ -16,14 +16,11 @@ import jjjexperiment.calc
 import jjjexperiment.input
 import jjjexperiment.constants
 from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+from jjjexperiment.result import *
 
 import numpy as np
 import pandas as pd
 from datetime import datetime
-
-# テスト関連
-# HACK: main がテストに依存しているので他の構成があれば採用する
-from test_utils.util import ResultSummary, TestInputPickups
 
 def calc(input_data : dict, test_mode=False):
     df_output1 = pd.DataFrame(index = ['合計値'])
