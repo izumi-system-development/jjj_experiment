@@ -1344,7 +1344,7 @@ def get_alpha_c_hex_H(type, V_fan_x_H, q_hs_rtd_C):
 
     return alpha_c_hex_H
 
-def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
+def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in, q_hs_rtd_C):
     """(36)
 
     Args:
@@ -1360,24 +1360,23 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
     # 熱源機の風量 (m3/h)
     V_hs_supply = V_fan_x_C  # 表5より
 
-    # 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
+    # 室内機熱交換器の前面面積のうち熱交換に有効な面積 (m2)
     A_f_hex = get_A_f_hex(type, q_hs_rtd_C)
-
-    # 空気の比熱 (J/(kg・K))
-    c_p_air = get_c_p_air()
-
-    # 水蒸気の比熱 (J/(kg・K))
-    c_p_w = get_c_p_w()
 
     # (36b) 熱伝達特性
     if type == PROCESS_TYPE_3:
-      a = np.clip(V_hs_supply, 360, None)
-      alpha_dash_c_hex_C = constants.a_c_hex_c_a4_C * (a / 3000) **4 + \
-          constants.a_c_hex_c_a3_C * (a / 3000) **3 + constants.a_c_hex_c_a2_C * (a / 3000) **2 + \
-              constants.a_c_hex_c_a1_C * (a / 3600) / A_f_hex + constants.a_c_hex_c_a0_C
+      x = np.clip(V_hs_supply, 360, None) / (3600 * A_f_hex)
+      alpha_dash_c_hex_C = constants.a_c_hex_c_a4_C * x**4 \
+                        + constants.a_c_hex_c_a3_C * x**3 \
+                        + constants.a_c_hex_c_a2_C * x**2 \
+                        + constants.a_c_hex_c_a1_C * x \
+                        + constants.a_c_hex_c_a0_C
     else:
       a = np.clip(V_hs_supply, 400, None)
       alpha_dash_c_hex_C = 0.050 * np.log((a / 3600) / A_f_hex) + 0.073
+
+    c_p_air = get_c_p_air()  # 空気の比熱 [J/(kg・K)]
+    c_p_w = get_c_p_w()      # 水蒸気の比熱 [J/(kg・K)]
 
     # (36a)
     alpha_c_hex_C = alpha_dash_c_hex_C * (c_p_air + c_p_w * X_hs_in)
@@ -1391,7 +1390,7 @@ def get_alpha_c_hex_C(type, V_fan_x_C, X_hs_in,q_hs_rtd_C):
 
 # コイル特性
 def get_A_f_hex(type: str, q_hs_rtd_C: float) -> float:
-    """ 室内機熱交換器の全面面積のうち熱交換に有効な面積 (m2)
+    """ 室内機熱交換器の前面面積のうち熱交換に有効な面積 (m2)
 
     Args:
       type: 暖房設備の種類
