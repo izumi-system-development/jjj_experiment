@@ -158,20 +158,20 @@ class Test熱伝達特性_冷房:
             'q': 800,
         }
         a1, a1_dash = get_alpha_c_hex_C(
-            type = PROCESS_TYPE_1,
-            V_fan_x_C  = fixture['V'],
-            X_hs_in    = fixture['X'],
-            q_hs_rtd_C = fixture['q'])
+                            type = PROCESS_TYPE_1,
+                            V_fan_x_C  = fixture['V'],
+                            X_hs_in    = fixture['X'],
+                            q_hs_rtd_C = fixture['q'])
         a2, a2_dash = get_alpha_c_hex_C(
-            type = PROCESS_TYPE_2,
-            V_fan_x_C  = fixture['V'],
-            X_hs_in    = fixture['X'],
-            q_hs_rtd_C = fixture['q'])
+                            type = PROCESS_TYPE_2,
+                            V_fan_x_C  = fixture['V'],
+                            X_hs_in    = fixture['X'],
+                            q_hs_rtd_C = fixture['q'])
         a3, a3_dash = get_alpha_c_hex_C(
-            type = PROCESS_TYPE_3,
-            V_fan_x_C  = fixture['V'],
-            X_hs_in    = fixture['X'],
-            q_hs_rtd_C = fixture['q'])
+                            type = PROCESS_TYPE_3,
+                            V_fan_x_C  = fixture['V'],
+                            X_hs_in    = fixture['X'],
+                            q_hs_rtd_C = fixture['q'])
 
         assert a1 == a2, "結果が変わるべきでない両者の結果に差があります"
         assert a3 != a1 and a3 != a2, "変更されるべき 顕熱伝達率計算が変化していません"
