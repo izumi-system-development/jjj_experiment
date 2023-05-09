@@ -4,7 +4,7 @@ import copy
 
 from jjjexperiment.main import calc
 
-from test_utils.util import  \
+from test_utils.expects import  \
     expected_result_type1, expected_result_type2, expected_inputs
 
 class Test既存計算維持_デフォルト入力時:
@@ -46,6 +46,21 @@ class Test既存計算維持_デフォルト入力時:
 
         assert result['TValue'].E_C == expected_result_type2.E_C
         assert result['TValue'].E_H == expected_result_type2.E_H
+
+    def test_計算結果一致_方式3(self, expected_result_type1, expected_result_type2):
+        """ 方式3で全体が実行され結果が変わることを確認
+        """
+        inputs = copy.deepcopy(self._inputs)
+        inputs["H_A"]["type"] = 3
+        inputs["C_A"]["type"] = 3
+
+        result = calc(inputs, test_mode=True)
+
+        assert result['TValue'].E_C != expected_result_type1.E_C
+        assert result['TValue'].E_C != expected_result_type2.E_C
+
+        assert result['TValue'].E_H != expected_result_type1.E_H
+        assert result['TValue'].E_H != expected_result_type2.E_H
 
     def test_未定義の方式(self):
         """ 定義されていないタイプで計算されたとき例外で検知できる
