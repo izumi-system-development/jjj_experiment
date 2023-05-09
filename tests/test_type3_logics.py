@@ -1,6 +1,7 @@
 import json
 import copy
 import numpy as np
+import math
 
 import jjjexperiment.input as input
 from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
@@ -91,6 +92,62 @@ class Testコイル特性:
         assert self.expected_T3['A_e_hex_custom'] == get_A_e_hex(PROCESS_TYPE_3, 5700)
 
 class Test熱伝達特性_冷房:
+
+    @property
+    def excel_values(self) -> dict:
+        """ 参考Excelより 新kx 値のテスト
+            V_hs_supply: 熱源機の風量 [m3/h]
+            new_kx: 定格冷却能力 5.6kW 時の熱伝達率[W/m2・K] (0:未満, 1:以上)
+        """
+        return {
+            'V_hs_supply': [
+                None,
+                0.248253754663786 * 3600,
+                0.253488350731205 * 3600,
+                0.394065672493681 * 3600,
+            ],
+            'new_kx': [
+                None,
+                (0.0798240595964243, 0.0537160397309496),
+                (0.0814755746556952, 0.0548170497704635),
+                (0.125827719671756, 0.0843851464478376),
+            ],
+            'type': PROCESS_TYPE_3,
+            'X_hs_in': 8.0,  # ダミー値
+        }
+
+    def test_数式_方式3_エクセル値試験_01(self):
+        args = {
+            'type': self.excel_values['type'],
+            'V_fan_x_C': self.excel_values['V_hs_supply'][1],
+            'X_hs_in': self.excel_values['X_hs_in'],
+        }
+        _, a_dash_c_hex_C_small = get_alpha_c_hex_C(**args, q_hs_rtd_C = 5599)  # 5600未満
+        _, a_dash_c_hex_C_large = get_alpha_c_hex_C(**args, q_hs_rtd_C = 5600)  # 5600以上
+        assert math.isclose(a_dash_c_hex_C_small, self.excel_values['new_kx'][1][0])
+        assert math.isclose(a_dash_c_hex_C_large, self.excel_values['new_kx'][1][1])
+
+    def test_数式_方式3_エクセル値試験_02(self):
+        args = {
+            'type': self.excel_values['type'],
+            'V_fan_x_C': self.excel_values['V_hs_supply'][2],
+            'X_hs_in': self.excel_values['X_hs_in'],
+        }
+        _, a_dash_c_hex_C_small = get_alpha_c_hex_C(**args, q_hs_rtd_C = 5599)  # 5600未満
+        _, a_dash_c_hex_C_large = get_alpha_c_hex_C(**args, q_hs_rtd_C = 5600)  # 5600以上
+        assert math.isclose(a_dash_c_hex_C_small, self.excel_values['new_kx'][2][0])
+        assert math.isclose(a_dash_c_hex_C_large, self.excel_values['new_kx'][2][1])
+
+    def test_数式_方式3_エクセル値試験_03(self):
+        args = {
+            'type': self.excel_values['type'],
+            'V_fan_x_C': self.excel_values['V_hs_supply'][3],
+            'X_hs_in': self.excel_values['X_hs_in'],
+        }
+        _, a_dash_c_hex_C_small = get_alpha_c_hex_C(**args, q_hs_rtd_C = 5599)  # 5600未満
+        _, a_dash_c_hex_C_large = get_alpha_c_hex_C(**args, q_hs_rtd_C = 5600)  # 5600以上
+        assert math.isclose(a_dash_c_hex_C_small, self.excel_values['new_kx'][3][0])
+        assert math.isclose(a_dash_c_hex_C_large, self.excel_values['new_kx'][3][1])
 
     def test_室内熱交換器表面_熱伝達率_方式3_変化(self):
         """ 方式3(潜熱評価モデル)時のみ 計算結果が変化する
