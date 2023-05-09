@@ -7,5 +7,6 @@ pip3 install --user -U pip
 pip3 install --user -r requirements.txt
 
 # Pyhees レポジトリは Package リリースがされていないため requirements.txt に含めることができない
-pip3 install --user git+https://github.com/BRI-EES-House/pyhees.git
 
+# pip3 install --user git+https://github.com/BRI-EES-House/pyhees.git
+pip3 install --user git+https://github.com/izumi-system-development/pyhees.git@smart_installs
