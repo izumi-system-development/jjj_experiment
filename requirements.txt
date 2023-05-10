@@ -1,0 +1,2 @@
+pytest
+pyhees @ git+https://github.com/izumi-system-development/pyhees.git@smart_installs

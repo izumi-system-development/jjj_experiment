@@ -1,13 +1,8 @@
-import numpy as np
 import json
-import os
-import sys
-
-import pprint
 
 from pyhees.section2_1_b import get_f_prim
 
-from jjjexperiment.jjj_section4_1 import calc_heating_load, calc_cooling_load, get_virtual_heating_devices, get_alpha_UT_H_A, calc_E_E_H_hs_A_d_t, calc_E_E_C_hs_d_t
+from jjjexperiment.jjj_section4_1 import calc_heating_load, calc_cooling_load, get_virtual_heating_devices, get_alpha_UT_H_A
 from pyhees.section4_1_a import calc_heating_mode
 
 # ダクト式セントラル空調機
@@ -18,13 +13,16 @@ import pyhees.section3_1 as ld
 from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
 
 import jjjexperiment.calc
-import jjjexperiment.constants
 import jjjexperiment.input
+import jjjexperiment.constants
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+from jjjexperiment.result import *
 
+import numpy as np
 import pandas as pd
 from datetime import datetime
 
-def calc(input_data : dict):
+def calc(input_data : dict, test_mode=False):
     df_output1 = pd.DataFrame(index = ['合計値'])
     df_output2 = pd.DataFrame(index = pd.date_range(datetime(2022, 1, 1, 1, 0, 0), datetime(2023, 1, 1, 0, 0, 0), freq = 'h'))
 
@@ -114,28 +112,24 @@ def calc(input_data : dict):
     """冷房潜熱負荷の全区画合計 [MJ/h]"""
 
     ##### 暖房消費電力の計算（kWh/h）
-    V_rac_fan_rtd_H: float = dc_spec.get_V_fan_rtd_H(q_rtd_H)
-    """定格暖房能力運転時の送風機の風量(m3/h)"""
 
-    if H_A['type'] == 'ダクト式セントラル空調機':
-        if 'V_hs_dsgn_H' in H_A:
-            V_hs_dsgn_H = H_A['V_hs_dsgn_H']
+    def get_V_hs_dsgn_H(H_A: dict, q_rtd_H: float):
+        if H_A['type'] == PROCESS_TYPE_1 or H_A['type'] == PROCESS_TYPE_3:
+            V_fan_rtd_H = H_A['V_fan_rtd_H']
+        elif H_A['type'] == PROCESS_TYPE_2:
+            V_fan_rtd_H = dc_spec.get_V_fan_rtd_H(q_rtd_H)
         else:
-            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(H_A['V_fan_rtd_H'])
-    elif H_A['type'] == 'ルームエアコンディショナ活用型全館空調システム':
-        if 'V_hs_dsgn_H' in H_A:
-            V_hs_dsgn_H = H_A['V_hs_dsgn_H']
-        else:
-            V_hs_dsgn_H = dc_spec.get_V_fan_dsgn_H(V_rac_fan_rtd_H)
-    else: 
-        raise Exception("暖房方式が不正です。")
-    """暖房時の送風機の設計風量(m3/h)"""
+            raise Exception("暖房方式が不正です。")
 
-    #P_rac_fan_rtd_H: float = dc_spec.get_P_fan_rtd_H(V_rac_fan_rtd_H)
+        return dc_spec.get_V_fan_dsgn_H(V_fan_rtd_H)
+
+    V_hs_dsgn_H = H_A['V_hs_dsgn_H'] if 'V_hs_dsgn_H' in H_A else get_V_hs_dsgn_H(H_A, q_rtd_H)
+    """ 暖房時の送風機の設計風量 [m3/h] """
+
     P_rac_fan_rtd_H: float = V_hs_dsgn_H * H_A['f_SFP_H']
     """定格暖房能力運転時の送風機の消費電力(W)"""
 
-    V_hs_dsgn_C: float = None
+    V_hs_dsgn_C: float = None  # 暖房負荷計算時には 空のまま使用
     """冷房時の送風機の設計風量(m3/h)"""
 
     Q_UT_H_d_t_i: np.ndarray
@@ -144,7 +138,7 @@ def calc(input_data : dict):
     E_E_H_d_t: np.ndarray
     """日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h)"""
 
-    _, Q_UT_H_d_t_i, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, _, _, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t =\
+    _, Q_UT_H_d_t_i, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, _, _, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t, =\
         jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, ENV['A_env'], mu_H, mu_C,
             H_A['q_hs_rtd_H'], None,
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, H_A['VAV'], H_A['general_ventilation'], hs_CAV,
@@ -165,6 +159,7 @@ def calc(input_data : dict):
         V_hs_dsgn_H = V_hs_dsgn_H,
         EquipmentSpec = H_A['EquipmentSpec'],
         q_hs_rtd_H = H_A['q_hs_rtd_H'],
+        q_hs_rtd_C = C_A['q_hs_rtd_C'],
         P_hs_rtd_H = H_A['P_hs_rtd_H'],
         V_fan_rtd_H = H_A['V_fan_rtd_H'],
         P_fan_rtd_H = H_A['P_fan_rtd_H'],
@@ -203,25 +198,20 @@ def calc(input_data : dict):
 
     ##### 冷房消費電力の計算（kWh/h）
 
-    V_fan_rtd_C: float = dc_spec.get_V_fan_rtd_C(q_rtd_C)
-    """定格冷房能力運転時の送風機の風量(m3/h)"""
+    def get_V_hs_dsgn_C(C_A: dict, q_rtd_C: float):
+        if C_A['type'] == PROCESS_TYPE_1 or C_A['type'] == PROCESS_TYPE_3:
+            V_fan_rtd_C = C_A['V_fan_rtd_C']
+        elif C_A['type'] == PROCESS_TYPE_2:
+            V_fan_rtd_C = dc_spec.get_V_fan_rtd_C(q_rtd_C)
+        else:
+            raise Exception("冷房方式が不正です。")
 
-    if C_A['type'] == 'ダクト式セントラル空調機':
-        if 'V_hs_dsgn_C' in C_A:
-            V_hs_dsgn_C = C_A['V_hs_dsgn_C']
-        else:
-            V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(C_A['V_fan_rtd_C'])
-    elif C_A['type'] == 'ルームエアコンディショナ活用型全館空調システム':
-        if 'V_hs_dsgn_C' in C_A:
-            V_hs_dsgn_C = C_A['V_hs_dsgn_C']
-        else:
-            V_hs_dsgn_C = dc_spec.get_V_fan_dsgn_C(V_fan_rtd_C)
-    else: 
-        raise Exception("冷房方式が不正です。")
+        return dc_spec.get_V_fan_dsgn_C(V_fan_rtd_C)
+
+    V_hs_dsgn_C = C_A['V_hs_dsgn_C'] if 'V_hs_dsgn_C' in C_A else get_V_hs_dsgn_C(C_A, q_rtd_C)
     """冷房時の送風機の設計風量(m3/h)"""
 
-    #P_rac_fan_rtd_C: float = dc_spec.get_P_fan_rtd_C(V_fan_rtd_C)
-    P_rac_fan_rtd_C: float = V_hs_dsgn_H * C_A['f_SFP_C']
+    P_rac_fan_rtd_C: float = V_hs_dsgn_C * C_A['f_SFP_C']
     """定格冷房能力運転時の送風機の消費電力(W)"""
 
     V_hs_dsgn_H: float = None
@@ -309,3 +299,10 @@ def calc(input_data : dict):
     df_output2['q_hs_CS_d_t [Wh/h]']        = q_hs_CS_d_t
     df_output2['q_hs_CL_d_t [Wh/h]']        = q_hs_CL_d_t
     df_output2.to_csv(case_name + '_output2.csv', encoding = 'cp932')
+
+    # NOTE: 結合テストで確認したい値を返すのに使用します
+    if test_mode:
+        i = TestInputPickups(q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H)
+        r = ResultSummary(E_C, E_H)
+        # NOTE: 今後の拡張を想定して既存コードが壊れにくい辞書型にしています
+        return {'TInput':i, 'TValue':r}

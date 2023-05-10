@@ -1,0 +1,8 @@
+__pycache__
+*_output*.csv
+*_input.json
+/.vscode
+
+# setup.py SAVES HERE
+/jjjexperiment.egg-info
+/build

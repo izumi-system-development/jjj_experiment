@@ -34,11 +34,16 @@ from pyhees.section11_3 import \
     load_schedule, \
     get_schedule_ac
 
+from jjjexperiment.jjj_section4_3 import \
+    get_C_af_H, \
+    get_C_af_C
+
+from jjjexperiment.constants import PROCESS_TYPE_3
 import jjjexperiment.constants as constants
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i):
+             VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """
 
     Args:
@@ -59,7 +64,10 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
       VAV: 
       duct_insulation: 
       L_H_d_t_i: 
-      L_CL_d_t_i: 
+      L_CL_d_t_i:
+      type:
+      input_C_af_H:
+      input_C_af_C:
 
     Returns:
 
@@ -228,7 +236,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     SHF_dash_d_t = get_SHF_dash_d_t(L_star_CS_d_t, L_star_dash_C_d_t)
 
     # (27)
-    Q_hs_max_C_d_t = get_Q_hs_max_C_d_t(q_hs_rtd_C)
+    Q_hs_max_C_d_t = get_Q_hs_max_C_d_t(type, q_hs_rtd_C, input_C_af_C)
 
     # (26)
     Q_hs_max_CL_d_t = get_Q_hs_max_CL_d_t(Q_hs_max_C_d_t, SHF_dash_d_t, L_star_dash_CL_d_t)
@@ -240,7 +248,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     C_df_H_d_t = get_C_df_H_d_t(Theta_ex_d_t, h_ex_d_t)
 
     # (23)
-    Q_hs_max_H_d_t = get_Q_hs_max_H_d_t(q_hs_rtd_H, C_df_H_d_t)
+    Q_hs_max_H_d_t = get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_H)
 
     # (20)
     X_star_hs_in_d_t = get_X_star_hs_in_d_t(X_star_NR_d_t)
@@ -1030,12 +1038,14 @@ def get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region
 # 9.5.1 熱源機の最大暖房出力
 # ============================================================================
 
-def get_Q_hs_max_H_d_t(q_hs_rtd_H, C_df_H_d_t):
+def get_Q_hs_max_H_d_t(type, q_hs_rtd_H, C_df_H_d_t, input_C_af_H):
     """(23)
 
     Args:
+      type: 暖房設備機器の種類
       q_hs_rtd_H: 熱源機の定格暖房能力 (W)
       C_df_H_d_t: 日付dの時刻tにおけるデフロストに関する暖房出力補正係数（-）
+      input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
 
     Returns:
       熱源機の最大暖房出力 (MJ/h)
@@ -1046,7 +1056,11 @@ def get_Q_hs_max_H_d_t(q_hs_rtd_H, C_df_H_d_t):
     Q_hs_max_H_d_t = np.zeros(24 * 365)
 
     if q_hs_rtd_H is not None:
-        Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * 3600 * 10 ** -6
+        if type == PROCESS_TYPE_3:
+            C_af_H = get_C_af_H(input_C_af_H)
+            Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * C_af_H * 3600 * 10 ** -6
+        else:
+            Q_hs_max_H_d_t = q_hs_rtd_H * alpha_max_H * C_df_H_d_t * 3600 * 10 ** -6
 
     return Q_hs_max_H_d_t
 
@@ -1108,11 +1122,13 @@ def get_Q_hs_max_CL_d_t(Q_hs_max_C_d_t, SHF_dash_d_t, L_star_dash_CL_d_t):
 
 
 # 最大冷房出力 [MJ/h] (27)
-def get_Q_hs_max_C_d_t(q_hs_rtd_C):
+def get_Q_hs_max_C_d_t(type, q_hs_rtd_C, input_C_af_C):
     """(27)
 
     Args:
+      type: 暖房設備機器の種類
       q_hs_rtd_C: 熱源機の冷房時の定格出力[m^3/h]
+      input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
 
     Returns:
       最大冷房出力 [MJ/h]
@@ -1123,7 +1139,11 @@ def get_Q_hs_max_C_d_t(q_hs_rtd_C):
     Q_hs_max_C_d_t = np.zeros(24 * 365)
 
     if q_hs_rtd_C is not None:
-        Q_hs_max_C_d_t = q_hs_rtd_C * alpha_max_C * 3600 * 10 ** -6
+        if type == PROCESS_TYPE_3:
+            C_af_C = get_C_af_C(input_C_af_C)
+            Q_hs_max_C_d_t = q_hs_rtd_C * alpha_max_C * C_af_C * 3600 * 10 ** -6
+        else:
+            Q_hs_max_C_d_t = q_hs_rtd_C * alpha_max_C * 3600 * 10 ** -6
 
     return Q_hs_max_C_d_t
 
@@ -1277,6 +1297,50 @@ def get_V_hs_vent_d_t(V_vent_g_i, general_ventilation):
 # ============================================================================
 # 9.7 VAV調整前の熱源機の風量
 # ============================================================================
+def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
+    """ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_
+    Args:
+      Q_hat_hs_d_t: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の出力（MJ/h）
+      region: 地域区分
+
+    Returns:
+      日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
+
+    """
+    H, C, M = get_season_array_d_t(region)
+
+    V_dash_hs_supply_d_t = np.zeros(24 * 365)
+    Q_hat_hs_d_t_kw = Q_hat_hs_d_t / 3600 * 1000
+    del Q_hat_hs_d_t  # NOTE: 誤用を防ぐ目的で単位変換前を削除
+
+    # 暖房期：顕熱2.5kW未満
+    f1 = np.logical_and(H, Q_hat_hs_d_t_kw < 2.5)
+    V_dash_hs_supply_d_t[f1] = constants.airvolume_coeff_minimum
+    # 暖房期：顕熱2.5kW以上
+    f2 = np.logical_and(H, Q_hat_hs_d_t_kw >= 2.5)
+    V_dash_hs_supply_d_t[f2] =  \
+        (constants.airvolume_coeff_a4_H * Q_hat_hs_d_t_kw ** 4
+            + constants.airvolume_coeff_a3_H * Q_hat_hs_d_t_kw ** 3
+            + constants.airvolume_coeff_a2_H * Q_hat_hs_d_t_kw ** 2
+            + constants.airvolume_coeff_a1_H * Q_hat_hs_d_t_kw
+            + constants.airvolume_coeff_a0_H)[f2]
+
+    # 冷房期：顕熱2.5kW未満
+    f3 = np.logical_and(C, Q_hat_hs_d_t_kw < 2.5)
+    V_dash_hs_supply_d_t[f3] = constants.airvolume_coeff_minimum
+    # 冷房期：顕熱2.5kW以上
+    f4 = np.logical_and(C, Q_hat_hs_d_t_kw >= 2.5)
+    V_dash_hs_supply_d_t[f4] =  \
+        (constants.airvolume_coeff_a4_C * Q_hat_hs_d_t_kw ** 4
+            + constants.airvolume_coeff_a3_C * Q_hat_hs_d_t_kw ** 3
+            + constants.airvolume_coeff_a2_C * Q_hat_hs_d_t_kw ** 2
+            + constants.airvolume_coeff_a1_C * Q_hat_hs_d_t_kw
+            + constants.airvolume_coeff_a0_C)[f4]
+
+    # 中間期
+    V_dash_hs_supply_d_t[M] = constants.airvolume_coeff_minimum
+
+    return V_dash_hs_supply_d_t
 
 def get_V_dash_hs_supply_d_t(V_hs_min, V_hs_dsgn_H, V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region):
     """(36-1)(36-2)(36-3)
@@ -1444,7 +1508,11 @@ def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen
                       + mu_C * A_A * J_d_t[C] + q_gen_d_t[C] + n_p_d_t[C] * q_p_CS) * 3600 * 10 ** -6
 
     # (40-2c)
-    Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
+    if constants.fix_latent_load == 2:
+        Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] / 1000 - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
+                       * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
+    else:
+        Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
                        * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
 
     # (40-2a)

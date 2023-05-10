@@ -4,6 +4,7 @@
 # ============================================================================
 
 import jjjexperiment.constants as constants
+from jjjexperiment.constants import PROCESS_TYPE_3
 
 # ============================================================================
 # B.2 熱源機
@@ -218,7 +219,7 @@ def get_V_fan_rtd_H(q_hs_rtd_H):
 
 
 def get_P_fan_rtd_H(V_fan_rtd_H):
-    """(10)
+    """(10) ファン消費電力
 
     Args:
       V_fan_rtd_H: 定格暖房能力運転時の送風機の風量（m3/h）
@@ -235,7 +236,6 @@ def get_V_fan_rtd_C(q_hs_rtd_C):
 
     Args:
       q_hs_rdt_C: 熱源機の定格冷房能力（W）
-      q_hs_rtd_C: returns: 定格冷房能力運転時の送風機の風量（m3/h）
 
     Returns:
       定格冷房能力運転時の送風機の風量（m3/h）
@@ -245,10 +245,12 @@ def get_V_fan_rtd_C(q_hs_rtd_C):
 
 
 def get_P_fan_rtd_C(V_fan_rtd_C):
-    """(12)
+    """(12) ファン消費電力
 
     Args:
+      type: 暖房設備機器の種類
       V_fan_rtd_C: 定格冷房能力運転時の送風機の風量（m3/h）
+      q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（W）
 
     Returns:
       定格冷房能力運転時の送風機の消費電力（W）
