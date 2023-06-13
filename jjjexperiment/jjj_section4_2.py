@@ -1315,7 +1315,7 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
 
     # 暖房期：顕熱2.5kW未満
     f1 = np.logical_and(H, Q_hat_hs_d_t_kw < 2.5)
-    V_dash_hs_supply_d_t[f1] = constants.airvolume_coeff_minimum
+    V_dash_hs_supply_d_t[f1] = constants.airvolume_minimum
     # 暖房期：顕熱2.5kW以上
     f2 = np.logical_and(H, Q_hat_hs_d_t_kw >= 2.5)
     V_dash_hs_supply_d_t[f2] =  \
@@ -1327,7 +1327,7 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
 
     # 冷房期：顕熱2.5kW未満
     f3 = np.logical_and(C, Q_hat_hs_d_t_kw < 2.5)
-    V_dash_hs_supply_d_t[f3] = constants.airvolume_coeff_minimum
+    V_dash_hs_supply_d_t[f3] = constants.airvolume_minimum
     # 冷房期：顕熱2.5kW以上
     f4 = np.logical_and(C, Q_hat_hs_d_t_kw >= 2.5)
     V_dash_hs_supply_d_t[f4] =  \
@@ -1338,9 +1338,9 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
             + constants.airvolume_coeff_a0_C)[f4]
 
     # 中間期
-    V_dash_hs_supply_d_t[M] = constants.airvolume_coeff_minimum
+    V_dash_hs_supply_d_t[M] = constants.airvolume_minimum
 
-    return V_dash_hs_supply_d_t
+    return V_dash_hs_supply_d_t * 1000  # NOTE: km3/h -> m3/h
 
 def get_V_dash_hs_supply_d_t(V_hs_min, V_hs_dsgn_H, V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region):
     """(36-1)(36-2)(36-3)

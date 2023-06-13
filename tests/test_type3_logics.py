@@ -229,15 +229,15 @@ class Test風量特性_熱源機_低出力:
 
     def test_暖房時_指定定数(self):
         ii = np.where(self._H == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_coeff_minimum)
+        assert np.all(self._sut[ii] == consts.airvolume_minimum)
 
     def test_冷房時_指定定数(self):
         ii = np.where(self._C == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_coeff_minimum)
+        assert np.all(self._sut[ii] == consts.airvolume_minimum)
 
     def test_中間期_常に指定定数(self):
         ii = np.where(self._M == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_coeff_minimum)
+        assert np.all(self._sut[ii] == consts.airvolume_minimum)
 
 class Test風量特性_熱源機_高出力:
 
@@ -277,7 +277,7 @@ class Test風量特性_熱源機_高出力:
 
     def test_中間期_常に指定定数(self):
         ii = np.where(self._M == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_coeff_minimum)
+        assert np.all(self._sut[ii] == consts.airvolume_minimum)
 
 
 def prepare_args_for_calc_Q_UT_A() -> dict:
