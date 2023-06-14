@@ -254,15 +254,15 @@ class Test風量特性_熱源機_低出力:
 
     def test_暖房時_指定定数(self):
         ii = np.where(self._H == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_minimum)
+        assert np.all(self._sut[ii] == consts.airvolume_minimum * 1000)  # m3/h
 
     def test_冷房時_指定定数(self):
         ii = np.where(self._C == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_minimum)
+        assert np.all(self._sut[ii] == consts.airvolume_minimum * 1000)  # m3/h
 
     def test_中間期_常に指定定数(self):
         ii = np.where(self._M == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_minimum)
+        assert np.all(self._sut[ii] == consts.airvolume_minimum * 1000)  # m3/h
 
 class Test風量特性_熱源機_高出力:
 
@@ -294,15 +294,15 @@ class Test風量特性_熱源機_高出力:
 
     def test_暖房時_四次式計算(self):
         ii = np.where(self._H == True)[0]
-        assert np.all(self._sut[ii] == self._inputs['H_A']['airvolume_coeff'][-1])
+        assert np.all(self._sut[ii] == self._inputs['H_A']['airvolume_coeff'][-1] * 1000)  # m3/h
 
     def test_冷房時_四次式計算(self):
         ii = np.where(self._C == True)[0]
-        assert np.all(self._sut[ii] == self._inputs['C_A']['airvolume_coeff'][-1])
+        assert np.all(self._sut[ii] == self._inputs['C_A']['airvolume_coeff'][-1] * 1000)  # m3/h
 
     def test_中間期_常に指定定数(self):
         ii = np.where(self._M == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_minimum)
+        assert np.all(self._sut[ii] == consts.airvolume_minimum * 1000)  # m3/h
 
 
 def prepare_args_for_calc_Q_UT_A() -> dict:
