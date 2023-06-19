@@ -52,7 +52,7 @@ a_r_H_t_t_a1: float = 0.2944
 """コンプレッサ効率特性_a1"""
 a_r_H_t_t_a0: float = 0
 """コンプレッサ効率特性_a0"""
-airvolume_coeff_minimum: float = 0.17
+airvolume_minimum: float = 0.17  # km3/h
 """風量特性_中間期及び最小風量"""
 airvolume_coeff_a4_H: float = 0
 """風量特性_a4"""
@@ -195,9 +195,9 @@ def set_constants(input: dict):
       a_r_H_t_t_a1 = float(input['H_A']['compressor_coeff'][3])
       global a_r_H_t_t_a0 
       a_r_H_t_t_a0 = float(input['H_A']['compressor_coeff'][4])
-    if 'airvolume_coeff_minimum' in input['H_A']:
-      global airvolume_coeff_minimum_H 
-      airvolume_coeff_minimum_H = float(input['H_A']['airvolume_coeff_minimum'][0])
+    if 'airvolume_minimum' in input['H_A']:
+      global airvolume_minimum_H
+      airvolume_minimum_H = float(input['H_A']['airvolume_minimum'])
     if 'airvolume_coeff' in input['H_A']:
       global airvolume_coeff_a4_H 
       airvolume_coeff_a4_H = float(input['H_A']['airvolume_coeff'][0])
@@ -255,9 +255,9 @@ def set_constants(input: dict):
       a_r_C_t_t_a1 = float(input['C_A']['compressor_coeff'][3])
       global a_r_C_t_t_a0 
       a_r_C_t_t_a0 = float(input['C_A']['compressor_coeff'][4])
-    if 'airvolume_coeff_minimum' in input['C_A']:
-      global airvolume_coeff_minimum_C 
-      airvolume_coeff_minimum_C = float(input['C_A']['airvolume_coeff_minimum'][0])
+    if 'airvolume_minimum' in input['C_A']:
+      global airvolume_minimum_C
+      airvolume_minimum_C = float(input['C_A']['airvolume_minimum'])
     if 'airvolume_coeff' in input['C_A']:
       global airvolume_coeff_a4_C
       airvolume_coeff_a4_C = float(input['C_A']['airvolume_coeff'][0])
