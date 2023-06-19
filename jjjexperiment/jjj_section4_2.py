@@ -1309,18 +1309,19 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
       日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
 
     """
-    H, C, M = get_season_array_d_t(region)
-
-    V_dash_hs_supply_d_t = np.zeros(24 * 365)
     Q_hat_hs_d_t_kw = Q_hat_hs_d_t / 3600 * 1000
     _logger.info(f"Q_hat_hs_d_t_kw: {Q_hat_hs_d_t_kw}")
     del Q_hat_hs_d_t  # NOTE: 誤用を防ぐ目的で単位変換前を削除
 
-    # 暖房期：顕熱2.5kW未満
-    f1 = np.logical_and(H, Q_hat_hs_d_t_kw < 2.5)
+    H, C, M = get_season_array_d_t(region)
+    V_dash_hs_supply_d_t = np.zeros(24 * 365)
+
+    # 暖房期
+    f1 = np.logical_and(H, Q_hat_hs_d_t_kw < 2.5)   # 顕熱2.5kW未満
+    f2 = np.logical_and(H, Q_hat_hs_d_t_kw >= 2.5)  # 顕熱2.5kW以上
+    assert np.count_nonzero(H) == sum(map(np.count_nonzero, [f1, f2]))
+
     V_dash_hs_supply_d_t[f1] = constants.airvolume_minimum
-    # 暖房期：顕熱2.5kW以上
-    f2 = np.logical_and(H, Q_hat_hs_d_t_kw >= 2.5)
     V_dash_hs_supply_d_t[f2] =  \
         (constants.airvolume_coeff_a4_H * Q_hat_hs_d_t_kw ** 4
             + constants.airvolume_coeff_a3_H * Q_hat_hs_d_t_kw ** 3
@@ -1328,11 +1329,12 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
             + constants.airvolume_coeff_a1_H * Q_hat_hs_d_t_kw
             + constants.airvolume_coeff_a0_H)[f2]
 
-    # 冷房期：顕熱2.5kW未満
-    f3 = np.logical_and(C, Q_hat_hs_d_t_kw < 2.5)
+    # 冷房期
+    f3 = np.logical_and(C, Q_hat_hs_d_t_kw < 2.5)   # 顕熱2.5kW未満
+    f4 = np.logical_and(C, Q_hat_hs_d_t_kw >= 2.5)  # 顕熱2.5kW以上
+    assert np.count_nonzero(C) == sum(map(np.count_nonzero, [f3, f4]))
+
     V_dash_hs_supply_d_t[f3] = constants.airvolume_minimum
-    # 冷房期：顕熱2.5kW以上
-    f4 = np.logical_and(C, Q_hat_hs_d_t_kw >= 2.5)
     V_dash_hs_supply_d_t[f4] =  \
         (constants.airvolume_coeff_a4_C * Q_hat_hs_d_t_kw ** 4
             + constants.airvolume_coeff_a3_C * Q_hat_hs_d_t_kw ** 3
@@ -1343,7 +1345,9 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
     # 中間期
     V_dash_hs_supply_d_t[M] = constants.airvolume_minimum
 
-    return V_dash_hs_supply_d_t * 1000  # NOTE: km3/h -> m3/h
+    # NOTE: ここまで km3/h ベース 変換-> m3/h
+    return V_dash_hs_supply_d_t * 1000
+
 
 def get_V_dash_hs_supply_d_t(V_hs_min, V_hs_dsgn_H, V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region):
     """(36-1)(36-2)(36-3)
@@ -1365,49 +1369,29 @@ def get_V_dash_hs_supply_d_t(V_hs_min, V_hs_dsgn_H, V_hs_dsgn_C, Q_hs_rtd_H, Q_h
 
     V_dash_hs_supply_d_t = np.zeros(24 * 365)
 
-    # 暖房期：熱源機の出力が負の値に場合
-    f1 = np.logical_and(H, Q_hat_hs_d_t < 0)
-    # 暖房期：熱源機の出力が正で出力が定格出力を超えない場合
-    if Q_hs_rtd_H is not None:
-        f2 = np.logical_and(H, np.logical_and(0 <= Q_hat_hs_d_t, Q_hat_hs_d_t < Q_hs_rtd_H))
-    # 暖房期出力が定格出力を超えた場合
-    if Q_hs_rtd_H is not None:
-        f3 = np.logical_and(H, Q_hat_hs_d_t >= Q_hs_rtd_H)
-
-    # 冷房期：熱源機の出力が負の値に場合
-    f4 = np.logical_and(C, Q_hat_hs_d_t < 0)
-    # 冷房期：熱源機の出力が正で出力が定格出力を超えない場合
-    if Q_hs_rtd_C is not None:
-        f5 = np.logical_and(C, np.logical_and(0 <= Q_hat_hs_d_t, Q_hat_hs_d_t < Q_hs_rtd_C))
-    # 冷房期：出力が定格出力を超えた場合
-    if Q_hs_rtd_C is not None:
-        f6 = np.logical_and(C, Q_hat_hs_d_t >= Q_hs_rtd_C)
-
     # 暖房期 (36-1)
-
-    # 熱源機の出力が負の値に場合
+    f1 = np.logical_and(H, Q_hat_hs_d_t < 0)
     V_dash_hs_supply_d_t[f1] = V_hs_min
 
-    # 熱源機の出力が正で出力が定格出力を超えない場合
-    if Q_hs_rtd_H is not None:
+    if Q_hs_rtd_H:
+        f2 = np.logical_and(H, np.logical_and(0 <= Q_hat_hs_d_t, Q_hat_hs_d_t < Q_hs_rtd_H))
         V_dash_hs_supply_d_t[f2] = (V_hs_dsgn_H - V_hs_min) / Q_hs_rtd_H * Q_hat_hs_d_t[f2] + V_hs_min
 
-    # 出力が定格出力を超えた場合
-    if V_hs_dsgn_H is not None:
-        V_dash_hs_supply_d_t[f3] = V_hs_dsgn_H
+        if V_hs_dsgn_H:
+            f3 = np.logical_and(H, Q_hs_rtd_H <= Q_hat_hs_d_t)
+            V_dash_hs_supply_d_t[f3] = V_hs_dsgn_H
 
     # 冷房期 (36-2)
-
-    # 熱源機の出力が負の値に場合
+    f4 = np.logical_and(C, Q_hat_hs_d_t < 0)
     V_dash_hs_supply_d_t[f4] = V_hs_min
 
-    # 熱源機の出力が正で出力が定格出力を超えない場合
-    if Q_hs_rtd_C is not None:
+    if Q_hs_rtd_C:
+        f5 = np.logical_and(C, np.logical_and(0 <= Q_hat_hs_d_t, Q_hat_hs_d_t < Q_hs_rtd_C))
         V_dash_hs_supply_d_t[f5] = (V_hs_dsgn_C - V_hs_min) / Q_hs_rtd_C * Q_hat_hs_d_t[f5] + V_hs_min
 
-    # 出力が定格出力を超えた場合
-    if V_hs_dsgn_C is not None:
-        V_dash_hs_supply_d_t[f6] = V_hs_dsgn_C
+        if V_hs_dsgn_C:
+            f6 = np.logical_and(C, Q_hat_hs_d_t >= Q_hs_rtd_C)
+            V_dash_hs_supply_d_t[f6] = V_hs_dsgn_C
 
     # 中間期 (36-3)
     V_dash_hs_supply_d_t[M] = V_hs_min
@@ -2843,6 +2827,7 @@ def get_season_array(region):
     H = get_period_array(table_7[0], table_7[1])
     C = get_period_array(table_7[2], table_7[3])
     M = np.logical_and(np.logical_not(H), np.logical_not(C))
+    assert sum(map(np.count_nonzero, [H, C, M])) == 365
 
     return H, C, M
 
