@@ -69,7 +69,7 @@ ronbun_cdtn_C = Condition(
     T_ein = t_inner_C,
     T_cin = t_outer_C,
     X_ein = absolute_humid(rh_inner_C, t_inner_C),
-    X_cin = absolute_humid(rh_inner_C, t_outer_C))
+    X_cin = absolute_humid(rh_outer_C, t_outer_C))
 
 # 使用条件 - 暖房時 (evp, cnd が逆になります)
 ronbun_cdtn_H = Condition(
