@@ -2,14 +2,14 @@ import math
 from jjjexperiment.denchu_1 import *
 
 def simu_R(a2, a1, a0):
+    """ 二次関数 R(q) を得る """
     return lambda x: a2*x**2 + a1*x + a0
 
 def simu_P(q: float, COP: float) -> float:
     return q / COP
 
 def simu_COP_C(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: Condition) -> float:
-    """ COPを再計算
-    """
+    """ 推計モデルと実使用条件から COPを推計する """
     def fix_T_evp(q, M_ein, cdtn: Condition):
         """ q [kW] """
         Ca = get_Ca(cdtn.X_ein / 1000)
@@ -41,8 +41,7 @@ def simu_COP_C(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: 
     return COP
 
 def simu_COP_H(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: Condition) -> float:
-    """ COPを再計算
-    """
+    """ 推計モデルと実使用条件から COPを推計する """
     def fix_T_cnd(q, M_cin, cdtn: Condition):
         """ q [kW] """
         Ca = get_Ca(cdtn.X_cin / 1000)

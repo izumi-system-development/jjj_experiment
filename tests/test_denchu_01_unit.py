@@ -73,10 +73,10 @@ class Test_計算式_飽和水蒸気圧:
     # 目標値参考: http://www.enjoy.ne.jp/~k-ichikawa/humidity1.html
 
     def test_wexler_20C(self):
-        assert math.isclose(wexler(20),  2341, rel_tol=1e-3)
+        assert math.isclose(calc_Pa_wexler(20),  2341, rel_tol=1e-3)
     def test_wexler_30C(self):
-        assert math.isclose(wexler(30),  4249, rel_tol=1e-3)
+        assert math.isclose(calc_Pa_wexler(30),  4249, rel_tol=1e-3)
     def test_wexler_40C(self):
-        assert math.isclose(wexler(40),  7386, rel_tol=1e-3)
+        assert math.isclose(calc_Pa_wexler(40),  7386, rel_tol=1e-3)
     def test_wexler_50C(self):
-        assert math.isclose(wexler(50), 12350, rel_tol=1e-3)
+        assert math.isclose(calc_Pa_wexler(50), 12350, rel_tol=1e-3)

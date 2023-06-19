@@ -86,13 +86,13 @@ def absolute_humid(rh: float, t: float):
     e = 6.1078 * 10 ** (7.5 * t / (t + 237.3)) * (rh / 100)
     return 0.622 * e / (ATM_AIR_PRESSURE - e) * 1000
 
-def wexler(Td: float) -> float:
+def calc_Pa_wexler(Td: float) -> float:
     """ Td[℃]から ウェクスラー・ハイランド式によって飽和水蒸気量[Pa]を計算 """
     tmp = Td + 273.15
     Pws = exp(-5800.2206 / tmp + 1.3914993 + tmp * (-0.048640239 + tmp * (0.000041764768 - 0.000000014452093 * tmp)) + 6.5459673 * log(tmp))
     return Pws
 
-def Pa2kgDA(hpa: float) -> float:
+def Pa_to_gkgDA(hpa: float) -> float:
     """ 水蒸気圧[hPa]から絶対湿度[g/kg(DA)]に変換 """
     return 622 * hpa / (ATM_AIR_PRESSURE - hpa)
 
@@ -103,8 +103,8 @@ def m3ph_to_kgDAps(m3ph: float, temperature: float) -> float:
 
 def is_over_saturated(Td: float, X: float) -> bool:
     """ その温度[℃]の空気が保持できる絶対湿度[g/kg(DA)]を超えているか調べる """
-    saturated_steam_pressure = 0.01 * wexler(Td)
-    x_limit = Pa2kgDA(saturated_steam_pressure)
+    saturated_steam_pressure = 0.01 * calc_Pa_wexler(Td)
+    x_limit = Pa_to_gkgDA(saturated_steam_pressure)
     return x_limit < X
 
 def avoid_over_saturated(Td: float, X: float) -> float:

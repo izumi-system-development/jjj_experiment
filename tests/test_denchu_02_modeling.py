@@ -134,8 +134,8 @@ class Test成績係数比R_モデリング:
         R2 = R(ronbun_spec_hi_H.q_hs_rtd)
         R3 = R(ronbun_spec_hi_H.q_hs_max)
 
-        assert math.isclose(R1, R1_sut, abs_tol=0.02)  # FIXME: 精度?
-        assert math.isclose(R2, R2_sut, abs_tol=0.02)  # FIXME: 精度?
+        assert math.isclose(R1, R1_sut, abs_tol=2e-2)  # FIXME: 精度?
+        assert math.isclose(R2, R2_sut, abs_tol=2e-2)  # FIXME: 精度?
         assert math.isclose(R3, R3_sut, abs_tol=1e-2)
 
     def test_論文計算再現_普及機_暖房(self):
