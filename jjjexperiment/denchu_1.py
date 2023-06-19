@@ -2,6 +2,8 @@ import typing
 from math import exp, log
 import numpy as np
 
+from logs.app_logger import LimitedLoggerAdapter as _logger
+
 ATM_AIR_PRESSURE = 1013.25
 """ 大気圧[hPa] """
 BF = 0.2  # NOTE: 論文内では0.2に固定
@@ -191,27 +193,33 @@ def solve_mtx(A: np.matrix, Y: np.matrix) -> typing.Tuple[float, float]:
 def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, float, float]:
     """ 成績係数比Rの近似式の係数とファン等消費電力Pc[kW]
     """
-    def coeffs_for_simultaneous_C(q:float, P:float, spec: Spec, condi: Condition) -> typing.Tuple[float, float, float]:
+    def coeffs_for_simultaneous_C(label: str, q:float, P:float, spec: Spec, condi: Condition) -> typing.Tuple[float, float, float]:
         """ q, P [kW]で統一 """
         T_evp, T_cnd = calc_reibai_phase_T_C(q, P, spec, condi)
+        _logger.info(f"T_evp_{label}: {T_evp}")
+        _logger.info(f"T_cnd_{label}: {T_cnd}")
         A = (T_cnd - T_evp) / (T_evp + 273.15)  # 冷房と異なる
         B = 1 / q
         COP = q / P; Y = 1 / COP
         return A, B, Y  # A・R' + B・Pc = Y (R'=1/R) の形にする
 
     def R_minrtd_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float]:
-        A1, B1, Y1 = coeffs_for_simultaneous_C(spec.q_rac_min, 0.001*spec.P_rac_min, spec, condi)
-        A2, B2, Y2 = coeffs_for_simultaneous_C(spec.q_rac_rtd, 0.001*spec.P_rac_rtd, spec, condi)
+        A1, B1, Y1 = coeffs_for_simultaneous_C('min', spec.q_rac_min, 0.001*spec.P_rac_min, spec, condi)
+        A2, B2, Y2 = coeffs_for_simultaneous_C('rtd', spec.q_rac_rtd, 0.001*spec.P_rac_rtd, spec, condi)
         mtx_A, mtx_Y = np.matrix([[A1, B1], [A2, B2]]), np.matrix([[Y1], [Y2]])
         R_minrtd_dash, Pc = solve_mtx(mtx_A, mtx_Y)
         R_minrtd = 1 / R_minrtd_dash  # NOTE: 最小・定格時のR同一
         return R_minrtd, Pc
 
     R_minrtd, Pc = R_minrtd_C(spec, condi)
+    _logger.info(f"R_minrtd: {R_minrtd}")
+    _logger.info(f"Pc: {Pc}")
 
     def R_max_C(Pc, q, P, spec: Spec, condi: Condition) -> float:
         """ Pc, q, P [kW]で統一 """
         T_evp_max, T_cnd_max = calc_reibai_phase_T_C(q, P, spec, condi)
+        _logger.info(f"T_evp_max: {T_evp_max}")
+        _logger.info(f"T_cnd_max: {T_cnd_max}")
         COP = q / P
         right = COP * q / (q - COP*Pc)  # (7)式右辺
         left = (T_evp_max + 273.15) / (T_cnd_max - T_evp_max)  # (7)式左辺(係数部)
@@ -219,6 +227,7 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
 
     # NOTE: 論文より最大時のRのみ別に計算する
     R_max = R_max_C(Pc, spec.q_rac_max, 0.001*spec.P_rac_max, spec, condi)
+    _logger.info(f"R_max: {R_max}")
 
     Qs = np.array([spec.q_rac_min, spec.q_rac_rtd, spec.q_rac_max])
     Rs = np.array([R_minrtd, R_minrtd, R_max])
@@ -227,6 +236,7 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
     R_poly_a2 = coeffs[0]
     R_poly_a1 = coeffs[1]
     R_poly_a0 = coeffs[2]
+    _logger.info(f"a2: {R_poly_a2}\na1: {R_poly_a1}\na0: {R_poly_a0}")
     return R_poly_a2, R_poly_a1, R_poly_a0, Pc
 
 def calc_R_and_Pc_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float, float, float]:

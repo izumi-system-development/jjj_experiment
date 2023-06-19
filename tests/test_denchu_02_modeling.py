@@ -4,6 +4,8 @@ import math
 from jjjexperiment.denchu_1 import *
 from jjjexperiment.denchu_2 import *
 
+from logs.app_logger import LimitedLoggerAdapter as _logger
+
 """ 論文におけるエアコンの性能 """
 
 ronbun_spec_hi_C = Spec(
@@ -84,6 +86,8 @@ class Test成績係数比R_モデリング:
     def test_論文計算再現_高機能機_冷房(self):
         """ 論文のR近似式が再現できることを確認
         """
+        _logger.init_logger()
+
         a2, a1, a0, _ = calc_R_and_Pc_C(ronbun_spec_hi_C, ronbun_cdtn_C)
 
         R_sut = simu_R(a2, a1, a0)
