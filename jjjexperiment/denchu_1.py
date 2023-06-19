@@ -11,37 +11,37 @@ class Spec:
     """ 機器特性(メーカー公表値)をまとめるクラス
     """
     def __init__(self, name,
-                P_hs_min, P_hs_rtd, P_hs_max,
-                q_hs_min, q_hs_rtd, q_hs_max,
+                P_rac_min, P_rac_rtd, P_rac_max,
+                q_rac_min, q_rac_rtd, q_rac_max,
                 V_inner, V_outer):
         self._name = name
-        self._p_hs_min, self._p_hs_rtd, self._p_hs_max = P_hs_min, P_hs_rtd, P_hs_max
-        self._q_hs_min, self._q_hs_rtd, self._q_hs_max = q_hs_min, q_hs_rtd, q_hs_max
+        self._p_rac_min, self._p_rac_rtd, self._p_rac_max = P_rac_min, P_rac_rtd, P_rac_max
+        self._q_rac_min, self._q_rac_rtd, self._q_rac_max = q_rac_min, q_rac_rtd, q_rac_max
         self._V_inner, self._V_outer = V_inner, V_outer
 
     @property
     def name(self):
         """ 機器名 """; return self._name
     @property
-    def P_hs_min(self):
-        """ JIS条件での消費電力(最小)[W] """; return self._p_hs_min
+    def P_rac_min(self):
+        """ JIS条件での消費電力(最小)[W] """; return self._p_rac_min
     @property
-    def P_hs_rtd(self):
-        """ JIS条件での消費電力(定格)[W] """; return self._p_hs_rtd
+    def P_rac_rtd(self):
+        """ JIS条件での消費電力(定格)[W] """; return self._p_rac_rtd
     @property
-    def P_hs_max(self):
-        """ JIS条件での消費電力(最大)[W] """; return self._p_hs_max
+    def P_rac_max(self):
+        """ JIS条件での消費電力(最大)[W] """; return self._p_rac_max
 
     # NOTE: 室内から除去するエネルギー = 冷房能力 (論文より)
     @property
-    def q_hs_min(self):
-        """ JIS条件での熱処理能力(最小)[kW] """; return self._q_hs_min
+    def q_rac_min(self):
+        """ JIS条件での熱処理能力(最小)[kW] """; return self._q_rac_min
     @property
-    def q_hs_rtd(self):
-        """ JIS条件での熱処理能力(定格)[kW] """; return self._q_hs_rtd
+    def q_rac_rtd(self):
+        """ JIS条件での熱処理能力(定格)[kW] """; return self._q_rac_rtd
     @property
-    def q_hs_max(self):
-        """ JIS条件での熱処理能力(最大)[kW] """; return self._q_hs_max
+    def q_rac_max(self):
+        """ JIS条件での熱処理能力(最大)[kW] """; return self._q_rac_max
 
     # NOTE: evp,cnd は冷暖で逆になるため室内機・室外機の識別子にはならない
     @property
@@ -200,8 +200,8 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
         return A, B, Y  # A・R' + B・Pc = Y (R'=1/R) の形にする
 
     def R_minrtd_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float]:
-        A1, B1, Y1 = coeffs_for_simultaneous_C(spec.q_hs_min, 0.001*spec.P_hs_min, spec, condi)
-        A2, B2, Y2 = coeffs_for_simultaneous_C(spec.q_hs_rtd, 0.001*spec.P_hs_rtd, spec, condi)
+        A1, B1, Y1 = coeffs_for_simultaneous_C(spec.q_rac_min, 0.001*spec.P_rac_min, spec, condi)
+        A2, B2, Y2 = coeffs_for_simultaneous_C(spec.q_rac_rtd, 0.001*spec.P_rac_rtd, spec, condi)
         mtx_A, mtx_Y = np.matrix([[A1, B1], [A2, B2]]), np.matrix([[Y1], [Y2]])
         R_minrtd_dash, Pc = solve_mtx(mtx_A, mtx_Y)
         R_minrtd = 1 / R_minrtd_dash  # NOTE: 最小・定格時のR同一
@@ -218,9 +218,9 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
         return right / left
 
     # NOTE: 論文より最大時のRのみ別に計算する
-    R_max = R_max_C(Pc, spec.q_hs_max, 0.001*spec.P_hs_max, spec, condi)
+    R_max = R_max_C(Pc, spec.q_rac_max, 0.001*spec.P_rac_max, spec, condi)
 
-    Qs = np.array([spec.q_hs_min, spec.q_hs_rtd, spec.q_hs_max])
+    Qs = np.array([spec.q_rac_min, spec.q_rac_rtd, spec.q_rac_max])
     Rs = np.array([R_minrtd, R_minrtd, R_max])
     coeffs = np.polyfit(Qs, Rs, 2)  # 二次式に近似し係数を取得
 
@@ -241,8 +241,8 @@ def calc_R_and_Pc_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
         return A, B, Y  # A・R' + B・Pc = Y (R'=1/R) の形にする
 
     def R_minrtd_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float]:
-        A1, B1, Y1 = coeffs_for_simultaneous_H(spec.q_hs_min, 0.001*spec.P_hs_min, spec, condi)
-        A2, B2, Y2 = coeffs_for_simultaneous_H(spec.q_hs_rtd, 0.001*spec.P_hs_rtd, spec, condi)
+        A1, B1, Y1 = coeffs_for_simultaneous_H(spec.q_rac_min, 0.001*spec.P_rac_min, spec, condi)
+        A2, B2, Y2 = coeffs_for_simultaneous_H(spec.q_rac_rtd, 0.001*spec.P_rac_rtd, spec, condi)
         mtx_A, mtx_Y = np.matrix([[A1, B1], [A2, B2]]), np.matrix([[Y1], [Y2]])
         R_minrtd_dash, Pc = solve_mtx(mtx_A, mtx_Y)
         R_minrtd = 1 / R_minrtd_dash  # NOTE: 最小・定格時のR同一
@@ -259,9 +259,9 @@ def calc_R_and_Pc_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
         return right / left
 
     # NOTE: 論文より最大時のRのみ別に計算する
-    R_max = R_max_H(Pc, spec.q_hs_max, 0.001*spec.P_hs_max, spec, condi)
+    R_max = R_max_H(Pc, spec.q_rac_max, 0.001*spec.P_rac_max, spec, condi)
 
-    Qs = np.array([spec.q_hs_min, spec.q_hs_rtd, spec.q_hs_max])
+    Qs = np.array([spec.q_rac_min, spec.q_rac_rtd, spec.q_rac_max])
     Rs = np.array([R_minrtd, R_minrtd, R_max])
 
     coeffs = np.polyfit(Qs, Rs, 2)  # 二次式に近似し係数を取得

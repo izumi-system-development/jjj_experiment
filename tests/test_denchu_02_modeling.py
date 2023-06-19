@@ -8,45 +8,45 @@ from jjjexperiment.denchu_2 import *
 
 ronbun_spec_hi_C = Spec(
     name = "論文-高機能機-冷房",
-    q_hs_min = 0.7,
-    q_hs_rtd = 2.2,
-    q_hs_max = 3.3,
-    P_hs_min = 95,
-    P_hs_rtd = 395,
-    P_hs_max = 780,
+    q_rac_min = 0.7,
+    q_rac_rtd = 2.2,
+    q_rac_max = 3.3,
+    P_rac_min = 95,
+    P_rac_rtd = 395,
+    P_rac_max = 780,
     V_inner = 12.1,
     V_outer = 28.2)
 
 ronbun_spec_cmm_C = Spec(
     name = "論文-普及機-冷房",
-    q_hs_min = 0.9,
-    q_hs_rtd = 2.2,
-    q_hs_max = 2.8,
-    P_hs_min = 170,
-    P_hs_rtd = 455,
-    P_hs_max = 745,
+    q_rac_min = 0.9,
+    q_rac_rtd = 2.2,
+    q_rac_max = 2.8,
+    P_rac_min = 170,
+    P_rac_rtd = 455,
+    P_rac_max = 745,
     V_inner = 12.0,
     V_outer = 27.6)
 
 ronbun_spec_hi_H = Spec(
     name = "論文-高機能機-暖房",
-    q_hs_min = 0.7,
-    q_hs_rtd = 2.5,
-    q_hs_max = 5.4,
-    P_hs_min = 95,
-    P_hs_rtd = 395,
-    P_hs_max = 1360,
+    q_rac_min = 0.7,
+    q_rac_rtd = 2.5,
+    q_rac_max = 5.4,
+    P_rac_min = 95,
+    P_rac_rtd = 395,
+    P_rac_max = 1360,
     V_inner = 13.1,
     V_outer = 25.5)
 
 ronbun_spec_cmm_H = Spec(
     name = "論文-普及機-暖房",
-    q_hs_min = 0.9,
-    q_hs_rtd = 2.2,
-    q_hs_max = 3.6,
-    P_hs_min = 135,
-    P_hs_rtd = 385,
-    P_hs_max = 1070,
+    q_rac_min = 0.9,
+    q_rac_rtd = 2.2,
+    q_rac_max = 3.6,
+    P_rac_min = 135,
+    P_rac_rtd = 385,
+    P_rac_max = 1070,
     V_inner = 12.0,
     V_outer = 22.5)
 
@@ -87,14 +87,14 @@ class Test成績係数比R_モデリング:
         a2, a1, a0, _ = calc_R_and_Pc_C(ronbun_spec_hi_C, ronbun_cdtn_C)
 
         R_sut = simu_R(a2, a1, a0)
-        R1_sut = R_sut(ronbun_spec_hi_C.q_hs_min)
-        R2_sut = R_sut(ronbun_spec_hi_C.q_hs_rtd)
-        R3_sut = R_sut(ronbun_spec_hi_C.q_hs_max)
+        R1_sut = R_sut(ronbun_spec_hi_C.q_rac_min)
+        R2_sut = R_sut(ronbun_spec_hi_C.q_rac_rtd)
+        R3_sut = R_sut(ronbun_spec_hi_C.q_rac_max)
 
         R = simu_R(-0.018, 0.052, 0.513)  # 論文より
-        R1 = R(ronbun_spec_hi_C.q_hs_min)
-        R2 = R(ronbun_spec_hi_C.q_hs_rtd)
-        R3 = R(ronbun_spec_hi_C.q_hs_max)
+        R1 = R(ronbun_spec_hi_C.q_rac_min)
+        R2 = R(ronbun_spec_hi_C.q_rac_rtd)
+        R3 = R(ronbun_spec_hi_C.q_rac_max)
 
         assert math.isclose(R1, R1_sut, abs_tol=1e-2)
         assert math.isclose(R2, R2_sut, abs_tol=1e-2)
@@ -106,14 +106,14 @@ class Test成績係数比R_モデリング:
         a2, a1, a0, _ = calc_R_and_Pc_C(ronbun_spec_cmm_C, ronbun_cdtn_C)
 
         R_sut = simu_R(a2, a1, a0)
-        R1_sut = R_sut(ronbun_spec_cmm_C.q_hs_min)
-        R2_sut = R_sut(ronbun_spec_cmm_C.q_hs_rtd)
-        R3_sut = R_sut(ronbun_spec_cmm_C.q_hs_max)
+        R1_sut = R_sut(ronbun_spec_cmm_C.q_rac_min)
+        R2_sut = R_sut(ronbun_spec_cmm_C.q_rac_rtd)
+        R3_sut = R_sut(ronbun_spec_cmm_C.q_rac_max)
 
         R = simu_R(-0.082, 0.255, 0.365)  # 論文より
-        R1 = R(ronbun_spec_cmm_C.q_hs_min)
-        R2 = R(ronbun_spec_cmm_C.q_hs_rtd)
-        R3 = R(ronbun_spec_cmm_C.q_hs_max)
+        R1 = R(ronbun_spec_cmm_C.q_rac_min)
+        R2 = R(ronbun_spec_cmm_C.q_rac_rtd)
+        R3 = R(ronbun_spec_cmm_C.q_rac_max)
 
         assert math.isclose(R1, R1_sut, abs_tol=1e-2)
         assert math.isclose(R2, R2_sut, abs_tol=1e-2)
@@ -125,14 +125,14 @@ class Test成績係数比R_モデリング:
         a2, a1, a0, _ = calc_R_and_Pc_H(ronbun_spec_hi_H, ronbun_cdtn_H)
 
         R_sut = simu_R(a2, a1, a0)
-        R1_sut = R_sut(ronbun_spec_hi_H.q_hs_min)
-        R2_sut = R_sut(ronbun_spec_hi_H.q_hs_rtd)
-        R3_sut = R_sut(ronbun_spec_hi_H.q_hs_max)
+        R1_sut = R_sut(ronbun_spec_hi_H.q_rac_min)
+        R2_sut = R_sut(ronbun_spec_hi_H.q_rac_rtd)
+        R3_sut = R_sut(ronbun_spec_hi_H.q_rac_max)
 
         R = simu_R(-0.006, 0.019, 0.636)  # 論文より
-        R1 = R(ronbun_spec_hi_H.q_hs_min)
-        R2 = R(ronbun_spec_hi_H.q_hs_rtd)
-        R3 = R(ronbun_spec_hi_H.q_hs_max)
+        R1 = R(ronbun_spec_hi_H.q_rac_min)
+        R2 = R(ronbun_spec_hi_H.q_rac_rtd)
+        R3 = R(ronbun_spec_hi_H.q_rac_max)
 
         assert math.isclose(R1, R1_sut, abs_tol=2e-2)  # FIXME: 精度?
         assert math.isclose(R2, R2_sut, abs_tol=2e-2)  # FIXME: 精度?
@@ -144,14 +144,14 @@ class Test成績係数比R_モデリング:
         a2, a1, a0, _ = calc_R_and_Pc_H(ronbun_spec_cmm_H, ronbun_cdtn_H)
 
         R_sut = simu_R(a2, a1, a0)
-        R1_sut = R_sut(ronbun_spec_cmm_C.q_hs_min)
-        R2_sut = R_sut(ronbun_spec_cmm_C.q_hs_rtd)
-        R3_sut = R_sut(ronbun_spec_cmm_C.q_hs_max)
+        R1_sut = R_sut(ronbun_spec_cmm_C.q_rac_min)
+        R2_sut = R_sut(ronbun_spec_cmm_C.q_rac_rtd)
+        R3_sut = R_sut(ronbun_spec_cmm_C.q_rac_max)
 
         R = simu_R(-0.044, 0.136, 0.479)  # 論文より
-        R1 = R(ronbun_spec_cmm_C.q_hs_min)
-        R2 = R(ronbun_spec_cmm_C.q_hs_rtd)
-        R3 = R(ronbun_spec_cmm_C.q_hs_max)
+        R1 = R(ronbun_spec_cmm_C.q_rac_min)
+        R2 = R(ronbun_spec_cmm_C.q_rac_rtd)
+        R3 = R(ronbun_spec_cmm_C.q_rac_max)
 
         assert math.isclose(R1, R1_sut, abs_tol=1e-2)
         assert math.isclose(R2, R2_sut, abs_tol=1e-2)
