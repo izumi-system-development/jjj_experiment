@@ -22,6 +22,8 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
+from logs.app_logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+
 def calc(input_data : dict, test_mode=False):
     df_output1 = pd.DataFrame(index = ['合計値'])
     df_output2 = pd.DataFrame(index = pd.date_range(datetime(2023, 1, 1, 1, 0, 0), datetime(2024, 1, 1, 0, 0, 0), freq = 'h'))
@@ -280,12 +282,13 @@ def calc(input_data : dict, test_mode=False):
     E_H                 = np.sum(E_H_d_t)                           #1 年当たりの暖房設備の設計一次エネルギー消費量(MJ/年)
     E_C                 = np.sum(E_C_d_t)                           #1 年当たりの冷房設備の設計一次エネルギー消費量(MJ/年)
 
+    _logger.info(f"E_H: {E_H}")
+    _logger.info(f"E_C: {E_C}")
+    print('E_H [MJ/year]: ', E_H, ', E_C [MJ/year]: ', E_C)
 
     df_output1['E_H [MJ/year]'] = E_H
     df_output1['E_C [MJ/year]'] = E_C
     df_output1.to_csv(case_name + '_output1.csv', encoding = 'cp932')
-    print('E_H [MJ/year]:', E_H, ', E_C [MJ/year]:', E_C)
-
 
     df_output2['E_H_d_t [MJ/h]']            = E_H_d_t
     df_output2['E_C_d_t [MJ/h]']            = E_C_d_t

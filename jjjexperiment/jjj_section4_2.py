@@ -41,6 +41,8 @@ from jjjexperiment.jjj_section4_3 import \
 from jjjexperiment.constants import PROCESS_TYPE_3
 import jjjexperiment.constants as constants
 
+from logs.app_logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
              VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
@@ -1311,6 +1313,7 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
 
     V_dash_hs_supply_d_t = np.zeros(24 * 365)
     Q_hat_hs_d_t_kw = Q_hat_hs_d_t / 3600 * 1000
+    _logger.info(f"Q_hat_hs_d_t_kw: {Q_hat_hs_d_t_kw}")
     del Q_hat_hs_d_t  # NOTE: 誤用を防ぐ目的で単位変換前を削除
 
     # 暖房期：顕熱2.5kW未満
