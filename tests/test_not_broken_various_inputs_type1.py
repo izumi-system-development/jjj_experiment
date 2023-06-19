@@ -279,9 +279,9 @@ class Test既存計算維持_入力値切替_方式1:
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type1.E_H
-        assert math.close(result['TValue'].E_H, 141367.326695553)
+        assert math.isclose(result['TValue'].E_H, 141367.326695553)
         assert result['TValue'].E_C != expected_result_type1.E_C
-        assert math.close(result['TValue'].E_C, 3151.6467125592953)
+        assert math.isclose(result['TValue'].E_C, 3151.6467125592953)
 
     def test_入力値入替_18(self, expected_result_type1):
         """ 以前のプログラムと同じ計算結果になる
