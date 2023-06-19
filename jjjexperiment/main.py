@@ -15,7 +15,7 @@ from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
 import jjjexperiment.calc
 import jjjexperiment.input
 import jjjexperiment.constants
-from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3, PROCESS_TYPE_4
 from jjjexperiment.result import *
 
 import numpy as np
@@ -117,6 +117,9 @@ def calc(input_data : dict, test_mode=False):
         if H_A['type'] == PROCESS_TYPE_1 or H_A['type'] == PROCESS_TYPE_3:
             V_fan_rtd_H = H_A['V_fan_rtd_H']
         elif H_A['type'] == PROCESS_TYPE_2:
+            V_fan_rtd_H = dc_spec.get_V_fan_rtd_H(q_rtd_H)
+        # TODO: 更新する
+        elif H_A['type'] == PROCESS_TYPE_4:
             V_fan_rtd_H = dc_spec.get_V_fan_rtd_H(q_rtd_H)
         else:
             raise Exception("暖房方式が不正です。")
