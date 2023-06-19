@@ -291,11 +291,11 @@ def get_CRAC_spec(input: dict):
             raise Exception('エネルギー消費効率の入力（冷房）が不正です。')
 
     # 機器の性能の入力(冷房)
-    if input['C_A']['input_mode'] == 2 and int(input['C_A']['input_rac_performance']) == 2:
+    if input['C_A']['type'] == 2 and int(input['C_A']['input_rac_performance']) == 2:
         q_rtd_C: float = float(input['C_A']['q_rac_rtd_C'])
         q_max_C: float = float(input['C_A']['q_rac_max_C'])
         e_rtd_C: float = float(input['C_A']['e_rac_rtd_C'])
-    elif input['C_A']['input_mode'] == 4:
+    elif input['C_A']['type'] == 4:
         # TODO: 実装する
         pass
     else:  # 全形式のデフォルト
