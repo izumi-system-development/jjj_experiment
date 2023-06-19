@@ -16,7 +16,8 @@ from jjjexperiment.jjj_section4_2 \
 from jjjexperiment.jjj_section4_2_a \
     import get_A_f_hex, get_A_e_hex, get_alpha_c_hex_C, get_alpha_c_hex_H, get_E_E_fan_H_d_t, get_E_E_fan_C_d_t, get_q_hs_C_d_t, get_q_hs_H_d_t
 
-INPUT_PATH = './tests/inputs/default_testinput.json'
+from test_utils.utils import INPUT_SAMPLE_TYPE3_PATH
+
 
 class Testコイル特性:
 
@@ -245,7 +246,7 @@ class Test風量特性_熱源機_低出力:
     def setup_class(cls):
         """ 熱源機の出力が 2.5 kW 未満の時
         """
-        inputs = json.load(open(INPUT_PATH, 'r'))
+        inputs = json.load(open(INPUT_SAMPLE_TYPE3_PATH, 'r'))
         _, _, _, _, _, region, _ = input.get_basic(inputs)
         cls._H, cls._C, cls._M = get_season_array_d_t(region)
 
@@ -276,7 +277,7 @@ class Test風量特性_熱源機_高出力:
     def setup_class(cls):
         """ 熱源機の出力が 2.5 kW 以上の時
         """
-        inputs = json.load(open(INPUT_PATH, 'r'))
+        inputs = json.load(open(INPUT_SAMPLE_TYPE3_PATH, 'r'))
         fixture = {
             # NOTE: 0次の係数のみを有効にしてバリデーション値をコントロールしている
             'airvolume_coeff': [0, 0, 0, 0, -0.06],
@@ -306,7 +307,7 @@ class Test風量特性_熱源機_高出力:
 
 
 def prepare_args_for_calc_Q_UT_A() -> dict:
-    inputs = json.load(open(INPUT_PATH, 'r'))
+    inputs = json.load(open(INPUT_SAMPLE_TYPE3_PATH, 'r'))
 
     inputs["H_A"]["input_V_hs_dsgn_H"] = 2  # ユーザー入力ON
     inputs["C_A"]["input_V_hs_dsgn_C"] = 2  # ユーザー入力ON
