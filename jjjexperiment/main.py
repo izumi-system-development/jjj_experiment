@@ -24,7 +24,7 @@ from datetime import datetime
 
 def calc(input_data : dict, test_mode=False):
     df_output1 = pd.DataFrame(index = ['合計値'])
-    df_output2 = pd.DataFrame(index = pd.date_range(datetime(2022, 1, 1, 1, 0, 0), datetime(2023, 1, 1, 0, 0, 0), freq = 'h'))
+    df_output2 = pd.DataFrame(index = pd.date_range(datetime(2023, 1, 1, 1, 0, 0), datetime(2024, 1, 1, 0, 0, 0), freq = 'h'))
 
     case_name   = input_data['case_name']
     climateFile = input_data['climateFile']
