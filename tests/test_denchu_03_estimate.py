@@ -4,6 +4,8 @@ import math
 from jjjexperiment.denchu_1 import *
 from jjjexperiment.denchu_2 import *
 
+from logs.app_logger import LimitedLoggerAdapter as _logger
+
 """ R近似曲線とPcの算出後 -> 使用条件実情でCOP値推計 """
 
 R_ronbun_C = simu_R(-0.018, 0.052, 0.513)
@@ -34,6 +36,8 @@ class Test_COP推計_室内温度固定_外気温25:
     """
     @classmethod
     def setup_class(cls):
+        _logger.init_logger()
+
         t_outer_C = 25
         cls._cdtn_C = Condition(
             T_ein = t_inner_C,
@@ -68,6 +72,8 @@ class Test_COP推計_室内温度固定_外気温30:
     """
     @classmethod
     def setup_class(cls):
+        _logger.init_logger()
+
         t_outer_C = 30
         cls._cdtn_C = Condition(
             T_ein = t_inner_C,
@@ -75,8 +81,13 @@ class Test_COP推計_室内温度固定_外気温30:
             X_ein = absolute_humid(rh_inner_C, t_inner_C),
             X_cin = absolute_humid(rh_outer_C, t_outer_C),
         )
+        _logger.info(f"X_ein: {cls._cdtn_C.X_ein}")
+        _logger.info(f"X_cin: {cls._cdtn_C.X_cin}")
+
         cls._M_ein = m3ph_to_kgDAps(v_inner * 60, cls._cdtn_C.T_ein)
         cls._M_cin = m3ph_to_kgDAps(v_outer * 60, cls._cdtn_C.T_cin)
+        _logger.info(f"M_ein: {cls._M_ein}")
+        _logger.info(f"M_cin: {cls._M_cin}")
 
     def test_調査点1(self):
         q = 0.5; COP = simu_COP_C(q, Pc_ronbun_C, R_ronbun_C(q), self._M_ein, self._M_cin, self._cdtn_C)
@@ -97,6 +108,8 @@ class Test_COP推計_室内温度固定_外気温35:
     """
     @classmethod
     def setup_class(cls):
+        _logger.init_logger()
+
         t_outer_C = 35
         cls._cdtn_C = Condition(
             T_ein = t_inner_C,

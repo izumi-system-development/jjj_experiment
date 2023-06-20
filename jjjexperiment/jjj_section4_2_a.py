@@ -44,7 +44,7 @@ from pyhees.section11_1 import \
 import numpy as np
 
 import jjjexperiment.constants as constants
-from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3, PROCESS_TYPE_4
 
 from scipy import optimize
 
@@ -1442,7 +1442,7 @@ def get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_ds
     """
     f_SFP = get_f_SFP(f_SFP)
 
-    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_2:
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
 
         fx = (P_fan_rtd_H - f_SFP * V_hs_vent_d_t) \
             * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_H - V_hs_vent_d_t)) * 10 ** (-3)
@@ -1512,7 +1512,7 @@ def get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_ds
     """
     f_SFP = get_f_SFP(f_SFP)
 
-    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_2:
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
 
         fx = (P_fan_rtd_C - f_SFP * V_hs_vent_d_t) \
             * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_C - V_hs_vent_d_t)) * 10 ** (-3)

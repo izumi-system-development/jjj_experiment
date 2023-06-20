@@ -12,10 +12,10 @@ BF = 0.2  # NOTE: 論文内では0.2に固定
 class Spec:
     """ 機器特性(メーカー公表値)をまとめるクラス
     """
-    def __init__(self, name,
+    def __init__(self,
                 P_rac_min, P_rac_rtd, P_rac_max,
                 q_rac_min, q_rac_rtd, q_rac_max,
-                V_inner, V_outer):
+                V_inner, V_outer, name=""):
         self._name = name
         self._p_rac_min, self._p_rac_rtd, self._p_rac_max = P_rac_min, P_rac_rtd, P_rac_max
         self._q_rac_min, self._q_rac_rtd, self._q_rac_max = q_rac_min, q_rac_rtd, q_rac_max
@@ -46,6 +46,7 @@ class Spec:
         """ JIS条件での熱処理能力(最大)[kW] """; return self._q_rac_max
 
     # NOTE: evp,cnd は冷暖で逆になるため室内機・室外機の識別子にはならない
+    # よって inner, outer で表現する
     @property
     def V_inner(self):
         """ 室内機の吸込み空気量[m3/min] """; return self._V_inner
@@ -204,22 +205,22 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
         return A, B, Y  # A・R' + B・Pc = Y (R'=1/R) の形にする
 
     def R_minrtd_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float]:
-        A1, B1, Y1 = coeffs_for_simultaneous_C('min', spec.q_rac_min, 0.001*spec.P_rac_min, spec, condi)
-        A2, B2, Y2 = coeffs_for_simultaneous_C('rtd', spec.q_rac_rtd, 0.001*spec.P_rac_rtd, spec, condi)
+        A1, B1, Y1 = coeffs_for_simultaneous_C('min_C', spec.q_rac_min, 0.001*spec.P_rac_min, spec, condi)
+        A2, B2, Y2 = coeffs_for_simultaneous_C('rtd_C', spec.q_rac_rtd, 0.001*spec.P_rac_rtd, spec, condi)
         mtx_A, mtx_Y = np.matrix([[A1, B1], [A2, B2]]), np.matrix([[Y1], [Y2]])
         R_minrtd_dash, Pc = solve_mtx(mtx_A, mtx_Y)
         R_minrtd = 1 / R_minrtd_dash  # NOTE: 最小・定格時のR同一
         return R_minrtd, Pc
 
     R_minrtd, Pc = R_minrtd_C(spec, condi)
-    _logger.info(f"R_minrtd: {R_minrtd}")
-    _logger.info(f"Pc: {Pc}")
+    _logger.info(f"R_minrtd_C: {R_minrtd}")
+    _logger.info(f"Pc_C: {Pc}")
 
     def R_max_C(Pc, q, P, spec: Spec, condi: Condition) -> float:
         """ Pc, q, P [kW]で統一 """
         T_evp_max, T_cnd_max = calc_reibai_phase_T_C(q, P, spec, condi)
-        _logger.info(f"T_evp_max: {T_evp_max}")
-        _logger.info(f"T_cnd_max: {T_cnd_max}")
+        _logger.info(f"T_evp_max_C: {T_evp_max}")
+        _logger.info(f"T_cnd_max_C: {T_cnd_max}")
         COP = q / P
         right = COP * q / (q - COP*Pc)  # (7)式右辺
         left = (T_evp_max + 273.15) / (T_cnd_max - T_evp_max)  # (7)式左辺(係数部)
@@ -227,7 +228,7 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
 
     # NOTE: 論文より最大時のRのみ別に計算する
     R_max = R_max_C(Pc, spec.q_rac_max, 0.001*spec.P_rac_max, spec, condi)
-    _logger.info(f"R_max: {R_max}")
+    _logger.info(f"R_max_C: {R_max}")
 
     Qs = np.array([spec.q_rac_min, spec.q_rac_rtd, spec.q_rac_max])
     Rs = np.array([R_minrtd, R_minrtd, R_max])
@@ -242,27 +243,33 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
 def calc_R_and_Pc_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float, float, float]:
     """ 成績係数比Rの近似式の係数とファン等消費電力Pc[kW]
     """
-    def coeffs_for_simultaneous_H(q:float, P:float, spec: Spec, condi: Condition) -> typing.Tuple[float, float, float]:
+    def coeffs_for_simultaneous_H(label: str, q:float, P:float, spec: Spec, condi: Condition) -> typing.Tuple[float, float, float]:
         """ q, P [kW]で統一 """
         T_evp, T_cnd = calc_reibai_phase_T_H(q, P, spec, condi)
+        _logger.info(f"T_evp_{label}: {T_evp}")
+        _logger.info(f"T_cnd_{label}: {T_cnd}")
         A = (T_cnd - T_evp) / (T_cnd + 273.15)  # 冷房と異なる
         B = 1 / q
         COP = q / P; Y = 1 / COP
         return A, B, Y  # A・R' + B・Pc = Y (R'=1/R) の形にする
 
     def R_minrtd_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float]:
-        A1, B1, Y1 = coeffs_for_simultaneous_H(spec.q_rac_min, 0.001*spec.P_rac_min, spec, condi)
-        A2, B2, Y2 = coeffs_for_simultaneous_H(spec.q_rac_rtd, 0.001*spec.P_rac_rtd, spec, condi)
+        A1, B1, Y1 = coeffs_for_simultaneous_H('min_H', spec.q_rac_min, 0.001*spec.P_rac_min, spec, condi)
+        A2, B2, Y2 = coeffs_for_simultaneous_H('rtd_H', spec.q_rac_rtd, 0.001*spec.P_rac_rtd, spec, condi)
         mtx_A, mtx_Y = np.matrix([[A1, B1], [A2, B2]]), np.matrix([[Y1], [Y2]])
         R_minrtd_dash, Pc = solve_mtx(mtx_A, mtx_Y)
         R_minrtd = 1 / R_minrtd_dash  # NOTE: 最小・定格時のR同一
         return R_minrtd, Pc
 
     R_minrtd, Pc = R_minrtd_H(spec, condi)
+    _logger.info(f"R_minrtd_H: {R_minrtd}")
+    _logger.info(f"Pc_H: {Pc}")
 
     def R_max_H(Pc, q, P, spec: Spec, condi: Condition) -> float:
         """ Pc, q, P [kW]で統一 """
         T_evp_max, T_cnd_max = calc_reibai_phase_T_H(q, P, spec, condi)
+        _logger.info(f"T_evp_max_H: {T_evp_max}")
+        _logger.info(f"T_cnd_max_H: {T_cnd_max}")
         COP = q / P
         right = COP * q / (q - COP*Pc)  # (7)式右辺
         left = (T_cnd_max + 273.15) / (T_cnd_max - T_evp_max)  # (7)式左辺(係数部)
@@ -270,11 +277,13 @@ def calc_R_and_Pc_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
 
     # NOTE: 論文より最大時のRのみ別に計算する
     R_max = R_max_H(Pc, spec.q_rac_max, 0.001*spec.P_rac_max, spec, condi)
+    _logger.info(f"R_max_H: {R_max}")
 
     Qs = np.array([spec.q_rac_min, spec.q_rac_rtd, spec.q_rac_max])
     Rs = np.array([R_minrtd, R_minrtd, R_max])
 
     coeffs = np.polyfit(Qs, Rs, 2)  # 二次式に近似し係数を取得
     R_poly_a2, R_poly_a1, R_poly_a0 = coeffs[0], coeffs[1], coeffs[2]
+    _logger.info(f"a2: {R_poly_a2}\na1: {R_poly_a1}\na0: {R_poly_a0}")
 
     return R_poly_a2, R_poly_a1, R_poly_a0, Pc

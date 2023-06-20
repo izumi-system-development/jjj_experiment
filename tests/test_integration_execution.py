@@ -5,7 +5,8 @@ import copy
 from jjjexperiment.main import calc
 
 from test_utils.utils import  \
-    expected_result_type1, expected_result_type2, expected_inputs, INPUT_SAMPLE_TYPE1_PATH, INPUT_SAMPLE_TYPE2_PATH, INPUT_SAMPLE_TYPE3_PATH
+    expected_result_type1, expected_result_type2, expected_inputs, \
+    INPUT_SAMPLE_TYPE1_PATH, INPUT_SAMPLE_TYPE2_PATH, INPUT_SAMPLE_TYPE3_PATH, INPUT_SAMPLE_TYPE4_PATH
 
 from logs.app_logger import LimitedLoggerAdapter as _logger
 
@@ -14,6 +15,7 @@ class Test既存計算維持_デフォルト入力時:
     _inputs1: dict = json.load(open(INPUT_SAMPLE_TYPE1_PATH, 'r'))
     _inputs2: dict = json.load(open(INPUT_SAMPLE_TYPE2_PATH, 'r'))
     _inputs3: dict = json.load(open(INPUT_SAMPLE_TYPE3_PATH, 'r'))
+    _inputs4: dict = json.load(open(INPUT_SAMPLE_TYPE4_PATH, 'r'))
 
     def test_インプットデータ_前提確認(self, expected_inputs):
         """ テストコードが想定しているインプットデータかどうか確認
@@ -50,6 +52,18 @@ class Test既存計算維持_デフォルト入力時:
         """
         _logger.init_logger()
         result = calc(self._inputs3, test_mode=True)
+
+        assert result['TValue'].E_C != expected_result_type1.E_C
+        assert result['TValue'].E_C != expected_result_type2.E_C
+
+        assert result['TValue'].E_H != expected_result_type1.E_H
+        assert result['TValue'].E_H != expected_result_type2.E_H
+
+    def test_計算結果一致_方式4(self, expected_result_type1, expected_result_type2):
+        """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
+        """
+        _logger.init_logger()
+        result = calc(self._inputs4, test_mode=True)
 
         assert result['TValue'].E_C != expected_result_type1.E_C
         assert result['TValue'].E_C != expected_result_type2.E_C

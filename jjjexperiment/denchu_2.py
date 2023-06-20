@@ -1,5 +1,12 @@
 import math
+import pandas as pd
+
 from jjjexperiment.denchu_1 import *
+
+from pyhees.section11_1 import \
+    load_outdoor, get_Theta_ex, get_X_ex
+
+from logs.app_logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
 
 def simu_R(a2, a1, a0):
     """ 二次関数 R(q) を得る """
@@ -9,6 +16,14 @@ def simu_P(q: float, COP: float) -> float:
     return q / COP
 
 def simu_COP_C(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: Condition) -> float:
+    """Args:
+        q [kW]:
+        Pc [kW]:
+        R [kW]:
+        M_ein, M_cin [kgDA/s]:
+        cdtn:
+    """
+
     """ 推計モデルと実使用条件から COPを推計する """
     def fix_T_evp(q, M_ein, cdtn: Condition):
         """ q [kW] """
@@ -26,21 +41,35 @@ def simu_COP_C(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: 
         left = R * (T_evp + 273.15) / (T_cnd - T_evp)  #★
         return left * q / (q + Pc * left)
 
+    if q==0: return 0
+
+    # FIXME: 多数のCOPが100をゆうに超えた値で収束する問題がある
     T_evp = fix_T_evp(q, M_ein, cdtn)  #★
-    COP = 5
-    while True:
+    COP = 5; loop_cnt = 0  # 初期値はなんでも可、収束ロジックは論文のとおり
+    while loop_cnt <= 100:  # FIXME: 計算回数に上限を設定しています
         P = simu_P(q, COP)
         T_cnd = simu_T_cnd(q, P, M_cin, cdtn)
         test_COP = recalc_COP(q, R, Pc, T_evp, T_cnd)
+        test_COP = test_COP if test_COP > 0 else 0  # 負は存在しない
 
         # FIXME: 精度コントロール
-        if math.isclose(test_COP, COP, abs_tol=1e-2):
+        if math.isclose(test_COP, COP, abs_tol=1e-3):
             break
         else:
             COP = test_COP
+            loop_cnt += 1
+    _logger.info(f"loop_cnt: {loop_cnt} -> COP: {COP}")
     return COP
 
 def simu_COP_H(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: Condition) -> float:
+    """Args:
+        q [kW]:
+        Pc [kW]:
+        R [kW]:
+        M_ein, M_cin [kgDA/s]:
+        cdtn:
+    """
+
     """ 推計モデルと実使用条件から COPを推計する """
     def fix_T_cnd(q, M_cin, cdtn: Condition):
         """ q [kW] """
@@ -58,16 +87,108 @@ def simu_COP_H(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: 
         left = R * (T_cnd + 273.15) / (T_cnd - T_evp)  #★
         return left * q / (q + Pc * left)
 
+    if q==0: return 0
+
     T_cnd = fix_T_cnd(q, M_cin, cdtn)  #★
-    COP = 5
-    while True:
+    COP = 5; loop_cnt = 0  # 初期値はなんでも可、収束ロジックは論文のとおり
+    while loop_cnt <= 100:  # FIXME: 計算回数に上限を設定しています
         P = simu_P(q, COP)
         T_evp = simu_T_evp(q, P, M_ein, cdtn)
         test_COP = recalc_COP(q, R, Pc, T_evp, T_cnd)
+        test_COP = test_COP if test_COP > 0 else 0  # 負は存在しない
 
         # FIXME: 精度コントロール
         if math.isclose(test_COP, COP, abs_tol=1e-2):
             break
         else:
             COP = test_COP
+            loop_cnt += 1
     return COP
+
+def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R, V_hs_supply_d_t, V_hs_vent_d_t, region, outdoorFile):
+    """Args:
+        q_d_t [kW]:
+        P_rac_fan_rtd [kW]:
+        R: 関数オブジェクト R(q)
+        V_hs_d_t [m3/h]:
+    """
+
+    """ 外気条件(時系列変化) 6.1 (5) 同様 """
+
+    if outdoorFile == '-':
+        outdoor = load_outdoor()
+        Theta_ex = get_Theta_ex(region, outdoor)
+        X_ex = get_X_ex(region, outdoor)
+    else:
+        outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
+            names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
+        Theta_ex = outdoor['Theta_ex_1'].values
+        X_ex = outdoor['X_ex_1'].values
+
+    """ 室内条件(固定?) """
+
+    # TODO: 入力させてよいのか？すでにあるか？
+    RH = 60  # 室内相対湿度設定[%]
+    TP = 27   # 室内温度設定
+    X_inner = absolute_humid(RH, TP)  # 10前後でOK
+
+    COP_d_t: np.ndarray = np.zeros(24*365)
+    for i in range(len(Theta_ex)):
+        cdtn = Condition(Theta_ex[i], TP, X_ex[i], X_inner)
+
+        M_ein = m3ph_to_kgDAps(V_hs_supply_d_t[i]*60, TP)         # 室内
+        M_cin = m3ph_to_kgDAps(V_hs_vent_d_t[i]*60, Theta_ex[i])  # 室外
+
+        cop = simu_COP_C(q_d_t[i], P_rac_fan_rtd, R(q_d_t[i]), M_ein, M_cin, cdtn)
+        COP_d_t[i] = cop
+
+    _logger.debug(f"COP_C_d_t: {COP_d_t}")
+    _logger.debug(f"COP_C_d_t[MAX]: {max(COP_d_t)}")
+    _logger.debug(f"COP_C_d_t[ZERO_COUNT]: {COP_d_t.size - np.count_nonzero(COP_d_t)}")
+    _logger.debug(f"COP_C_d_t[AVG.]: {np.average(COP_d_t)}")
+
+    return COP_d_t
+
+def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R, V_hs_supply_d_t, V_hs_vent_d_t, region, outdoorFile):
+    """Args:
+        q_d_t [kW]:
+        P_rac_fan_rtd [kW]:
+        R: 関数オブジェクト R(q)
+        V_hs_d_t [m3/h]:
+    """
+
+    """ 外気条件(時系列変化) 6.1 (5) 同様 """
+
+    if outdoorFile == '-':
+        outdoor = load_outdoor()
+        Theta_ex = get_Theta_ex(region, outdoor)
+        X_ex = get_X_ex(region, outdoor)
+    else:
+        outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
+            names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
+        Theta_ex = outdoor['Theta_ex_1'].values
+        X_ex = outdoor['X_ex_1'].values
+
+    """ 室内条件(固定?) """
+
+    # TODO: 入力させてよいのか？すでにあるか？
+    RH = 60   # 室内相対湿度設定[%]
+    TP = 20   # 室内温度設定
+    X_inner = absolute_humid(RH, TP)  # 10前後でOK
+
+    COP_d_t: np.ndarray = np.zeros(24*365)
+    for i in range(len(Theta_ex)):
+        cdtn = Condition(Theta_ex[i], TP, X_ex[i], X_inner)
+
+        M_ein = m3ph_to_kgDAps(V_hs_vent_d_t[i], Theta_ex[i])  # 室外
+        M_cin = m3ph_to_kgDAps(V_hs_supply_d_t[i], TP)  # 室内
+
+        cop = simu_COP_H(q_d_t[i], P_rac_fan_rtd, R(q_d_t[i]), M_ein, M_cin, cdtn)
+        COP_d_t[i] = cop
+
+    _logger.debug(f"COP_H_d_t: {COP_d_t}")
+    _logger.debug(f"COP_H_d_t[MAX]: {max(COP_d_t)}")
+    _logger.debug(f"COP_H_d_t[ZERO_COUNT]: {COP_d_t.size - np.count_nonzero(COP_d_t)}")
+    _logger.debug(f"COP_H_d_t[AVG.]: {np.average(COP_d_t)}")
+
+    return COP_d_t  # 10いかないはず
