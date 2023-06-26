@@ -710,7 +710,7 @@ def calc_E_E_H_d_t(
         q_rtd_C, q_hs_rtd_C,                               # 定格冷房時
         q_rtd_H, e_rtd_H, P_rac_fan_rtd_H, V_fan_rtd_H, P_fan_rtd_H, q_hs_rtd_H, P_hs_rtd_H,  # 定格暖房時
         type, region, dualcompressor_H, EquipmentSpec, input_C_af_H, f_SFP_H, outdoorFile,  # その他
-        simu_R_H = None, spec: Spec = None):  # 電中研モデルのみ使用
+        simu_R_H, spec: Spec, Theta_real_inner, RH_real_inner):  # 電中研モデルのみ使用
     """ (1)
     Args:
         P_fan_rad_H: 定格暖房能力試験 室内側送風機の消費電力 [W]\n
@@ -791,6 +791,8 @@ def calc_E_E_H_d_t(
                                 V_rac_inner_d_t= V_ratio1 * V_hs_supply_d_t,
                                 V_rac_outer_d_t= V_ratio2 * V_ratio1 * V_hs_supply_d_t,
                                 region= region,
+                                Theta_real_inner= Theta_real_inner,
+                                RH_real_inner= RH_real_inner,
                                 outdoorFile= outdoorFile)
             E_E_CRAC_H_d_t = np.divide(q_hs_H_d_t * 3.6/1000,
                                        COP_H_d_t,
@@ -817,7 +819,7 @@ def calc_E_E_C_d_t(
         q_max_C,                                           # 最大冷房時
         q_hs_rtd_C, P_hs_rtd_C, V_fan_rtd_C, P_fan_rtd_C, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C,  # 定格冷房時
         type, region, dualcompressor_C, EquipmentSpec, input_C_af_C, f_SFP_C, outdoorFile,  # その他
-        simu_R_C = None, spec: Spec = None):  # 電中研モデルのみ使用
+        simu_R_C, spec: Spec, Theta_real_inner, RH_real_inner):  # 電中研モデルのみ使用
     """ (1)
     Args:
         P_fan_rad_C: 定格冷房能力試験 室内側送風機の消費電力 [W]\n
@@ -867,7 +869,7 @@ def calc_E_E_C_d_t(
             e_r_C_d_t = dc_a.get_e_r_C_d_t(q_hs_C_d_t, q_hs_rtd_C, q_hs_min_C, q_hs_mid_C, e_r_mid_C, e_r_min_C, e_r_rtd_C)
 
         elif type == PROCESS_TYPE_3:  #コンプレッサ効率特性
-            # FIXME: 潜熱評価モデルが 潜熱(q_hs_CL) ではなく 全熱(q_hs_C) を使用しているが問題ないか?
+            # TODO: 潜熱評価モデルが 潜熱(q_hs_CL) ではなく 全熱(q_hs_C) を使用してOKか確認
             e_r_C_d_t = dc_a.get_e_r_C_d_t_2023(q_hs_C_d_t)  # 日付dの時刻tにおける冷房時
 
         """ E_E: 日付dの時刻tにおける1時間当たりの冷房時の消費電力量 (kWh/h) """
@@ -914,6 +916,8 @@ def calc_E_E_C_d_t(
                             V_rac_inner_d_t= V_ratio1 * V_hs_supply_d_t,
                             V_rac_outer_d_t= V_ratio2 * V_ratio1 * V_hs_supply_d_t,
                             region= region,
+                            Theta_real_inner= Theta_real_inner,
+                            RH_real_inner= RH_real_inner,
                             outdoorFile= outdoorFile)
             E_E_CRAC_C_d_t = np.divide(q_hs_C_d_t * 3.6/1000,
                                 COP_C_d_t,

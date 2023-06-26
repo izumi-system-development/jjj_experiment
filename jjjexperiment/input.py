@@ -76,8 +76,10 @@ def get_rac_catalog_spec(input: dict, TH_FC: bool):
     Inputs:
         TH_FC: True->H or False->C
     Return:
-        spec: ルームエアコンのカタログスペック
-        condition: カタログスペック計測時の使用環境(基本はJIS指定値)
+        spec: ルームエアコンのカタログスペック \n
+        condition: カタログスペック計測時の使用環境(基本はJIS指定値) \n
+        T_real_inner [℃]: 実際の使用状況におけるエアコン吸込み空気の 温度 \n
+        RH_real_inner [%]: 実際の使用状況におけるエアコン吸込み空気の 相対温度 \n
     """
     i = input['H_A'] if TH_FC else input['C_A']
     spec = Spec(
@@ -85,14 +87,20 @@ def get_rac_catalog_spec(input: dict, TH_FC: bool):
         i['q_rac_pub_min'], i['q_rac_pub_rtd'], i['q_rac_pub_max'],
         i['V_rac_pub_inner'], i['V_rac_pub_outer'])
 
+    """ 温熱環境条件 JIS """
     t_ein = i["Theta_rac_pub_outer"] if TH_FC else i["Theta_rac_pub_inner"]
     t_cin = i["Theta_rac_pub_inner"] if TH_FC else i["Theta_rac_pub_outer"]
+
+    """ 温熱環境条件 実測値 """
+    t_real_inner  = i["Theta_rac_real_inner"]
+    rh_real_inner = i["RH_rac_real_inner"]
+
     cdtn = Condition(
         T_ein = t_ein,
         T_cin = t_cin,
         X_ein = absolute_humid(i["RH_rac_pub_outer"] if TH_FC else i["RH_rac_pub_inner"], t_ein),
         X_cin = absolute_humid(i["RH_rac_pub_inner"] if TH_FC else i["RH_rac_pub_outer"], t_cin))
-    return spec, cdtn
+    return spec, cdtn, t_real_inner, rh_real_inner
 
 def get_heating(input: dict, region: int, A_A: float):
     """暖房の設定

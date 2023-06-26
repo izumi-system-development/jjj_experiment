@@ -55,7 +55,9 @@
         "Theta_rac_pub_inner": 20.0,
         "RH_rac_pub_inner": 58.6,
         "Theta_rac_pub_outer": 7.0,
-        "RH_rac_pub_outer": 86.7
+        "RH_rac_pub_outer": 86.7,
+        "Theta_rac_real_inner": 20,
+        "RH_rac_real_inner": 60
     },
     "C_A": {
         "type": 4,
@@ -82,7 +84,9 @@
         "Theta_rac_pub_inner": 27.0,
         "RH_rac_pub_inner": 46.6,
         "Theta_rac_pub_outer": 35.0,
-        "RH_rac_pub_outer": 40.0
+        "RH_rac_pub_outer": 40.0,
+        "Theta_rac_real_inner": 27,
+        "RH_rac_real_inner": 60
     },
     "HEX": {
         "install": 1,

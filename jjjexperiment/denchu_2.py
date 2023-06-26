@@ -102,16 +102,19 @@ def simu_COP_H(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: 
             loop_cnt += 1
     return COP
 
-def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, region, outdoorFile):
+def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R,
+                    V_rac_inner_d_t, V_rac_outer_d_t, region,
+                    Theta_real_inner, RH_real_inner, outdoorFile):
     """
     Args:
-        q_d_t [kW]: \n
-        P_rac_fan_rtd [kW]: \n
+        q_d_t [kW] \n
+        P_rac_fan_rtd [kW] \n
         R: 関数オブジェクト R(q) \n
-        V_rac_inner_d_t [m3/h]: \n
-        V_rac_outer_d_t [m3/h]: \n
+        V_rac_inner_d_t [m3/h] \n
+        V_rac_outer_d_t [m3/h] \n
+        Theta_real_inner [℃]: 室内温度設定 \n
+        RH_real_inner [%]: 室内相対湿度設定 \n
     """
-
     """ 外気条件(時系列変化) 6.1 (5) 同様 """
 
     if outdoorFile == '-':
@@ -127,15 +130,13 @@ def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, re
     """ 室内条件(固定?) """
 
     # TODO: 入力させてよいのか？すでにあるか？
-    RH = 60  # 室内相対湿度設定[%]
-    TP = 27   # 室内温度設定
-    X_inner = absolute_humid(RH, TP)  # 10前後でOK
+    X_inner = absolute_humid(RH_real_inner, Theta_real_inner)  # 10前後でOK
 
     COP_d_t: np.ndarray = np.zeros(24*365)
     for i in range(len(Theta_ex)):
-        cdtn = Condition(Theta_ex[i], TP, X_ex[i], X_inner)
+        cdtn = Condition(Theta_ex[i], Theta_real_inner, X_ex[i], X_inner)
 
-        M_ein = m3ph_to_kgDAps(V_rac_inner_d_t[i], TP)           # 室内
+        M_ein = m3ph_to_kgDAps(V_rac_inner_d_t[i], Theta_real_inner)           # 室内
         M_cin = m3ph_to_kgDAps(V_rac_outer_d_t[i], Theta_ex[i])  # 室外
 
         cop = simu_COP_C(q_d_t[i], P_rac_fan_rtd, R(q_d_t[i]), M_ein, M_cin, cdtn)
@@ -144,13 +145,17 @@ def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, re
     _logger.NDdebug(f"COP_C_d_t", COP_d_t)
     return COP_d_t
 
-def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, region, outdoorFile):
+def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R,
+                   V_rac_inner_d_t, V_rac_outer_d_t, region,
+                   Theta_real_inner, RH_real_inner, outdoorFile):
     """
     Args:
         q_d_t: [kW]\n
         P_rac_fan_rtd: [kW]\n
         R: 関数オブジェクト R(q)\n
         V_hs_d_t: [m3/h]\n
+        Theta_real_inner [℃]: 室内温度設定 \n
+        RH_real_inner [%]: 室内相対湿度設定 \n
     """
     """ 外気条件(時系列変化) 6.1 (5) 同様 """
 
@@ -169,17 +174,14 @@ def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, re
 
     """ 室内条件(固定?) """
 
-    # TODO: 入力させてよいのか？すでにあるか？
-    RH = 60   # 室内相対湿度設定[%]
-    TP = 20   # 室内温度設定
-    X_inner = absolute_humid(RH, TP)  # 10前後でOK
+    X_inner = absolute_humid(RH_real_inner, Theta_real_inner)  # 10前後でOK
 
     COP_d_t: np.ndarray = np.zeros(24*365)
     for i in range(len(Theta_ex)):
-        cdtn = Condition(Theta_ex[i], TP, X_ex[i], X_inner)
+        cdtn = Condition(Theta_ex[i], Theta_real_inner, X_ex[i], X_inner)
 
         M_ein = m3ph_to_kgDAps(V_rac_outer_d_t[i], Theta_ex[i])  # 室外
-        M_cin = m3ph_to_kgDAps(V_rac_inner_d_t[i], TP)           # 室内
+        M_cin = m3ph_to_kgDAps(V_rac_inner_d_t[i], Theta_real_inner)           # 室内
 
         cop = simu_COP_H(q_d_t[i], P_rac_fan_rtd, R(q_d_t[i]), M_ein, M_cin, cdtn)
         COP_d_t[i] = cop
