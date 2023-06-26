@@ -17,6 +17,7 @@ import jjjexperiment.jjj_section4_3 as rac
 import jjjexperiment.section3_1_e2 as uf
 import pyhees.section3_1 as ld
 
+from jjjexperiment.denchu_1 import Spec
 import jjjexperiment.denchu_2 as denchu_2
 
 from logs.app_logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
@@ -714,13 +715,19 @@ def calc_E_E_H_d_t(
         q_rtd_C, q_hs_rtd_C,                               # 定格冷房時
         q_rtd_H, e_rtd_H, P_rac_fan_rtd_H, V_fan_rtd_H, P_fan_rtd_H, q_hs_rtd_H, P_hs_rtd_H,  # 定格暖房時
         type, region, dualcompressor_H, EquipmentSpec, input_C_af_H, f_SFP_H, outdoorFile,  # その他
-        simu_R_H = None):  # 電中研モデルのみ使用
+        simu_R_H = None, spec: Spec = None):  # 電中研モデルのみ使用
     """ (1)
+    Args:
+        P_fan_rad_H: 定格暖房能力試験 室内側送風機の消費電力 [W]\n
+        日付dの時刻tにおける\n
+            V_hs_vent_d_t:   熱源機の風量のうちの全般換気分 [m3/h]\n
+            V_hs_supply_d_t: 熱源機の風量 [m3/h]\n
+            X_hs_in_d_t:     熱源機の入口における絶対湿度 [kg/kg(DA)]\n
     Returns:
-        E_E_H_d_t:     日付dの時刻tにおける1時間当たりの暖房時の消費電力量[kWh/h]
-        q_hs_H_d_t:    日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力[W]
-        E_E_fan_H_d_t: 日付dの時刻tにおける1時間当たりの暖房時消費電力量の送風機による付加分[kWh/h]
-
+        日付dの時刻tにおける\n
+            E_E_H_d_t:     1時間当たりの暖房時の消費電力量[kWh/h]
+            E_E_fan_H_d_t: 1時間当たりの暖房時消費電力量の送風機による付加分[kWh/h]
+            q_hs_H_d_t:    1時間当たりの熱源機の平均暖房能力[W]
     """
     # (3) 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力(W)
     q_hs_H_d_t = dc_a.get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
@@ -754,7 +761,7 @@ def calc_E_E_H_d_t(
         """ E_E: 日付dの時刻tにおける1時間当たりの暖房時の消費電力量 (kWh/h) """
 
         # (37) 送風機の付加分（kWh/h）
-        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6/1000, f_SFP_H)
 
         # (5) 圧縮機の分
         E_E_comp_H_d_t = dc_a.get_E_E_comp_H_d_t(
@@ -763,15 +770,39 @@ def calc_E_E_H_d_t(
         E_E_H_d_t = E_E_comp_H_d_t + E_E_fan_H_d_t  # (1)
 
     elif type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
+        # TODO: f_SFP_H: type2のみのパラメータ type4での使用は怪しい
+        # NOTE: ルームエアコンでは V_hs_vent(換気風量) は使用されません
 
         if type == PROCESS_TYPE_2:
-            E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6 / 1000, input_C_af_H, outdoorFile)
-        else:
-            # FIXME: COPが大きすぎる問題があります
-            COP_H_d_t = denchu_2.calc_COP_H_d_t(0.001*q_hs_H_d_t, 0.001*P_rac_fan_rtd_H, simu_R_H, V_hs_supply_d_t, V_hs_vent_d_t, region, outdoorFile)
-            E_E_CRAC_H_d_t = np.divide(0.001*q_hs_H_d_t, COP_H_d_t, out=np.zeros_like(q_hs_H_d_t), where=COP_H_d_t!=0)  # kWh
+            E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6/1000, input_C_af_H, outdoorFile)
+            E_E_fan_H_d_t =\
+                dc_a.get_E_E_fan_H_d_t(type, P_rac_fan_rtd_H,
+                                       V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H,
+                                       q_hs_H_d_t * 3.6/1000, f_SFP_H)
 
-        E_E_fan_H_d_t  = dc_a.get_E_E_fan_H_d_t(type, P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6 / 1000, f_SFP_H)
+        elif type == PROCESS_TYPE_4:
+            # 『2.2 実験方法と実験条件』より
+            # 最大時の給気風量と機器のカタログ公表値(強)の比
+            V_ratio1 = (spec.V_inner * 60) / np.max(V_hs_supply_d_t)
+            # 室外機/室内機 風量比
+            V_ratio2 = spec.V_outer / spec.V_inner
+
+            COP_H_d_t = denchu_2.calc_COP_H_d_t(
+                                q_d_t= q_hs_H_d_t / 1000, #[kW]
+                                P_rac_fan_rtd= P_rac_fan_rtd_H / 1000,  #[kW]
+                                R= simu_R_H,
+                                V_rac_inner_d_t= V_ratio1 * V_hs_supply_d_t,
+                                V_rac_outer_d_t= V_ratio2 * V_ratio1 * V_hs_supply_d_t,
+                                region= region,
+                                outdoorFile= outdoorFile)
+            E_E_CRAC_H_d_t = np.divide(q_hs_H_d_t * 3.6/1000,
+                                       COP_H_d_t,
+                                       out=np.zeros_like(q_hs_H_d_t),
+                                       where=COP_H_d_t!=0)  # kWh
+
+            E_E_fan_H_d_t = np.zeros(24 * 365)
+            E_E_fan_H_d_t[q_hs_H_d_t > 0] = P_rac_fan_rtd_H/1000 * 1
+
         E_E_H_d_t = E_E_CRAC_H_d_t + E_E_fan_H_d_t
 
     else:
@@ -779,6 +810,7 @@ def calc_E_E_H_d_t(
 
     return E_E_H_d_t, q_hs_H_d_t, E_E_fan_H_d_t
 
+# TODO: この関数に Q_hat_hs_d_t が使用されないことが妥当でしょうか?
 def calc_E_E_C_d_t(
         Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t,  # 空気温度
         V_hs_supply_d_t, V_hs_vent_d_t, V_hs_dsgn_C,      # 風量
@@ -788,19 +820,28 @@ def calc_E_E_C_d_t(
         q_max_C,                                           # 最大冷房時
         q_hs_rtd_C, P_hs_rtd_C, V_fan_rtd_C, P_fan_rtd_C, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C,  # 定格冷房時
         type, region, dualcompressor_C, EquipmentSpec, input_C_af_C, f_SFP_C, outdoorFile,  # その他
-        simu_R_C = None):  # 電中研モデルのみ使用
+        simu_R_C = None, spec: Spec = None):  # 電中研モデルのみ使用
     """ (1)
+    Args:
+        P_fan_rad_C: 定格冷房能力試験 室内側送風機の消費電力 [W]\n
+        日付dの時刻tにおける\n
+            V_hs_vent_d_t: 熱源機の風量のうちの全般換気分 [m3/h]\n
+            V_hs_supply_d_t: 熱源機の風量 [m3/h]\n
+            X_hs_in_d_t: 熱源機の入口における絶対湿度 [kg/kg(DA)]\n
+            f_SFP_C: ファンの比消費電力 [W/(m3/h)]\n
     Returns:
-        E_E_C_d_t:     日付dの時刻tにおける1時間当たりの冷房時の消費電力量[kWh/h]
-        E_E_fan_C_d_t: 日付dの時刻tにおける1時間当たりの冷房時消費電力量の送風機による付加分[kWh/h]
-        q_hs_CS_d_t:   日付dの時刻tにおける1時間当たりの熱源機の平均冷房顕熱能力[W]
-        q_hs_CL_d_t:   日付dの時刻tにおける1時間当たりの熱源機の平均冷房潜熱能力[W]
-
+        日付dの時刻tにおける\n
+            E_E_C_d_t: 1時間当たりの 冷房時の消費電力量 [kWh/h]\n
+            E_E_fan_C_d_t: 1時間当たりの 冷房時消費電力量の送風機による付加分 [kWh/h]\n
+            q_hs_CS_d_t: 1時間当たりの 熱源機の平均冷房 顕熱能力 [W]\n
+            q_hs_CL_d_t: 1時間当たりの 熱源機の平均冷房 潜熱能力 [W]\n
     """
     # (4) 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力(-)
     q_hs_CS_d_t, q_hs_CL_d_t = dc_a.get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
     if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
+        """ 顕熱/潜熱 (CS/CL) を使用せずに 全熱負荷(C) を再計算して使用する """
+
         # (4)
         q_hs_C_d_t = dc_a.get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
@@ -815,10 +856,7 @@ def calc_E_E_C_d_t(
 
         """ e_r: ヒートポンプサイクルの理論効率に対する熱源機の効率の比(-) """
 
-        if type == PROCESS_TYPE_3:  #コンプレッサ効率特性
-            # 日付dの時刻tにおける冷房時
-            e_r_C_d_t = dc_a.get_e_r_C_d_t_2023(q_hs_C_d_t)
-        else:
+        if type == PROCESS_TYPE_1:
             # (11) 定格冷房能力運転時
             e_r_rtd_C = dc_a.get_e_r_rtd_C(e_th_rtd_C, q_hs_rtd_C, P_hs_rtd_C, P_fan_rtd_C)
             # (15) 最小冷房能力運転時
@@ -827,6 +865,10 @@ def calc_E_E_C_d_t(
             e_r_mid_C = dc_a.get_e_r_mid_C(e_r_rtd_C, e_th_mid_C, q_hs_mid_C, P_hs_mid_C, P_fan_mid_C, EquipmentSpec)
             # (9) 日付dの時刻tにおける冷房時
             e_r_C_d_t = dc_a.get_e_r_C_d_t(q_hs_C_d_t, q_hs_rtd_C, q_hs_min_C, q_hs_mid_C, e_r_mid_C, e_r_min_C, e_r_rtd_C)
+
+        elif type == PROCESS_TYPE_3:  #コンプレッサ効率特性
+            # FIXME: 潜熱評価モデルが 潜熱(q_hs_CL) ではなく 全熱(q_hs_C) を使用しているが問題ないか?
+            e_r_C_d_t = dc_a.get_e_r_C_d_t_2023(q_hs_C_d_t)  # 日付dの時刻tにおける冷房時
 
         """ E_E: 日付dの時刻tにおける1時間当たりの冷房時の消費電力量 (kWh/h) """
 
@@ -839,15 +881,47 @@ def calc_E_E_C_d_t(
         E_E_C_d_t = E_E_comp_C_d_t + E_E_fan_C_d_t  # (2)
 
     elif type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
+        """ 顕熱/潜熱 (CS/CL) を使用する """
+        # NOTE: ルームエアコンでは V_hs_vent(換気風量) は使用されません
 
         if type == PROCESS_TYPE_2:
-            E_E_CRAC_C_d_t = rac.calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6 / 1000, q_hs_CL_d_t * 3.6 / 1000, input_C_af_C, outdoorFile)
-        elif type == PROCESS_TYPE_4:
-            COP_C_d_t = denchu_2.calc_COP_C_d_t(0.001*q_hs_CS_d_t, 0.001*P_rac_fan_rtd_C, simu_R_C, V_hs_supply_d_t, V_hs_vent_d_t, region, outdoorFile)
-            E_E_CRAC_C_d_t = np.divide(0.001*q_hs_CS_d_t, COP_C_d_t, out=np.zeros_like(q_hs_CS_d_t), where=COP_C_d_t!=0)  # kWh
+            E_E_CRAC_C_d_t = rac.calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6/1000, q_hs_CL_d_t * 3.6/1000, input_C_af_C, outdoorFile)
 
-        # (38) 送風機の付加分 (kWh/h)
-        E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(type, P_rac_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_CS_d_t * 3.6 / 1000 + q_hs_CL_d_t * 3.6 / 1000, f_SFP_C)
+            # (38) 送風機の付加分 (kWh/h)
+            E_E_fan_C_d_t =\
+                dc_a.get_E_E_fan_C_d_t(type, P_rac_fan_rtd_C,  # [W]
+                    V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C,
+                    (q_hs_CS_d_t + q_hs_CL_d_t) * 3.6/1000, f_SFP_C)
+
+        elif type == PROCESS_TYPE_4:
+            # 『2.2 実験方法と実験条件』より
+            # 最大時の給気風量と機器のカタログ公表値(強)の比
+            V_ratio1 = (spec.V_inner * 60) / np.max(V_hs_supply_d_t)
+            # 室外機/室内機 風量比
+            V_ratio2 = spec.V_outer / spec.V_inner
+
+            q_hs_C_d_t = q_hs_CS_d_t + q_hs_CL_d_t
+            _logger.NDdebug("q_hs_C_d_t", q_hs_C_d_t)
+
+            # FIXME: COPが大きすぎる問題があります
+            COP_C_d_t = denchu_2.calc_COP_C_d_t(
+                            q_d_t= q_hs_C_d_t / 1000,
+                            P_rac_fan_rtd= P_rac_fan_rtd_C / 1000,
+                            R= simu_R_C,
+                            V_rac_inner_d_t= V_ratio1 * V_hs_supply_d_t,
+                            V_rac_outer_d_t= V_ratio2 * V_ratio1 * V_hs_supply_d_t,
+                            region= region,
+                            outdoorFile= outdoorFile)
+            E_E_CRAC_C_d_t = np.divide(q_hs_C_d_t * 3.6/1000,
+                                COP_C_d_t,
+                                out=np.zeros_like(q_hs_C_d_t),
+                                where=COP_C_d_t!=0)  # kWh
+
+            E_E_fan_C_d_t = np.zeros(24 * 365)
+            E_E_fan_C_d_t[q_hs_C_d_t > 0] = P_rac_fan_rtd_C/1000 * 1
+
+        _logger.NDdebug("E_E_CRAC_C_d_t", E_E_CRAC_C_d_t)
+        _logger.NDdebug("E_E_fan_C_d_t", E_E_fan_C_d_t)
         E_E_C_d_t = E_E_CRAC_C_d_t + E_E_fan_C_d_t  # (2)
 
     else:

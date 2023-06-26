@@ -157,7 +157,7 @@ def calc(input_data : dict, test_mode=False):
         R2, R1, R0, P_rac_fan_rtd_H = jjjexperiment.denchu_1.calc_R_and_Pc_H(spec, cdtn)
         P_rac_fan_rtd_H = 1000 * P_rac_fan_rtd_H  # kW -> W
         simu_R_H = jjjexperiment.denchu_2.simu_R(R2, R1, R0)
-        del spec, cdtn, R2, R1, R0  # NOTE: 以降不要
+        del cdtn, R2, R1, R0  # NOTE: 以降不要
     else:
         P_rac_fan_rtd_H = V_hs_dsgn_H * H_A['f_SFP_H']
     """定格暖房能力運転時の送風機の消費電力(W)"""
@@ -197,7 +197,8 @@ def calc(input_data : dict, test_mode=False):
         input_C_af_H = input_C_af_H,
         f_SFP_H = H_A['f_SFP_H'],
         outdoorFile = outdoorFile,
-        simu_R_H = simu_R_H if H_A['type'] == PROCESS_TYPE_4 else None)
+        simu_R_H = simu_R_H if H_A['type'] == PROCESS_TYPE_4 else None,
+        spec= spec if H_A['type'] == PROCESS_TYPE_4 else None)
 
     alpha_UT_H_A: float = get_alpha_UT_H_A(region)
     """未処理暖房負荷を未処理暖房負荷の設計一次エネルギー消費量相当値に換算するための係数"""
@@ -236,7 +237,7 @@ def calc(input_data : dict, test_mode=False):
         R2, R1, R0, P_rac_fan_rtd_C = jjjexperiment.denchu_1.calc_R_and_Pc_C(spec, cdtn)
         P_rac_fan_rtd_C = 1000 * P_rac_fan_rtd_C  # kW -> W
         simu_R_C = jjjexperiment.denchu_2.simu_R(R2, R1, R0)
-        del spec, cdtn, R2, R1, R0  # NOTE: 以降不要
+        del cdtn, R2, R1, R0  # NOTE: 以降不要
     else:
         P_rac_fan_rtd_C: float = V_hs_dsgn_C * C_A['f_SFP_C']
     """定格冷房能力運転時の送風機の消費電力(W)"""
@@ -285,7 +286,8 @@ def calc(input_data : dict, test_mode=False):
         input_C_af_C = input_C_af_C,
         f_SFP_C = C_A['f_SFP_C'],
         outdoorFile = outdoorFile,
-        simu_R_C = simu_R_C if C_A['type'] == PROCESS_TYPE_4 else None)
+        simu_R_C = simu_R_C if C_A['type'] == PROCESS_TYPE_4 else None,
+        spec= spec if C_A['type'] == PROCESS_TYPE_4 else None)
 
     df_output2['Q_UT_H_d_t_i [MJ/h']        = E_C_UT_d_t
     df_output2['Theta_hs_C_out_d_t [℃]']    = Theta_hs_out_d_t
