@@ -197,8 +197,8 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
     def coeffs_for_simultaneous_C(label: str, q:float, P:float, spec: Spec, condi: Condition) -> typing.Tuple[float, float, float]:
         """ q, P [kW]で統一 """
         T_evp, T_cnd = calc_reibai_phase_T_C(q, P, spec, condi)
-        _logger.info(f"T_evp_{label}: {T_evp}")
-        _logger.info(f"T_cnd_{label}: {T_cnd}")
+        _logger.info(f"T_evp_{label} [℃]: {T_evp}")
+        _logger.info(f"T_cnd_{label} [℃]: {T_cnd}")
         A = (T_cnd - T_evp) / (T_evp + 273.15)  # 冷房と異なる
         B = 1 / q
         COP = q / P; Y = 1 / COP
@@ -213,14 +213,13 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
         return R_minrtd, Pc
 
     R_minrtd, Pc = R_minrtd_C(spec, condi)
-    _logger.info(f"R_minrtd_C: {R_minrtd}")
-    _logger.info(f"Pc_C: {Pc}")
+    _logger.info(f"Pc_C [kW]: {Pc}")
 
     def R_max_C(Pc, q, P, spec: Spec, condi: Condition) -> float:
         """ Pc, q, P [kW]で統一 """
         T_evp_max, T_cnd_max = calc_reibai_phase_T_C(q, P, spec, condi)
-        _logger.info(f"T_evp_max_C: {T_evp_max}")
-        _logger.info(f"T_cnd_max_C: {T_cnd_max}")
+        _logger.info(f"T_evp_max_C [℃]: {T_evp_max}")
+        _logger.info(f"T_cnd_max_C [℃]: {T_cnd_max}")
         COP = q / P
         right = COP * q / (q - COP*Pc)  # (7)式右辺
         left = (T_evp_max + 273.15) / (T_cnd_max - T_evp_max)  # (7)式左辺(係数部)
@@ -228,7 +227,6 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
 
     # NOTE: 論文より最大時のRのみ別に計算する
     R_max = R_max_C(Pc, spec.q_rac_max, 0.001*spec.P_rac_max, spec, condi)
-    _logger.info(f"R_max_C: {R_max}")
 
     Qs = np.array([spec.q_rac_min, spec.q_rac_rtd, spec.q_rac_max])
     Rs = np.array([R_minrtd, R_minrtd, R_max])
@@ -246,8 +244,8 @@ def calc_R_and_Pc_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
     def coeffs_for_simultaneous_H(label: str, q:float, P:float, spec: Spec, condi: Condition) -> typing.Tuple[float, float, float]:
         """ q, P [kW]で統一 """
         T_evp, T_cnd = calc_reibai_phase_T_H(q, P, spec, condi)
-        _logger.info(f"T_evp_{label}: {T_evp}")
-        _logger.info(f"T_cnd_{label}: {T_cnd}")
+        _logger.info(f"T_evp_{label} [℃]: {T_evp}")
+        _logger.info(f"T_cnd_{label} [℃]: {T_cnd}")
         A = (T_cnd - T_evp) / (T_cnd + 273.15)  # 冷房と異なる
         B = 1 / q
         COP = q / P; Y = 1 / COP
@@ -262,14 +260,13 @@ def calc_R_and_Pc_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
         return R_minrtd, Pc
 
     R_minrtd, Pc = R_minrtd_H(spec, condi)
-    _logger.info(f"R_minrtd_H: {R_minrtd}")
-    _logger.info(f"Pc_H: {Pc}")
+    _logger.info(f"Pc_H [kW]: {Pc}")
 
     def R_max_H(Pc, q, P, spec: Spec, condi: Condition) -> float:
         """ Pc, q, P [kW]で統一 """
         T_evp_max, T_cnd_max = calc_reibai_phase_T_H(q, P, spec, condi)
-        _logger.info(f"T_evp_max_H: {T_evp_max}")
-        _logger.info(f"T_cnd_max_H: {T_cnd_max}")
+        _logger.info(f"T_evp_max_H [℃]: {T_evp_max}")
+        _logger.info(f"T_cnd_max_H [℃]: {T_cnd_max}")
         COP = q / P
         right = COP * q / (q - COP*Pc)  # (7)式右辺
         left = (T_cnd_max + 273.15) / (T_cnd_max - T_evp_max)  # (7)式左辺(係数部)
@@ -277,7 +274,6 @@ def calc_R_and_Pc_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
 
     # NOTE: 論文より最大時のRのみ別に計算する
     R_max = R_max_H(Pc, spec.q_rac_max, 0.001*spec.P_rac_max, spec, condi)
-    _logger.info(f"R_max_H: {R_max}")
 
     Qs = np.array([spec.q_rac_min, spec.q_rac_rtd, spec.q_rac_max])
     Rs = np.array([R_minrtd, R_minrtd, R_max])

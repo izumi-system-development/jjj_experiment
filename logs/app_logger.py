@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from inspect import stack
+import numpy as np
 
 LOG_LEVEL = logging.DEBUG  # NOTE: 調査に合わせて変更する
 
@@ -61,3 +62,9 @@ class LimitedLoggerAdapter(logging.LoggerAdapter):
     def debug(cls, message):
         if cls._isTest: cls._logger.debug(message)
 
+    @classmethod
+    def NDdebug(cls, name: str, arr: np.ndarray):
+        if cls._isTest:
+            cls._logger.debug(f"{name}[MAX]  : {max(arr)}")
+            cls._logger.debug(f"{name}[ZEROS]: {arr.size - np.count_nonzero(arr)}")
+            cls._logger.debug(f"{name}[AVG.] : {np.average(arr[np.nonzero(arr)])}")

@@ -58,7 +58,6 @@ def simu_COP_C(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: 
         else:
             COP = test_COP
             loop_cnt += 1
-    _logger.info(f"loop_cnt: {loop_cnt} -> COP: {COP}")
     return COP
 
 def simu_COP_H(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: Condition) -> float:
@@ -144,11 +143,7 @@ def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, re
         cop = simu_COP_C(q_d_t[i], P_rac_fan_rtd, R(q_d_t[i]), M_ein, M_cin, cdtn)
         COP_d_t[i] = cop
 
-    _logger.debug(f"COP_C_d_t: {COP_d_t}")
-    _logger.debug(f"COP_C_d_t[MAX]: {max(COP_d_t)}")
-    _logger.debug(f"COP_C_d_t[ZERO_COUNT]: {COP_d_t.size - np.count_nonzero(COP_d_t)}")
-    _logger.debug(f"COP_C_d_t[AVG.]: {np.average(COP_d_t)}")
-
+    _logger.NDdebug(f"COP_C_d_t", COP_d_t)
     return COP_d_t
 
 def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, region, outdoorFile):
@@ -171,6 +166,9 @@ def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, re
         Theta_ex = outdoor['Theta_ex_1'].values
         X_ex = outdoor['X_ex_1'].values
 
+    _logger.NDdebug(f"Theta_ex", Theta_ex)
+    _logger.NDdebug(f"X_ex", X_ex)
+
     """ 室内条件(固定?) """
 
     # TODO: 入力させてよいのか？すでにあるか？
@@ -188,9 +186,5 @@ def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, re
         cop = simu_COP_H(q_d_t[i], P_rac_fan_rtd, R(q_d_t[i]), M_ein, M_cin, cdtn)
         COP_d_t[i] = cop
 
-    _logger.debug(f"COP_H_d_t: {COP_d_t}")
-    _logger.debug(f"COP_H_d_t[MAX]: {max(COP_d_t)}")
-    _logger.debug(f"COP_H_d_t[ZERO_COUNT]: {COP_d_t.size - np.count_nonzero(COP_d_t)}")
-    _logger.debug(f"COP_H_d_t[AVG.]: {np.average(COP_d_t)}")
-
+    _logger.NDdebug(f"COP_H_d_t", COP_d_t)
     return COP_d_t  # 10いかないはず

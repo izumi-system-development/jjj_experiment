@@ -51,12 +51,12 @@ def calc(input_data : dict, test_mode=False):
     print("q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H")
     print(q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H)
 
-    _logger.info(f"q_rtd_C: {q_rtd_C}")  # q[W] 送風機の単位[W]と同じ
-    _logger.info(f"q_rtd_H: {q_rtd_H}")
-    _logger.info(f"q_max_C: {q_max_C}")
-    _logger.info(f"q_max_H: {q_max_H}")
-    _logger.info(f"e_rtd_C: {e_rtd_C}")
-    _logger.info(f"e_rtd_H: {e_rtd_H}")
+    _logger.info(f"q_rtd_C [w]: {q_rtd_C}")  # q[W] 送風機の単位[W]と同じ
+    _logger.info(f"q_max_C [w]: {q_max_C}")
+    _logger.info(f"e_rtd_C [-]: {e_rtd_C}")
+    _logger.info(f"q_rtd_H [w]: {q_rtd_H}")
+    _logger.info(f"q_max_H [w]: {q_max_H}")
+    _logger.info(f"e_rtd_H [-]: {e_rtd_H}")
 
     # 熱交換型換気の取得
     HEX = jjjexperiment.input.get_heatexchangeventilation(input_data)
@@ -152,6 +152,8 @@ def calc(input_data : dict, test_mode=False):
             H_A['type'], input_C_af_H, input_C_af_C,
             underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile, outdoorFile)
 
+    _logger.NDdebug("Q_UT_H_d_t_i", Q_UT_H_d_t_i[0])
+
     if H_A['type'] == PROCESS_TYPE_4:
         spec, cdtn = jjjexperiment.input.get_rac_catalog_spec(input_data, TH_FC=True)
         R2, R1, R0, P_rac_fan_rtd_H = jjjexperiment.denchu_1.calc_R_and_Pc_H(spec, cdtn)
@@ -161,7 +163,7 @@ def calc(input_data : dict, test_mode=False):
     else:
         P_rac_fan_rtd_H = V_hs_dsgn_H * H_A['f_SFP_H']
     """定格暖房能力運転時の送風機の消費電力(W)"""
-    _logger.info(f"P_rac_fan_rtd_H: {P_rac_fan_rtd_H}")
+    _logger.info(f"P_rac_fan_rtd_H [W]: {P_rac_fan_rtd_H}")
 
     E_E_H_d_t: np.ndarray
     """日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h)"""
@@ -241,7 +243,7 @@ def calc(input_data : dict, test_mode=False):
     else:
         P_rac_fan_rtd_C: float = V_hs_dsgn_C * C_A['f_SFP_C']
     """定格冷房能力運転時の送風機の消費電力(W)"""
-    _logger.info(f"P_rac_fan_rtd_C: {P_rac_fan_rtd_C}")
+    _logger.info(f"P_rac_fan_rtd_C [W]: {P_rac_fan_rtd_C}")
 
     E_C_UT_d_t: np.ndarray
     """冷房設備の未処理冷房負荷の設計一次エネルギー消費量相当値(MJ/h)"""
@@ -305,8 +307,8 @@ def calc(input_data : dict, test_mode=False):
     E_H                 = np.sum(E_H_d_t)                           #1 年当たりの暖房設備の設計一次エネルギー消費量(MJ/年)
     E_C                 = np.sum(E_C_d_t)                           #1 年当たりの冷房設備の設計一次エネルギー消費量(MJ/年)
 
-    _logger.info(f"E_H: {E_H}")
-    _logger.info(f"E_C: {E_C}")
+    _logger.info(f"E_H [MJ/year]: {E_H}")
+    _logger.info(f"E_C [MJ/year]: {E_C}")
     print('E_H [MJ/year]: ', E_H, ', E_C [MJ/year]: ', E_C)
 
     df_output1['E_H [MJ/year]'] = E_H

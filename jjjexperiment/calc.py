@@ -240,11 +240,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t(V_hs_min, updated_V_hs_dsgn_H, updated_V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region)
             df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
 
-        _logger.debug(f"V_dash_hs_supply_d_t: {V_dash_hs_supply_d_t}")
-        _logger.debug(f"V_dash_hs_supply_d_t[MAX]: {max(V_dash_hs_supply_d_t)}")
-        _logger.debug(f"V_dash_hs_supply_d_t[ZERO_COUNT]: {V_dash_hs_supply_d_t.size - np.count_nonzero(V_dash_hs_supply_d_t)}")
-        _logger.debug(f"V_dash_hs_supply_d_t[AVG.]: {np.average(V_dash_hs_supply_d_t)}")
-
     # (45)　風量バランス
     r_supply_des_i = dc.get_r_supply_des_i(A_HCZ_i)
     df_output2['r_supply_des_i'] = r_supply_des_i
@@ -732,6 +727,8 @@ def calc_E_E_H_d_t(
     # (3) 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力(W)
     q_hs_H_d_t = dc_a.get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
 
+    _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
+
     if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
 
         """ e_th: ヒートポンプサイクルの理論効率(-) """
@@ -839,11 +836,14 @@ def calc_E_E_C_d_t(
     # (4) 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力(-)
     q_hs_CS_d_t, q_hs_CL_d_t = dc_a.get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
 
+    _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
+
     if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
         """ 顕熱/潜熱 (CS/CL) を使用せずに 全熱負荷(C) を再計算して使用する """
 
         # (4)
         q_hs_C_d_t = dc_a.get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
+        _logger.NDdebug("q_hs_C_d_t", q_hs_C_d_t)
 
         """ e_th: ヒートポンプサイクルの理論効率(-) """
 
@@ -878,6 +878,9 @@ def calc_E_E_C_d_t(
         E_E_comp_C_d_t = dc_a.get_E_E_comp_C_d_t(
                             q_hs_C_d_t,
                             e_hs_C_d_t = dc_a.get_e_hs_C_d_t(e_th_C_d_t, e_r_C_d_t))  # (8)
+
+        _logger.NDdebug("E_E_comp_C_d_t", E_E_comp_C_d_t)
+        _logger.NDdebug("E_E_fan_C_d_t", E_E_fan_C_d_t)
         E_E_C_d_t = E_E_comp_C_d_t + E_E_fan_C_d_t  # (2)
 
     elif type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
