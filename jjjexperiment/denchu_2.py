@@ -105,12 +105,14 @@ def simu_COP_H(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: 
             loop_cnt += 1
     return COP
 
-def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R, V_hs_supply_d_t, V_hs_vent_d_t, region, outdoorFile):
-    """Args:
-        q_d_t [kW]:
-        P_rac_fan_rtd [kW]:
-        R: 関数オブジェクト R(q)
-        V_hs_d_t [m3/h]:
+def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, region, outdoorFile):
+    """
+    Args:
+        q_d_t [kW]: \n
+        P_rac_fan_rtd [kW]: \n
+        R: 関数オブジェクト R(q) \n
+        V_rac_inner_d_t [m3/h]: \n
+        V_rac_outer_d_t [m3/h]: \n
     """
 
     """ 外気条件(時系列変化) 6.1 (5) 同様 """
@@ -136,8 +138,8 @@ def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R, V_hs_supply_d_t, V_hs_vent_d_t, regi
     for i in range(len(Theta_ex)):
         cdtn = Condition(Theta_ex[i], TP, X_ex[i], X_inner)
 
-        M_ein = m3ph_to_kgDAps(V_hs_supply_d_t[i]*60, TP)         # 室内
-        M_cin = m3ph_to_kgDAps(V_hs_vent_d_t[i]*60, Theta_ex[i])  # 室外
+        M_ein = m3ph_to_kgDAps(V_rac_inner_d_t[i], TP)           # 室内
+        M_cin = m3ph_to_kgDAps(V_rac_outer_d_t[i], Theta_ex[i])  # 室外
 
         cop = simu_COP_C(q_d_t[i], P_rac_fan_rtd, R(q_d_t[i]), M_ein, M_cin, cdtn)
         COP_d_t[i] = cop
@@ -149,14 +151,14 @@ def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R, V_hs_supply_d_t, V_hs_vent_d_t, regi
 
     return COP_d_t
 
-def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R, V_hs_supply_d_t, V_hs_vent_d_t, region, outdoorFile):
-    """Args:
-        q_d_t [kW]:
-        P_rac_fan_rtd [kW]:
-        R: 関数オブジェクト R(q)
-        V_hs_d_t [m3/h]:
+def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R, V_rac_inner_d_t, V_rac_outer_d_t, region, outdoorFile):
     """
-
+    Args:
+        q_d_t: [kW]\n
+        P_rac_fan_rtd: [kW]\n
+        R: 関数オブジェクト R(q)\n
+        V_hs_d_t: [m3/h]\n
+    """
     """ 外気条件(時系列変化) 6.1 (5) 同様 """
 
     if outdoorFile == '-':
@@ -180,8 +182,8 @@ def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R, V_hs_supply_d_t, V_hs_vent_d_t, regi
     for i in range(len(Theta_ex)):
         cdtn = Condition(Theta_ex[i], TP, X_ex[i], X_inner)
 
-        M_ein = m3ph_to_kgDAps(V_hs_vent_d_t[i], Theta_ex[i])  # 室外
-        M_cin = m3ph_to_kgDAps(V_hs_supply_d_t[i], TP)  # 室内
+        M_ein = m3ph_to_kgDAps(V_rac_outer_d_t[i], Theta_ex[i])  # 室外
+        M_cin = m3ph_to_kgDAps(V_rac_inner_d_t[i], TP)           # 室内
 
         cop = simu_COP_H(q_d_t[i], P_rac_fan_rtd, R(q_d_t[i]), M_ein, M_cin, cdtn)
         COP_d_t[i] = cop
