@@ -5,20 +5,14 @@ import math
 
 from jjjexperiment.main import calc
 
-from test_utils.expects import  \
-    expected_inputs, expected_result_type1
+from test_utils.utils import  \
+    expected_inputs, expected_result_type1, INPUT_SAMPLE_TYPE1_PATH
 
 class Test既存計算維持_入力値切替_方式1:
     """ 既存計算が壊れていないことのテスト
         暖房・冷房ともに「ダクト式セントラル空調機」
     """
-    def setup_inputs() -> dict:
-        inputs: dict = json.load(open('./tests/inputs/default_testinput.json', 'r'))
-        inputs['H_A']['type'] = 1
-        inputs['C_A']['type'] = 1
-        return inputs
-
-    _inputs: dict = setup_inputs()
+    _inputs: dict = json.load(open(INPUT_SAMPLE_TYPE1_PATH, 'r'))
 
     def test_前提確認_入力値(self, expected_inputs):
         """ テストコードが想定しているインプットデータかどうか確認

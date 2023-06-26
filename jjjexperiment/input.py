@@ -2,7 +2,9 @@ import numpy as np
 import pyhees.section4_2_b as dc_spec
 import pyhees.section4_3_a as rac_spec
 
-from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3, PROCESS_TYPE_4
+
+from jjjexperiment.denchu_1 import Spec, Condition, absolute_humid
 
 def get_basic(input: dict):
     """ 基本情報の設定
@@ -69,6 +71,37 @@ def get_env(input: dict):
 
     return ENV, NV_MR, NV_OR, TS, r_A_ufvnt, underfloor_insulation, underfloor_air_conditioning_air_supply, hs_CAV
 
+def get_rac_catalog_spec(input: dict, TH_FC: bool):
+    """ 電中研モデル計算時に使用するメーカー公表のルームエアコン仕様
+    Inputs:
+        TH_FC: True->H or False->C
+    Return:
+        spec: ルームエアコンのカタログスペック \n
+        condition: カタログスペック計測時の使用環境(基本はJIS指定値) \n
+        T_real_inner [℃]: 実際の使用状況におけるエアコン吸込み空気の 温度 \n
+        RH_real_inner [%]: 実際の使用状況におけるエアコン吸込み空気の 相対温度 \n
+    """
+    i = input['H_A'] if TH_FC else input['C_A']
+    spec = Spec(
+        i['P_rac_pub_min'], i['P_rac_pub_rtd'], i['P_rac_pub_max'],
+        i['q_rac_pub_min'], i['q_rac_pub_rtd'], i['q_rac_pub_max'],
+        i['V_rac_pub_inner'], i['V_rac_pub_outer'])
+
+    """ 温熱環境条件 JIS """
+    t_ein = i["Theta_rac_pub_outer"] if TH_FC else i["Theta_rac_pub_inner"]
+    t_cin = i["Theta_rac_pub_inner"] if TH_FC else i["Theta_rac_pub_outer"]
+
+    """ 温熱環境条件 実測値 """
+    t_real_inner  = i["Theta_rac_real_inner"]
+    rh_real_inner = i["RH_rac_real_inner"]
+
+    cdtn = Condition(
+        T_ein = t_ein,
+        T_cin = t_cin,
+        X_ein = absolute_humid(i["RH_rac_pub_outer"] if TH_FC else i["RH_rac_pub_inner"], t_ein),
+        X_cin = absolute_humid(i["RH_rac_pub_inner"] if TH_FC else i["RH_rac_pub_outer"], t_cin))
+    return spec, cdtn, t_real_inner, rh_real_inner
+
 def get_heating(input: dict, region: int, A_A: float):
     """暖房の設定
 
@@ -95,6 +128,8 @@ def get_heating(input: dict, region: int, A_A: float):
         H_A['type'] = PROCESS_TYPE_2
     elif int(input['H_A']['type']) == 3:
         H_A['type'] = PROCESS_TYPE_3
+    elif int(input['H_A']['type']) == 4:
+        H_A['type'] = PROCESS_TYPE_4
     else:
         raise Exception('暖房設備機器の種類の入力が不正です。')
 
@@ -140,6 +175,21 @@ def get_heating(input: dict, region: int, A_A: float):
         H_A['V_fan_mid_H'] = float(input['H_A']['V_fan_mid_H'])
         H_A['P_fan_mid_H'] = float(input['H_A']['P_fan_mid_H'])
         H_A['q_hs_min_H'] = dc_spec.get_q_hs_min_H(H_A['q_hs_rtd_H'])
+    elif int(input['H_A']['input']) == 4:
+        # WARNING: このケースは存在しますか?
+        H_A['EquipmentSpec'] = '最小・定格・最大出力時のメーカー公表値を入力する'
+        H_A['q_rac_min_H']   = float(input['H_A']['q_rac_min_H'])
+        H_A['q_rac_rtd_H']   = float(input['H_A']['q_rac_rtd_H'])
+        H_A['q_rac_max_H']   = float(input['H_A']['q_rac_max_H'])
+        H_A['P_rac_min_H']   = float(input['H_A']['P_rac_min_H'])
+        H_A['P_rac_rtd_H']   = float(input['H_A']['P_rac_rtd_H'])
+        H_A['P_rac_max_H']   = float(input['H_A']['P_rac_max_H'])
+        H_A['V_rac_inner_H'] = float(input['H_A']['V_rac_inner_H'])
+        H_A['V_rac_outer_H'] = float(input['H_A']['V_rac_outer_H'])
+        H_A['Theta_RH_rac_inner_pub_H'] = float(input['H_A']['Theta_RH_rac_inner_pub_H'])
+        H_A['Theta_RH_rac_outer_pub_H'] = float(input['H_A']['Theta_RH_rac_outer_pub_H'])
+        H_A['RH_rac_inner_pub_H']       = float(input['H_A']['RH_rac_inner_pub_H'])
+        H_A['RH_rac_outer_pub_H']       = float(input['H_A']['RH_rac_outer_pub_H'])
     else:
         raise Exception('機器の仕様の入力が不正です。')
 
@@ -184,6 +234,8 @@ def get_cooling(input: dict, region: int, A_A: float):
         C_A['type'] = PROCESS_TYPE_2
     elif int(input['C_A']['type']) == 3:
         C_A['type'] = PROCESS_TYPE_3
+    elif int(input['C_A']['type']) == 4:
+        C_A['type'] = PROCESS_TYPE_4
     else:
         raise Exception('冷房設備機器の種類の入力が不正です。')
 
@@ -229,6 +281,21 @@ def get_cooling(input: dict, region: int, A_A: float):
         C_A['V_fan_mid_C'] = float(input['C_A']['V_fan_mid_C'])
         C_A['P_fan_mid_C'] = float(input['C_A']['P_fan_mid_C'])
         C_A['q_hs_min_C'] = dc_spec.get_q_hs_min_C(C_A['q_hs_rtd_C'])
+    elif int(input['C_A']['input']) == 4:
+        # WARNING: このケースは存在しますか?
+        C_A['EquipmentSpec'] = '最小・定格・最大出力時のメーカー公表値を入力する'
+        C_A['q_rac_min_C']   = float(input['C_A']['q_rac_min_C'])
+        C_A['q_rac_rtd_C']   = float(input['C_A']['q_rac_rtd_C'])
+        C_A['q_rac_max_C']   = float(input['C_A']['q_rac_max_C'])
+        C_A['P_rac_min_C']   = float(input['C_A']['P_rac_min_C'])
+        C_A['P_rac_rtd_C']   = float(input['C_A']['P_rac_rtd_C'])
+        C_A['P_rac_max_C']   = float(input['C_A']['P_rac_max_C'])
+        C_A['V_rac_inner_C'] = float(input['C_A']['V_rac_inner_C'])
+        C_A['V_rac_outer_C'] = float(input['C_A']['V_rac_outer_C'])
+        C_A['Theta_RH_rac_inner_pub_C'] = float(input['C_A']['Theta_RH_rac_inner_pub_C'])
+        C_A['Theta_RH_rac_outer_pub_C'] = float(input['C_A']['Theta_RH_rac_outer_pub_C'])
+        C_A['RH_rac_inner_pub_C']       = float(input['C_A']['RH_rac_inner_pub_C'])
+        C_A['RH_rac_outer_pub_C']       = float(input['C_A']['RH_rac_outer_pub_C'])
     else:
         raise Exception('機器の仕様の入力が不正です。')
 
@@ -258,43 +325,55 @@ def get_CRAC_spec(input: dict):
         else:
             raise Exception('エネルギー消費効率の入力（冷房）が不正です。')
 
-    # 機器の性能の入力（冷房）
-    if int(input['C_A']['input_rac_performance']) == 1:
-        q_rtd_C: float = rac_spec.get_q_rtd_C(input['A_A'])
-        q_max_C: float = rac_spec.get_q_max_C(q_rtd_C)
-        e_rtd_C: float = rac_spec.get_e_rtd_C(e_class, q_rtd_C)
-    else:
+    # 機器の性能の入力(冷房) [W]で統一する
+    if input['C_A']['type'] == 2 and int(input['C_A']['input_rac_performance']) == 2:
         q_rtd_C: float = float(input['C_A']['q_rac_rtd_C'])
         q_max_C: float = float(input['C_A']['q_rac_max_C'])
         e_rtd_C: float = float(input['C_A']['e_rac_rtd_C'])
+    elif input['C_A']['type'] == 4:
+        q_rtd_C: float = float(input['C_A']['q_rac_pub_rtd']) * 1000
+        q_max_C: float = float(input['C_A']['q_rac_pub_max']) * 1000
+        e_rtd_C: float = rac_spec.get_e_rtd_C(e_class, q_rtd_C)
+    else:  # 全形式のデフォルト
+        q_rtd_C: float = rac_spec.get_q_rtd_C(input['A_A'])
+        q_max_C: float = rac_spec.get_q_max_C(q_rtd_C)
+        e_rtd_C: float = rac_spec.get_e_rtd_C(e_class, q_rtd_C)
 
-    # 機器の性能の入力（暖房）
-    if int(input['H_A']['input_rac_performance']) == 1:
-        q_rtd_H: float = rac_spec.get_q_rtd_H(q_rtd_C)
-        q_max_H: float = rac_spec.get_q_max_H(q_rtd_H, q_max_C)
-        e_rtd_H: float = rac_spec.get_e_rtd_H(e_rtd_C)
-    else:
+    # 機器の性能の入力(暖房) [W]で統一する
+    if input['H_A']['type'] == 2 and int(input['H_A']['input_rac_performance']) == 2:
         q_rtd_H: float = float(input['H_A']['q_rac_rtd_H'])
         q_max_H: float = float(input['H_A']['q_rac_max_H'])
         e_rtd_H: float = float(input['H_A']['e_rac_rtd_H'])
+    elif input['H_A']['type'] == 4:
+        q_rtd_H: float = float(input['H_A']['q_rac_pub_rtd']) * 1000
+        q_max_H: float = float(input['H_A']['q_rac_pub_max']) * 1000
+        e_rtd_H: float = rac_spec.get_e_rtd_H(e_rtd_C)
+    else:
+        q_rtd_H: float = rac_spec.get_q_rtd_H(q_rtd_C)
+        q_max_H: float = rac_spec.get_q_max_H(q_rtd_H, q_max_C)
+        e_rtd_H: float = rac_spec.get_e_rtd_H(e_rtd_C)
 
     # 小能力時高効率型コンプレッサー
-    dualcompressor_C: bool = int(input['C_A']['dualcompressor']) == 2
-    dualcompressor_H: bool = int(input['H_A']['dualcompressor']) == 2
+    dualcompressor_C: bool = int(input['C_A']['dualcompressor']) == 2 if input['C_A']['type'] == 2 else None
+    dualcompressor_H: bool = int(input['H_A']['dualcompressor']) == 2 if input['H_A']['type'] == 2 else None
 
+    # NOTE: 方式2 以外でも評価されていたので全体適用としました
     # 室内機吹き出し風量に関する出力補正係数の入力（冷房）
+    input_mode_C_af_C = int(input['C_A']['input_C_af_C'])
     input_C_af_C: dict = {
-        'input_mode': int(input['C_A']['input_C_af_C']),
+        'input_mode': input_mode_C_af_C,
         'dedicated_chamber': int(input['C_A']['dedicated_chamber']) == 2,
         'fixed_fin_direction': int(input['C_A']['fixed_fin_direction']) == 2,
-        'C_af_C': float(input['C_A']['C_af_C'])
+        'C_af_C': float(input['C_A']['C_af_C']) if input_mode_C_af_C == 2 else None
     }
+
     # 室内機吹き出し風量に関する出力補正係数の入力（暖房）
+    input_mode_C_af_H = int(input['H_A']['input_C_af_H'])
     input_C_af_H: dict = {
-        'input_mode': int(input['H_A']['input_C_af_H']),
+        'input_mode': input_mode_C_af_H,
         'dedicated_chamber': int(input['H_A']['dedicated_chamber']) == 2,
         'fixed_fin_direction': int(input['H_A']['fixed_fin_direction']) == 2,
-        'C_af_H': float(input['H_A']['C_af_H'])
+        'C_af_H': float(input['H_A']['C_af_H']) if input_mode_C_af_H == 2 else None
     }
 
     return q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H, dualcompressor_C, dualcompressor_H, \
@@ -306,16 +385,16 @@ def get_heatexchangeventilation(input: dict):
     :return: 熱交換型換気
     """
 
-    if int(input['HEX']['install']) == 1:   
+    if int(input['HEX']['install']) == 1:
         # 熱交換型換気
         HEX = None
     else:
         HEX = {
-            'hex':      True,                       
+            'hex':      True,
             'etr_t':    input['HEX']['etr_t'],      #温度交換効率
             'e_bal':    0.9,                        #給気と排気の比率による温度交換効率の補正係数
-            'e_leak':   1.0                         #排気過多時における住宅外皮経由の漏気による温度交換効率の補正係数 
-    }
+            'e_leak':   1.0                         #排気過多時における住宅外皮経由の漏気による温度交換効率の補正係数
+        }
 
     return HEX
 

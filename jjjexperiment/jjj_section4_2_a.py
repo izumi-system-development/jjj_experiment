@@ -44,7 +44,7 @@ from pyhees.section11_1 import \
 import numpy as np
 
 import jjjexperiment.constants as constants
-from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3
+from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3, PROCESS_TYPE_4
 
 from scipy import optimize
 
@@ -1432,8 +1432,8 @@ def get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_ds
         P_fan_rtd_H: 定格暖房能力運転時の送風機の消費電力（W）
         V_hs_vent_d_t: 日付dの時刻tにおける熱源機の風量のうちの全般換気分（m3/h）
         V_hs_supply_d_t: param V_hs_dsgn_H:暖房時の設計風量（m3/h）
+        V_hs_dsgn_H:
         q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
-        V_hs_dsgn_H: returns: 日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
         f_SFP: ファンの比消費電力 (W/(m3・h))
 
     Returns:
@@ -1442,7 +1442,7 @@ def get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_ds
     """
     f_SFP = get_f_SFP(f_SFP)
 
-    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_2:
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
 
         fx = (P_fan_rtd_H - f_SFP * V_hs_vent_d_t) \
             * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_H - V_hs_vent_d_t)) * 10 ** (-3)
@@ -1502,7 +1502,7 @@ def get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_ds
         P_fan_rtd_C: 定格冷房能力運転時の送風機の消費電力（W）
         V_hs_vent_d_t: 日付dの時刻tにおける熱源機の風量のうちの全般換気分（m3/h）
         V_hs_supply_d_t: param V_hs_dsgn_C:冷房時の設計風量（m3/h）
-        V_hs_dsgn_C: returns: 日付dの時刻tにおける1時間当たりの送風機の消費電力量のうちの暖房設備への付加分（kWh/h）
+        V_hs_dsgn_C:
         q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（-）
         f_SFP: ファンの比消費電力 (W/(m3・h))
 
@@ -1512,7 +1512,7 @@ def get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_ds
     """
     f_SFP = get_f_SFP(f_SFP)
 
-    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_2:
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
 
         fx = (P_fan_rtd_C - f_SFP * V_hs_vent_d_t) \
             * ((V_hs_supply_d_t - V_hs_vent_d_t) / (V_hs_dsgn_C - V_hs_vent_d_t)) * 10 ** (-3)

@@ -1,6 +1,13 @@
 import pytest
 from jjjexperiment.result import *
 
+# NOTE: それぞれ用意する必要がある理由
+# 各方式ごとにjsonの内容が包含でなく排他的であり 'TYPE'の書替のみでは不可能であるため
+INPUT_SAMPLE_TYPE1_PATH = 'test_utils/input_sample_type1.json'
+INPUT_SAMPLE_TYPE2_PATH = 'test_utils/input_sample_type2.json'
+INPUT_SAMPLE_TYPE3_PATH = 'test_utils/input_sample_type3.json'
+INPUT_SAMPLE_TYPE4_PATH = 'test_utils/input_sample_type4.json'
+
 @pytest.fixture
 def expected_inputs():
     """ テストコードは下記の入力を想定したものになっています """
