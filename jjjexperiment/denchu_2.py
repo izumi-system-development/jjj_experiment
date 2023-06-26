@@ -50,7 +50,6 @@ def simu_COP_C(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: 
         P = simu_P(q, COP)
         T_cnd = simu_T_cnd(q, P, M_cin, cdtn)
         test_COP = recalc_COP(q, R, Pc, T_evp, T_cnd)
-        test_COP = test_COP if test_COP > 0 else 0  # 負は存在しない
 
         # FIXME: 精度コントロール
         if math.isclose(test_COP, COP, abs_tol=1e-3):
@@ -94,7 +93,6 @@ def simu_COP_H(q: float, Pc: float, R: float, M_ein: float, M_cin: float, cdtn: 
         P = simu_P(q, COP)
         T_evp = simu_T_evp(q, P, M_ein, cdtn)
         test_COP = recalc_COP(q, R, Pc, T_evp, T_cnd)
-        test_COP = test_COP if test_COP > 0 else 0  # 負は存在しない
 
         # FIXME: 精度コントロール
         if math.isclose(test_COP, COP, abs_tol=1e-2):
