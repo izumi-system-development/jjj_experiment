@@ -38,13 +38,12 @@
     "general_ventilation": 1,
     "input_V_hs_dsgn_H": 1,
     "V_hs_dsgn_H": 1500,
-    "input": 1,
-    "input_f_SFP_H": 1,
-    "dualcompressor": 1,
-    "C_af_H": 0,
     "input_C_af_H": 1,
     "dedicated_chamber": 1,
     "fixed_fin_direction": 1,
+    "C_af_H": 0,
+    "input": 1,
+    "input_f_SFP_H": 1,
     "q_hs_rtd_H": 0.0,
     "P_hs_rtd_H": 0.0,
     "V_fan_rtd_H": 0.0,
@@ -57,11 +56,29 @@
     "A_e_hex_small": 6.2,
     "A_f_hex_large": 0.3,
     "A_e_hex_large": 10.6,
-    "compressor_coeff": [0, 0, -0.0316, 0.2944, 0],
+    "compressor_coeff": [
+      0,
+      0,
+      -0.0316,
+      0.2944,
+      0
+    ],
     "airvolume_minimum": 0.17,
-    "airvolume_coeff": [0, 0, 0, 0.092, -0.06],
-    "fan_coeff": [0, 1.4675, -8.5886, 20.217, 50]
-},
+    "airvolume_coeff": [
+      0,
+      0,
+      0,
+      0.092,
+      -0.06
+    ],
+    "fan_coeff": [
+      0,
+      1.4675,
+      -8.5886,
+      20.217,
+      50
+    ]
+  },
   "C_A": {
     "type": 3,
     "duct_insulation": 1,
@@ -69,14 +86,13 @@
     "general_ventilation": 1,
     "input_V_hs_dsgn_C": 1,
     "V_hs_dsgn_C": 1500,
-    "input": 1,
-    "input_mode": 1,
-    "input_f_SFP_C": 1,
-    "dualcompressor": 1,
-    "C_af_C": 0.0,
     "input_C_af_C": 1,
     "dedicated_chamber": 1,
     "fixed_fin_direction": 1,
+    "C_af_C": 0.0,
+    "input": 1,
+    "input_mode": 1,
+    "input_f_SFP_C": 1,
     "q_hs_rtd_C": 0.0,
     "P_hs_rtd_C": 0.0,
     "V_fan_rtd_C": 0.0,
@@ -89,11 +105,35 @@
     "A_e_hex_small": 6.2,
     "A_f_hex_large": 0.3,
     "A_e_hex_large": 10.6,
-    "heat_transfer_coeff": [0, 0, 0, 0.0631, 0.0015],
-    "compressor_coeff": [0, 0, -0.0316, 0.2944, 0],
-    "airvolume_minimum": 170,
-    "airvolume_coeff": [0, 0, 0, 0.092, -0.06],
-    "fan_coeff": [0, 1.4675, 8.5886, 20.217, 50]
+    "heat_transfer_coeff": [
+      0,
+      0,
+      0,
+      0.0631,
+      0.0015
+    ],
+    "compressor_coeff": [
+      0,
+      0,
+      -0.0316,
+      0.2944,
+      0
+    ],
+    "airvolume_minimum": 0.17,
+    "airvolume_coeff": [
+      0,
+      0,
+      0,
+      0.092,
+      -0.06
+    ],
+    "fan_coeff": [
+      0,
+      1.4675,
+      8.5886,
+      20.217,
+      50
+    ]
   },
   "HEX": {
     "install": 1,

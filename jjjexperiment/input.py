@@ -346,22 +346,26 @@ def get_CRAC_spec(input: dict):
         e_rtd_H: float = rac_spec.get_e_rtd_H(e_rtd_C)
 
     # 小能力時高効率型コンプレッサー
-    dualcompressor_C: bool = int(input['C_A']['dualcompressor']) == 2
-    dualcompressor_H: bool = int(input['H_A']['dualcompressor']) == 2
+    dualcompressor_C: bool = int(input['C_A']['dualcompressor']) == 2 if input['C_A']['type'] == 2 else None
+    dualcompressor_H: bool = int(input['H_A']['dualcompressor']) == 2 if input['H_A']['type'] == 2 else None
 
+    # NOTE: 方式2 以外でも評価されていたので全体適用としました
     # 室内機吹き出し風量に関する出力補正係数の入力（冷房）
+    input_mode_C_af_C = int(input['C_A']['input_C_af_C'])
     input_C_af_C: dict = {
-        'input_mode': int(input['C_A']['input_C_af_C']),
+        'input_mode': input_mode_C_af_C,
         'dedicated_chamber': int(input['C_A']['dedicated_chamber']) == 2,
         'fixed_fin_direction': int(input['C_A']['fixed_fin_direction']) == 2,
-        'C_af_C': float(input['C_A']['C_af_C'])
+        'C_af_C': float(input['C_A']['C_af_C']) if input_mode_C_af_C == 2 else None
     }
+
     # 室内機吹き出し風量に関する出力補正係数の入力（暖房）
+    input_mode_C_af_H = int(input['H_A']['input_C_af_H'])
     input_C_af_H: dict = {
-        'input_mode': int(input['H_A']['input_C_af_H']),
+        'input_mode': input_mode_C_af_H,
         'dedicated_chamber': int(input['H_A']['dedicated_chamber']) == 2,
         'fixed_fin_direction': int(input['H_A']['fixed_fin_direction']) == 2,
-        'C_af_H': float(input['H_A']['C_af_H'])
+        'C_af_H': float(input['H_A']['C_af_H']) if input_mode_C_af_H == 2 else None
     }
 
     return q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_C, e_rtd_H, dualcompressor_C, dualcompressor_H, \
@@ -373,16 +377,16 @@ def get_heatexchangeventilation(input: dict):
     :return: 熱交換型換気
     """
 
-    if int(input['HEX']['install']) == 1:   
+    if int(input['HEX']['install']) == 1:
         # 熱交換型換気
         HEX = None
     else:
         HEX = {
-            'hex':      True,                       
+            'hex':      True,
             'etr_t':    input['HEX']['etr_t'],      #温度交換効率
             'e_bal':    0.9,                        #給気と排気の比率による温度交換効率の補正係数
-            'e_leak':   1.0                         #排気過多時における住宅外皮経由の漏気による温度交換効率の補正係数 
-    }
+            'e_leak':   1.0                         #排気過多時における住宅外皮経由の漏気による温度交換効率の補正係数
+        }
 
     return HEX
 
