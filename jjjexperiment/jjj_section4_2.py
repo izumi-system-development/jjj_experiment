@@ -41,7 +41,7 @@ from jjjexperiment.jjj_section4_3 import \
 from jjjexperiment.constants import PROCESS_TYPE_3
 import jjjexperiment.constants as constants
 
-from logs.app_logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,

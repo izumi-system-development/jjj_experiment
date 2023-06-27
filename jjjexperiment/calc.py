@@ -20,7 +20,7 @@ import pyhees.section3_1 as ld
 from jjjexperiment.denchu_1 import Spec
 import jjjexperiment.denchu_2 as denchu_2
 
-from logs.app_logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
 
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
@@ -710,7 +710,7 @@ def calc_E_E_H_d_t(
         q_rtd_C, q_hs_rtd_C,                               # 定格冷房時
         q_rtd_H, e_rtd_H, P_rac_fan_rtd_H, V_fan_rtd_H, P_fan_rtd_H, q_hs_rtd_H, P_hs_rtd_H,  # 定格暖房時
         type, region, dualcompressor_H, EquipmentSpec, input_C_af_H, f_SFP_H, outdoorFile,  # その他
-        simu_R_H, spec: Spec, Theta_real_inner, RH_real_inner):  # 電中研モデルのみ使用
+        simu_R_H=None, spec: Spec=None, Theta_real_inner=None, RH_real_inner=None):  # 電中研モデルのみ使用
     """ (1)
     Args:
         P_fan_rad_H: 定格暖房能力試験 室内側送風機の消費電力 [W]\n
@@ -819,7 +819,7 @@ def calc_E_E_C_d_t(
         q_max_C,                                           # 最大冷房時
         q_hs_rtd_C, P_hs_rtd_C, V_fan_rtd_C, P_fan_rtd_C, q_rtd_C, e_rtd_C, P_rac_fan_rtd_C,  # 定格冷房時
         type, region, dualcompressor_C, EquipmentSpec, input_C_af_C, f_SFP_C, outdoorFile,  # その他
-        simu_R_C, spec: Spec, Theta_real_inner, RH_real_inner):  # 電中研モデルのみ使用
+        simu_R_C=None, spec: Spec=None, Theta_real_inner=None, RH_real_inner=None):  # 電中研モデルのみ使用
     """ (1)
     Args:
         P_fan_rad_C: 定格冷房能力試験 室内側送風機の消費電力 [W]\n

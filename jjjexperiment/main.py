@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
-from logs.app_logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
 
 from pyhees.section2_1_b import get_f_prim
 
