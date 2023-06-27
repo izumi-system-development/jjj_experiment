@@ -2,7 +2,7 @@ import typing
 from math import exp, log
 import numpy as np
 
-from logs.app_logger import LimitedLoggerAdapter as _logger
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger
 
 ATM_AIR_PRESSURE = 1013.25
 """ 大気圧[hPa] """

@@ -6,7 +6,7 @@ from jjjexperiment.denchu_1 import *
 from pyhees.section11_1 import \
     load_outdoor, get_Theta_ex, get_X_ex
 
-from logs.app_logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
 
 def simu_R(a2, a1, a0):
     """ 二次関数 R(q) を得る """

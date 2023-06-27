@@ -4,7 +4,7 @@ import math
 from jjjexperiment.denchu_1 import *
 from jjjexperiment.denchu_2 import *
 
-from logs.app_logger import LimitedLoggerAdapter as _logger
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger
 
 """ R近似曲線とPcの算出後 -> 使用条件実情でCOP値推計 """
 

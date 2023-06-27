@@ -8,7 +8,7 @@ from test_utils.utils import  \
     expected_result_type1, expected_result_type2, expected_inputs, \
     INPUT_SAMPLE_TYPE1_PATH, INPUT_SAMPLE_TYPE2_PATH, INPUT_SAMPLE_TYPE3_PATH, INPUT_SAMPLE_TYPE4_PATH
 
-from logs.app_logger import LimitedLoggerAdapter as _logger
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger
 
 class Test既存計算維持_デフォルト入力時:
 
