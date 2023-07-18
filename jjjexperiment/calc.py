@@ -188,6 +188,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output.reset_index(drop=True)
 
     # (40)　熱源機の風量を計算するための熱源機の出力
+    # NOTE: 潜熱バグフィックスが有効でないと誤った数字となります
     Q_hat_hs_d_t = dc.calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen_d_t, n_p_d_t, q_p_H,
                                      q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region)
     df_output['Q_hat_hs_d_t'] = Q_hat_hs_d_t
