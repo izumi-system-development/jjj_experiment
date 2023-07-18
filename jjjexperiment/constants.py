@@ -53,8 +53,8 @@ a_r_H_t_t_a1: float = 0.2944
 """コンプレッサ効率特性_a1"""
 a_r_H_t_t_a0: float = 0
 """コンプレッサ効率特性_a0"""
-airvolume_minimum: float = 0.17  # km3/h
-"""風量特性_中間期及び最小風量"""
+airvolume_minimum: float = 0.17
+"""風量特性_中間期及び最小風量 [m3/s]"""
 airvolume_coeff_a4_H: float = 0
 """風量特性_a4"""
 airvolume_coeff_a3_H: float = 0
