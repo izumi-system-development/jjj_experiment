@@ -165,7 +165,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output2['l_duct_i'] = l_duct_i
 
     # (51)　負荷バランス時の居室の絶対湿度
-    X_star_HBR_d_t = dc.get_X_star_HBR_d_t(X_ex_d_t, region)
+    X_star_HBR_d_t = dc.get_X_star_HBR_d_t(0.001 * X_ex_d_t, region)  # X_ex_d_t [g/kg(DA)] 想定
     df_output['X_star_HBR_d_t'] = X_star_HBR_d_t
 
     # (50)　負荷バランス時の居室の室温
