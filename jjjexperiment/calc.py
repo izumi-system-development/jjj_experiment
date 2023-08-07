@@ -189,7 +189,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     # (40)　熱源機の風量を計算するための熱源機の出力
     # NOTE: 潜熱バグフィックスが有効でないと誤った数字となります
-    Q_hat_hs_d_t = dc.calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen_d_t, n_p_d_t, q_p_H,
+    Q_hat_hs_d_t, Q_hat_hs_CS_d_t = dc.calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen_d_t, n_p_d_t, q_p_H,
                                      q_p_CS, q_p_CL, X_ex_d_t, w_gen_d_t, Theta_ex_d_t, L_wtr, region)
     df_output['Q_hat_hs_d_t'] = Q_hat_hs_d_t
 
@@ -235,7 +235,13 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             updated_V_hs_dsgn_C = None
 
         if type == PROCESS_TYPE_3:
-            V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region)
+            # FIXME: 方式3が他方式と比較して大きくなる問題
+            if updated_V_hs_dsgn_C is not None:
+                # 冷房時 => 顕熱負荷のみ
+                V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t_2023(Q_hat_hs_CS_d_t, region)
+            else:
+                # 暖房 => 全熱負荷
+                V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region)
             df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
         else:
             V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t(V_hs_min, updated_V_hs_dsgn_H, updated_V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region)
