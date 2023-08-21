@@ -1905,13 +1905,19 @@ def get_X_star_HBR_d_t(X_ex_d_t, region):
     X_star_HBR_d_t = np.zeros(24 * 365)
 
     # 暖房期
-    X_star_HBR_d_t[H] = X_ex_d_t[H]
+    if constants.fix_latent_load == 2:
+      X_star_HBR_d_t[H] = X_ex_d_t[H] / 1000.0
+    else:
+      X_star_HBR_d_t[H] = X_ex_d_t[H]
 
     # 冷房期
     X_star_HBR_d_t[C] = X_set_C
 
     # 中間期
-    X_star_HBR_d_t[M] = X_ex_d_t[M]
+    if constants.fix_latent_load == 2:
+      X_star_HBR_d_t[M] = X_ex_d_t[M] / 1000.0
+    else:
+      X_star_HBR_d_t[M] = X_ex_d_t[M]
 
     return X_star_HBR_d_t
 
