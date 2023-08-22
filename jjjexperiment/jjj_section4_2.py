@@ -1300,14 +1300,12 @@ def get_V_hs_vent_d_t(V_vent_g_i, general_ventilation):
 # 9.7 VAV調整前の熱源機の風量
 # ============================================================================
 def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
-    """ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）_
+    """ルームエアコンディショナ活用型全館空調(潜熱評価モデル) \n
     Args:
-      Q_hat_hs_d_t: 日付dの時刻tにおける１時間当たりの熱源機の風量を計算するための熱源機の出力（MJ/h）
-      region: 地域区分
-
+      Q_hat_hs_d_t: 日付dの時刻tにおける一時間当たりの熱源機の風量を計算するための熱源機の出力 [MJ/h] \n
+      region: 地域区分 \n
     Returns:
-      日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
-
+      日付dの時刻tにおけるVAV調整前の熱源機の風量 [m3/h] \n
     """
     Q_hat_hs_d_t_kw = Q_hat_hs_d_t / 3600 * 1000
     _logger.info(f"Q_hat_hs_d_t_kw: {Q_hat_hs_d_t_kw}")
@@ -1345,8 +1343,11 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
     # 中間期
     V_dash_hs_supply_d_t[M] = constants.airvolume_minimum
 
-    # NOTE: ここまで km3/h ベース 変換-> m3/h
-    return V_dash_hs_supply_d_t * 1000
+    # 論文ロジックの前提として
+    assert min(V_dash_hs_supply_d_t) == constants.airvolume_minimum
+
+    # NOTE: ここまで m3/s ベース 変換-> m3/h
+    return V_dash_hs_supply_d_t * 3600
 
 
 def get_V_dash_hs_supply_d_t(V_hs_min, V_hs_dsgn_H, V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region):
@@ -1508,7 +1509,7 @@ def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen
     # 中間期 (40-3)
     Q_hat_hs_d_t[M] = 0
 
-    return Q_hat_hs_d_t
+    return Q_hat_hs_d_t, np.clip(Q_hat_hs_CS_d_t, 0, None)
 
 
 # ============================================================================
@@ -1904,13 +1905,19 @@ def get_X_star_HBR_d_t(X_ex_d_t, region):
     X_star_HBR_d_t = np.zeros(24 * 365)
 
     # 暖房期
-    X_star_HBR_d_t[H] = X_ex_d_t[H]
+    if constants.fix_latent_load == 2:
+      X_star_HBR_d_t[H] = X_ex_d_t[H] / 1000.0
+    else:
+      X_star_HBR_d_t[H] = X_ex_d_t[H]
 
     # 冷房期
     X_star_HBR_d_t[C] = X_set_C
 
     # 中間期
-    X_star_HBR_d_t[M] = X_ex_d_t[M]
+    if constants.fix_latent_load == 2:
+      X_star_HBR_d_t[M] = X_ex_d_t[M] / 1000.0
+    else:
+      X_star_HBR_d_t[M] = X_ex_d_t[M]
 
     return X_star_HBR_d_t
 
