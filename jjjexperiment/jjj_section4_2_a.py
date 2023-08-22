@@ -219,7 +219,7 @@ def get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_
       region: 地域区分
 
     Returns:
-      日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
+      日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（W）
 
     """
     H, C, M = get_season_array_d_t(region)
@@ -253,7 +253,7 @@ def get_q_hs_C_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t,
       region: 地域区分
 
     Returns:
-      日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（-）
+      日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（W）
 
     """
     H, C, M = get_season_array_d_t(region)
@@ -289,7 +289,7 @@ def get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_
         region:地域区分
 
     Returns:
-        日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力 (-)
+        日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力 (W)
 
     """
     H, C, M = get_season_array_d_t(region)
@@ -1433,7 +1433,7 @@ def get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_ds
         V_hs_vent_d_t: 日付dの時刻tにおける熱源機の風量のうちの全般換気分（m3/h）
         V_hs_supply_d_t: param V_hs_dsgn_H:暖房時の設計風量（m3/h）
         V_hs_dsgn_H:
-        q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（-）
+        q_hs_H_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力（W）
         f_SFP: ファンの比消費電力 (W/(m3・h))
 
     Returns:
@@ -1503,7 +1503,7 @@ def get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_ds
         V_hs_vent_d_t: 日付dの時刻tにおける熱源機の風量のうちの全般換気分（m3/h）
         V_hs_supply_d_t: param V_hs_dsgn_C:冷房時の設計風量（m3/h）
         V_hs_dsgn_C:
-        q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（-）
+        q_hs_C_d_t: 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力（W）
         f_SFP: ファンの比消費電力 (W/(m3・h))
 
     Returns:

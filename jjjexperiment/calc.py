@@ -765,7 +765,7 @@ def calc_E_E_H_d_t(
         """ E_E: 日付dの時刻tにおける1時間当たりの暖房時の消費電力量 (kWh/h) """
 
         # (37) 送風機の付加分（kWh/h）
-        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t * 3.6/1000, f_SFP_H)
+        E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t, f_SFP_H)
 
         # (5) 圧縮機の分
         E_E_comp_H_d_t = dc_a.get_E_E_comp_H_d_t(
@@ -778,11 +778,16 @@ def calc_E_E_H_d_t(
         # NOTE: ルームエアコンでは V_hs_vent(換気風量) は使用されません
 
         if type == PROCESS_TYPE_2:
-            E_E_CRAC_H_d_t = rac.calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor_H, q_hs_H_d_t * 3.6/1000, input_C_af_H, outdoorFile)
-            E_E_fan_H_d_t =\
-                dc_a.get_E_E_fan_H_d_t(type, P_rac_fan_rtd_H,
-                                       V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H,
-                                       q_hs_H_d_t * 3.6/1000, f_SFP_H)
+            E_E_CRAC_H_d_t = \
+                rac.calc_E_E_H_d_t(region,
+                                   q_rtd_C, q_rtd_H, q_max_C, q_max_H,  # q[W]
+                                   e_rtd_H, dualcompressor_H,
+                                   q_hs_H_d_t * 3.6/1000,  # L_H[MJ/h]
+                                   input_C_af_H, outdoorFile)
+            E_E_fan_H_d_t = \
+                dc_a.get_E_E_fan_H_d_t(type, P_rac_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H,
+                                       q_hs_H_d_t,  # q[W]
+                                       f_SFP_H)
 
         elif type == PROCESS_TYPE_4:
             # 『2.2 実験方法と実験条件』より
@@ -792,8 +797,8 @@ def calc_E_E_H_d_t(
             V_ratio2 = spec.V_outer / spec.V_inner
 
             COP_H_d_t = denchu_2.calc_COP_H_d_t(
-                                q_d_t= q_hs_H_d_t / 1000, #[kW]
-                                P_rac_fan_rtd= P_rac_fan_rtd_H / 1000,  #[kW]
+                                q_d_t= q_hs_H_d_t / 1000,
+                                P_rac_fan_rtd= P_rac_fan_rtd_H / 1000,
                                 R= simu_R_H,
                                 V_rac_inner_d_t= V_ratio1 * V_hs_supply_d_t,
                                 V_rac_outer_d_t= V_ratio2 * V_ratio1 * V_hs_supply_d_t,
@@ -897,13 +902,17 @@ def calc_E_E_C_d_t(
         # NOTE: ルームエアコンでは V_hs_vent(換気風量) は使用されません
 
         if type == PROCESS_TYPE_2:
-            E_E_CRAC_C_d_t = rac.calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor_C, q_hs_CS_d_t * 3.6/1000, q_hs_CL_d_t * 3.6/1000, input_C_af_C, outdoorFile)
-
+            E_E_CRAC_C_d_t = \
+                rac.calc_E_E_C_d_t(region, q_rtd_C, q_max_C,  # q[W]
+                                   e_rtd_C, dualcompressor_C,
+                                   q_hs_CS_d_t * 3.6/1000, q_hs_CL_d_t * 3.6/1000,  # L_H[MJ/h]
+                                   input_C_af_C, outdoorFile)
             # (38) 送風機の付加分 (kWh/h)
-            E_E_fan_C_d_t =\
-                dc_a.get_E_E_fan_C_d_t(type, P_rac_fan_rtd_C,  # [W]
-                    V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C,
-                    (q_hs_CS_d_t + q_hs_CL_d_t) * 3.6/1000, f_SFP_C)
+            E_E_fan_C_d_t = \
+                dc_a.get_E_E_fan_C_d_t(type, P_rac_fan_rtd_C,
+                                       V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C,
+                                       (q_hs_CS_d_t + q_hs_CL_d_t),  # q[W]
+                                       f_SFP_C)
 
         elif type == PROCESS_TYPE_4:
             # 『2.2 実験方法と実験条件』より
