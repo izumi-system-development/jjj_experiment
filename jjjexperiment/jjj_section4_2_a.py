@@ -1191,6 +1191,8 @@ def get_Theta_sur_f_hex_H_JIS(type, V_fan_x_H, q_hs_X_H, alpha_c_hex_H, q_hs_rtd
     V_hs_supply = V_fan_x_H
     q_hs_H = q_hs_X_H
 
+    assert V_hs_supply != 0, "機器仕様の入力が誤って「入力する」になっていると思われます"
+
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
     A_e_hex = get_A_e_hex(type, q_hs_rtd_C)
