@@ -1,6 +1,7 @@
 import json
 import copy
 import numpy as np
+import numpy.testing as nptest
 import math
 
 import jjjexperiment.input as input
@@ -253,22 +254,22 @@ class Test風量特性_熱源機_低出力:
         Q_hat_hs_d_t = np.ones(24 * 365) * kw2mjph(2.4)  # 2.4 kw を設定
         cls._sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region)
 
-    def test_暖房時_指定定数(self):
-        ii = np.where(self._H == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_minimum * 1000)  # m3/h
+    def test_常時_指定定数(self):
+        indices_H = np.where(self._H == True)[0]
+        indices_C = np.where(self._C == True)[0]
+        indices_M = np.where(self._M == True)[0]
 
-    def test_冷房時_指定定数(self):
-        ii = np.where(self._C == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_minimum * 1000)  # m3/h
+        # H, M, C 期に関わらず、常に指定された下限値となる
+        nptest.assert_allclose(self._sut[indices_H], consts.airvolume_minimum * 60 * 60)  # m3/h
+        nptest.assert_allclose(self._sut[indices_C], consts.airvolume_minimum * 60 * 60)  # m3/h
+        nptest.assert_allclose(self._sut[indices_M], consts.airvolume_minimum * 60 * 60)  # m3/h
 
-    def test_中間期_常に指定定数(self):
-        ii = np.where(self._M == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_minimum * 1000)  # m3/h
 
 class Test風量特性_熱源機_高出力:
 
     _inputs: dict
     _sut: np.ndarray
+    _expected: float
     _H: np.ndarray
     _C: np.ndarray
     _M: np.ndarray
@@ -278,32 +279,38 @@ class Test風量特性_熱源機_高出力:
         """ 熱源機の出力が 2.5 kW 以上の時
         """
         inputs = json.load(open(INPUT_SAMPLE_TYPE3_PATH, 'r'))
-        fixture = {
-            # NOTE: 0次の係数のみを有効にしてバリデーション値をコントロールしている
-            'airvolume_coeff': [0, 0, 0, 0, -0.06],
-        }
+        C1, C0 = 0.092, -0.06
+        fixture = {'airvolume_coeff': [0, 0, 0, C1, C0]}
+
+        # 暖房・冷房に共通して使用
         inputs['H_A'].update(fixture)
         inputs['C_A'].update(fixture)
+
         cls._inputs = inputs
-        consts.set_constants(cls._inputs)
+        consts.set_constants(cls._inputs)  #NOTE: calc通さないときglobal変数更新のため必要
 
         _, _, _, _, _, region, _ = input.get_basic(cls._inputs)
         cls._H, cls._C, cls._M = get_season_array_d_t(region)
 
         Q_hat_hs_d_t_kw = np.ones(24 * 365) * kw2mjph(2.5)  # 2.5 kw を設定
         cls._sut = get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t_kw, region)
+        cls._expected = (C1 * 2.5 + C0) * 3600  # 一次式のケースでテスト [m3/h]
 
-    def test_暖房時_四次式計算(self):
-        ii = np.where(self._H == True)[0]
-        assert np.all(self._sut[ii] == self._inputs['H_A']['airvolume_coeff'][-1] * 1000)  # m3/h
+    def test_暖冷房時_四次式計算(self):
+        """ 熱源機出力 2.5 kW 以上なら 暖房期・冷房期は四次式算定
+        """
+        indices_H = np.where(self._H == True)[0]
+        indices_C = np.where(self._C == True)[0]
 
-    def test_冷房時_四次式計算(self):
-        ii = np.where(self._C == True)[0]
-        assert np.all(self._sut[ii] == self._inputs['C_A']['airvolume_coeff'][-1] * 1000)  # m3/h
+        nptest.assert_allclose(self._sut[indices_H], self._expected)  # m3/h
+        nptest.assert_allclose(self._sut[indices_C], self._expected)  # m3/h
 
     def test_中間期_常に指定定数(self):
-        ii = np.where(self._M == True)[0]
-        assert np.all(self._sut[ii] == consts.airvolume_minimum * 1000)  # m3/h
+        """ 熱源機出力 2.5 kW 以上なら 中間期は常に指定の最低風量となる
+        """
+        indices_M = np.where(self._M == True)[0]
+
+        nptest.assert_allclose(self._sut[indices_M], self._expected)  # m3/h
 
 
 def prepare_args_for_calc_Q_UT_A() -> dict:
