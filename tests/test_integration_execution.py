@@ -63,25 +63,25 @@ class Test既存計算維持_デフォルト入力時:
         assert result['TValue'].E_H == expected_result_type2.E_H
 
     def test_計算結果一致_方式3(self, expected_result_type1, expected_result_type2):
-        """ 方式3で全体が実行され結果が変わることを確認
+        """ 方式3 最後まで実行できること、結果がちゃんと変わることだけ確認
         """
         _logger.init_logger()
         result = calc(self._inputs3, test_mode=True)
 
         assert result['TValue'].E_C != expected_result_type1.E_C
-        assert result['TValue'].E_C != expected_result_type2.E_C
-
         assert result['TValue'].E_H != expected_result_type1.E_H
+
+        assert result['TValue'].E_C != expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
 
     def test_計算結果一致_方式4(self, expected_result_type1, expected_result_type2):
-        """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
+        """ 方式4 最後まで実行できること、結果がちゃんと変わることだけ確認
         """
         _logger.init_logger()
         result = calc(self._inputs4, test_mode=True)
 
         assert result['TValue'].E_C != expected_result_type1.E_C
-        assert result['TValue'].E_C != expected_result_type2.E_C
-
         assert result['TValue'].E_H != expected_result_type1.E_H
+
+        assert result['TValue'].E_C != expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
