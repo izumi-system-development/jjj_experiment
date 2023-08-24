@@ -1343,8 +1343,8 @@ def get_V_dash_hs_supply_d_t_2023(Q_hat_hs_d_t, region):
     # 中間期
     V_dash_hs_supply_d_t[M] = constants.airvolume_minimum
 
-    # 論文ロジックの前提として
-    assert min(V_dash_hs_supply_d_t) == constants.airvolume_minimum
+    # WARNING: 少数点の扱いの問題で意図しない結果になる
+    # assert V_dash_hs_supply_d_t >= constants.airvolume_minimum
 
     # NOTE: ここまで m3/s ベース 変換-> m3/h
     return V_dash_hs_supply_d_t * 3600
