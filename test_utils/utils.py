@@ -1,5 +1,6 @@
 import pytest
 from jjjexperiment.result import *
+import collections.abc
 
 # NOTE: それぞれ用意する必要がある理由
 # 各方式ごとにjsonの内容が包含でなく排他的であり 'TYPE'の書替のみでは不可能であるため
@@ -30,3 +31,12 @@ def expected_result_type1():
 def expected_result_type2():
     """ 上記の入力内容で期待される結果 """
     return ResultSummary(E_C=14695.841130521072, E_H=40812.21298826678)
+
+def deep_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            r = deep_update(d.get(k, {}), v)
+            d[k] = r
+        else:
+            d[k] = u[k]
+    return d

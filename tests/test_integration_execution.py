@@ -3,12 +3,9 @@ import json
 import copy
 
 from jjjexperiment.main import calc
-
-from test_utils.utils import  \
-    expected_result_type1, expected_result_type2, expected_inputs, \
-    INPUT_SAMPLE_TYPE1_PATH, INPUT_SAMPLE_TYPE2_PATH, INPUT_SAMPLE_TYPE3_PATH, INPUT_SAMPLE_TYPE4_PATH
-
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger
+
+from test_utils.utils import *
 
 class Test既存計算維持_デフォルト入力時:
 
@@ -42,7 +39,16 @@ class Test既存計算維持_デフォルト入力時:
         """
         """
         _logger.init_logger()
-        result = calc(self.fix_latent_bug(self._inputs1), test_mode=True)
+        inputs = self.fix_latent_bug(self._inputs1)
+
+        fixtures = {
+                "U_A": 0.60,  # 0.86
+                "H_A": {"VAV": 2},
+                "C_A": {"VAV": 2},
+            }
+        inputs = deep_update(copy.deepcopy(inputs), fixtures)
+
+        result = calc(inputs, test_mode=True)
 
     def test_計算結果一致_方式1(self, expected_result_type1):
         """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
