@@ -814,6 +814,15 @@ def calc_E_E_H_d_t(
             E_E_fan_H_d_t = np.zeros(24 * 365)
             E_E_fan_H_d_t[q_hs_H_d_t > 0] = P_rac_fan_rtd_H/1000 * 1
 
+            df_output_denchuH = pd.DataFrame(index = pd.date_range(
+                datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
+            df_output_denchuH['q_hs_H_d_t[W]'] = q_hs_H_d_t
+            df_output_denchuH['COP_H_d_t'] = COP_H_d_t
+            df_output_denchuH['E_E_CRAC_H_d_t[kW]'] = E_E_CRAC_H_d_t
+            df_output_denchuH['E_E_fan_H_d_t[kW]'] = E_E_fan_H_d_t
+            df_output_denchuH['E_E_H_d_t[kW]'] = E_E_CRAC_H_d_t + E_E_fan_H_d_t
+            df_output_denchuH.to_csv('denchu_H_output.csv', encoding='cp932')  # =Shift_JIS
+
         E_E_H_d_t = E_E_CRAC_H_d_t + E_E_fan_H_d_t
 
     else:
@@ -922,7 +931,6 @@ def calc_E_E_C_d_t(
             V_ratio2 = spec.V_outer / spec.V_inner
 
             q_hs_C_d_t = q_hs_CS_d_t + q_hs_CL_d_t
-            _logger.NDdebug("q_hs_C_d_t", q_hs_C_d_t)
 
             # FIXME: COPが大きすぎる問題があります
             COP_C_d_t = denchu_2.calc_COP_C_d_t(
@@ -943,8 +951,15 @@ def calc_E_E_C_d_t(
             E_E_fan_C_d_t = np.zeros(24 * 365)
             E_E_fan_C_d_t[q_hs_C_d_t > 0] = P_rac_fan_rtd_C/1000 * 1
 
-        _logger.NDdebug("E_E_CRAC_C_d_t", E_E_CRAC_C_d_t)
-        _logger.NDdebug("E_E_fan_C_d_t", E_E_fan_C_d_t)
+            df_output_denchuC = pd.DataFrame(index = pd.date_range(
+                datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
+            df_output_denchuC['q_hs_C_d_t[W]'] = q_hs_C_d_t
+            df_output_denchuC['COP_C_d_t'] = COP_C_d_t
+            df_output_denchuC['E_E_CRAC_C_d_t[kW]'] = E_E_CRAC_C_d_t
+            df_output_denchuC['E_E_fan_C_d_t[kW]'] = E_E_fan_C_d_t
+            df_output_denchuC['E_E_C_d_t[kW]'] = E_E_CRAC_C_d_t + E_E_fan_C_d_t
+            df_output_denchuC.to_csv('denchu_C_output.csv', encoding='cp932')  # =Shift_JIS
+
         E_E_C_d_t = E_E_CRAC_C_d_t + E_E_fan_C_d_t  # (2)
 
     else:

@@ -142,7 +142,6 @@ def calc_COP_C_d_t(q_d_t, P_rac_fan_rtd, R,
         cop = simu_COP_C(q_d_t[i], P_rac_fan_rtd, R(q_d_t[i]), M_ein, M_cin, cdtn)
         COP_d_t[i] = cop
 
-    _logger.NDdebug(f"COP_C_d_t", COP_d_t)
     return COP_d_t
 
 def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R,
@@ -186,5 +185,4 @@ def calc_COP_H_d_t(q_d_t, P_rac_fan_rtd, R,
         cop = simu_COP_H(q_d_t[i], P_rac_fan_rtd, R(q_d_t[i]), M_ein, M_cin, cdtn)
         COP_d_t[i] = cop
 
-    _logger.NDdebug(f"COP_H_d_t", COP_d_t)
     return COP_d_t  # 10いかないはず
