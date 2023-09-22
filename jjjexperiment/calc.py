@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime
+import subprocess
 
 from pyhees.section3_2_8 import get_r_env
 from pyhees.section11_1 import calc_h_ex, load_climate, load_outdoor, get_Theta_ex, get_X_ex, get_J
@@ -696,18 +697,19 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output['E_C_UT_d_t'] = E_C_UT_d_t
 
     if q_hs_rtd_H is not None:
-        df_output3.to_csv(case_name + '_H_output3.csv', encoding = 'cp932')
-        df_output2.to_csv(case_name + '_H_output4.csv', encoding = 'cp932')
-        df_output.to_csv(case_name  + '_H_output5.csv', encoding = 'cp932')
+        df_output3.to_csv(case_name + version_info() + '_H_output3.csv', encoding = 'cp932')
+        df_output2.to_csv(case_name + version_info() + '_H_output4.csv', encoding = 'cp932')
+        df_output.to_csv(case_name  + version_info() + '_H_output5.csv', encoding = 'cp932')
     else:
-        df_output3.to_csv(case_name + '_C_output3.csv', encoding = 'cp932')
-        df_output2.to_csv(case_name + '_C_output4.csv', encoding = 'cp932')
-        df_output.to_csv(case_name  + '_C_output5.csv', encoding = 'cp932')
+        df_output3.to_csv(case_name + version_info() + '_C_output3.csv', encoding = 'cp932')
+        df_output2.to_csv(case_name + version_info() + '_C_output4.csv', encoding = 'cp932')
+        df_output.to_csv(case_name  + version_info() + '_C_output5.csv', encoding = 'cp932')
 
     return E_C_UT_d_t, Q_UT_H_d_t_i, Q_UT_CS_d_t_i, Q_UT_CL_d_t_i, Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t, \
            X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t
 
 def calc_E_E_H_d_t(
+        case_name,
         Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t,  # 空気温度
         V_hs_supply_d_t, V_hs_vent_d_t, V_hs_dsgn_H,      # 風量
         C_df_H_d_t,                                       # 暖房出力補正係数
@@ -821,7 +823,7 @@ def calc_E_E_H_d_t(
             df_output_denchuH['E_E_CRAC_H_d_t[kW]'] = E_E_CRAC_H_d_t
             df_output_denchuH['E_E_fan_H_d_t[kW]'] = E_E_fan_H_d_t
             df_output_denchuH['E_E_H_d_t[kW]'] = E_E_CRAC_H_d_t + E_E_fan_H_d_t
-            df_output_denchuH.to_csv('denchu_H_output.csv', encoding='cp932')  # =Shift_JIS
+            df_output_denchuH.to_csv(case_name + version_info() + '_denchu_H_output.csv', encoding='cp932')  # =Shift_JIS
 
         E_E_H_d_t = E_E_CRAC_H_d_t + E_E_fan_H_d_t
 
@@ -832,6 +834,7 @@ def calc_E_E_H_d_t(
 
 # TODO: この関数に Q_hat_hs_d_t が使用されないことが妥当でしょうか?
 def calc_E_E_C_d_t(
+        case_name,
         Theta_hs_out_d_t, Theta_hs_in_d_t, Theta_ex_d_t,  # 空気温度
         V_hs_supply_d_t, V_hs_vent_d_t, V_hs_dsgn_C,      # 風量
         X_hs_out_d_t, X_hs_in_d_t,                        # 絶対湿度
@@ -958,7 +961,7 @@ def calc_E_E_C_d_t(
             df_output_denchuC['E_E_CRAC_C_d_t[kW]'] = E_E_CRAC_C_d_t
             df_output_denchuC['E_E_fan_C_d_t[kW]'] = E_E_fan_C_d_t
             df_output_denchuC['E_E_C_d_t[kW]'] = E_E_CRAC_C_d_t + E_E_fan_C_d_t
-            df_output_denchuC.to_csv('denchu_C_output.csv', encoding='cp932')  # =Shift_JIS
+            df_output_denchuC.to_csv(case_name + version_info() + '_denchu_C_output.csv', encoding='cp932')  # =Shift_JIS
 
         E_E_C_d_t = E_E_CRAC_C_d_t + E_E_fan_C_d_t  # (2)
 
@@ -966,3 +969,10 @@ def calc_E_E_C_d_t(
         raise Exception('冷房設備機器の種類の入力が不正です。')
 
     return E_E_C_d_t, E_E_fan_C_d_t, q_hs_CS_d_t, q_hs_CL_d_t
+
+def version_info() -> str:
+    """ GITの最終コミット日時をバージョン管理に使用します
+    """
+    date_str = subprocess.check_output(['git', 'log', '-1', '--format=%cd']).decode('utf-8').strip()
+    date = datetime.strptime(date_str, '%a %b %d %H:%M:%S %Y %z')
+    return date.strftime('_%Y%b%d')

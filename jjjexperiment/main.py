@@ -18,6 +18,7 @@ import pyhees.section3_1 as ld
 from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
 
 import jjjexperiment.calc
+from jjjexperiment.calc import version_info
 import jjjexperiment.input
 import jjjexperiment.constants
 from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3, PROCESS_TYPE_4
@@ -29,14 +30,12 @@ import jjjexperiment.denchu_2
 
 
 def calc(input_data : dict, test_mode=False):
-    df_output2 = pd.DataFrame(index = pd.date_range(datetime(2023, 1, 1, 1, 0, 0), datetime(2024, 1, 1, 0, 0, 0), freq = 'h'))
-
     case_name   = input_data['case_name']
     climateFile = input_data['climateFile']
     outdoorFile = input_data['outdoorFile']
     loadFile    = input_data['loadFile']
 
-    with open(case_name+ '_input.json', 'w') as f:
+    with open(case_name + version_info() + '_input.json', 'w') as f:
         json.dump(input_data, f, indent=4)
 
     jjjexperiment.constants.set_constants(input_data)
@@ -162,7 +161,7 @@ def calc(input_data : dict, test_mode=False):
         """ 電柱研モデルのモデリング定数の確認のためのCSV出力 """
         df_denchu_consts = jjjexperiment.denchu_1 \
             .get_DataFrame_denchu_modeling_consts(spec, cdtn, R2, R1, R0, T_real, RH_real, P_rac_fan_rtd_H)
-        df_denchu_consts.to_csv(case_name + '_denchu_consts_H_output.csv', encoding='cp932')
+        df_denchu_consts.to_csv(case_name + version_info() + '_denchu_consts_H_output.csv', encoding='cp932')
 
         del cdtn, R2, R1, R0  # NOTE: 以降不要
     else:
@@ -174,6 +173,7 @@ def calc(input_data : dict, test_mode=False):
     """日付dの時刻tにおける1時間当たりの暖房時の消費電力量(kWh/h)"""
 
     E_E_H_d_t, q_hs_H_d_t, E_E_fan_H_d_t = jjjexperiment.calc.calc_E_E_H_d_t(
+        case_name = case_name,
         Theta_hs_out_d_t = Theta_hs_out_d_t,
         Theta_hs_in_d_t = Theta_hs_in_d_t,
         Theta_ex_d_t = Theta_ex_d_t,
@@ -216,6 +216,7 @@ def calc(input_data : dict, test_mode=False):
     E_UT_H_d_t: np.ndarray = Q_UT_H_A_d_t * alpha_UT_H_A
     """未処理暖房負荷の設計一次エネルギー消費量相当値(MJ/h)"""
 
+    df_output2 = pd.DataFrame(index = pd.date_range(datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
     df_output2['Q_UT_H_d_A_t [MJ/h']        = Q_UT_H_A_d_t
     df_output2['Theta_hs_H_out_d_t [℃]']    = Theta_hs_out_d_t
     df_output2['Theta_hs_H_in_d_t [℃]']     = Theta_hs_in_d_t
@@ -250,7 +251,7 @@ def calc(input_data : dict, test_mode=False):
         """ 電柱研モデルのモデリング定数の確認のためのCSV出力 """
         df_denchu_consts = jjjexperiment.denchu_1 \
             .get_DataFrame_denchu_modeling_consts(spec, cdtn, R2, R1, R0, T_real, RH_real, P_rac_fan_rtd_C)
-        df_denchu_consts.to_csv(case_name + '_denchu_consts_C_output.csv', encoding='cp932')
+        df_denchu_consts.to_csv(case_name + version_info() + '_denchu_consts_C_output.csv', encoding='cp932')
 
         del cdtn, R2, R1, R0  # NOTE: 以降不要
     else:
@@ -273,6 +274,7 @@ def calc(input_data : dict, test_mode=False):
     """日付dの時刻tにおける1時間当たりの冷房時の消費電力量(kWh/h)"""
 
     E_E_C_d_t, E_E_fan_C_d_t, q_hs_CS_d_t, q_hs_CL_d_t = jjjexperiment.calc.calc_E_E_C_d_t(
+        case_name = case_name,
         Theta_hs_out_d_t = Theta_hs_out_d_t,
         Theta_hs_in_d_t = Theta_hs_in_d_t,
         Theta_ex_d_t = Theta_ex_d_t,
@@ -331,7 +333,7 @@ def calc(input_data : dict, test_mode=False):
     df_output1 = pd.DataFrame(index = ['合計値'])
     df_output1['E_H [MJ/year]'] = E_H
     df_output1['E_C [MJ/year]'] = E_C
-    df_output1.to_csv(case_name + '_output1.csv', encoding = 'cp932')
+    df_output1.to_csv(case_name + version_info() + '_output1.csv', encoding = 'cp932')
 
     df_output2['E_H_d_t [MJ/h]']            = E_H_d_t
     df_output2['E_C_d_t [MJ/h]']            = E_C_d_t
@@ -347,7 +349,7 @@ def calc(input_data : dict, test_mode=False):
     df_output2['E_E_fan_C_d_t [kWh/h]']     = E_E_fan_C_d_t
     df_output2['q_hs_CS_d_t [Wh/h]']        = q_hs_CS_d_t
     df_output2['q_hs_CL_d_t [Wh/h]']        = q_hs_CL_d_t
-    df_output2.to_csv(case_name + '_output2.csv', encoding = 'cp932')
+    df_output2.to_csv(case_name + version_info() + '_output2.csv', encoding = 'cp932')
 
     # NOTE: 結合テストで確認したい値を返すのに使用します
     if test_mode:
