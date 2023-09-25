@@ -1,6 +1,7 @@
 import typing
 from math import exp, log
 import numpy as np
+import pandas as pd
 
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger
 
@@ -54,6 +55,17 @@ class Spec:
     def V_outer(self):
         """ 室外機の吸込み空気量[m3/min] """; return self._V_outer
 
+    def outputDataFrame(self, data_frame):
+        """csv出力用のデータフレーム"""
+        data_frame.loc[Spec.P_rac_min.__doc__] = [self.P_rac_min]
+        data_frame.loc[Spec.P_rac_rtd.__doc__] = [self.P_rac_rtd]
+        data_frame.loc[Spec.P_rac_max.__doc__] = [self.P_rac_max]
+        data_frame.loc[Spec.q_rac_min.__doc__] = [self.q_rac_min]
+        data_frame.loc[Spec.q_rac_rtd.__doc__] = [self.q_rac_rtd]
+        data_frame.loc[Spec.q_rac_max.__doc__] = [self.q_rac_max]
+        data_frame.loc[Spec.V_inner.__doc__] = [self.V_inner]
+        data_frame.loc[Spec.V_outer.__doc__] = [self.V_outer]
+        return data_frame
 
 class Condition():
     """ エアコンの使用条件をまとめるクラス
@@ -77,6 +89,32 @@ class Condition():
     def X_cin(self):
         """ 蒸発器と接する空気の絶対湿度[g/kgDA] """; return self._X_cin
 
+    def outputDataFrame(self, data_frame):
+        """csv出力用のデータフレーム"""
+        data_frame.loc[Condition.T_ein.__doc__] = [self.T_ein]
+        data_frame.loc[Condition.T_cin.__doc__] = [self.T_cin]
+        data_frame.loc[Condition.X_ein.__doc__] = [self.X_ein]
+        data_frame.loc[Condition.X_cin.__doc__] = [self.X_cin]
+        return data_frame
+
+def get_DataFrame_denchu_modeling_consts(
+        spec: Spec, cdtn: Condition,
+        R2: float, R1: float, R0: float,
+        T_real: float, RH_real: float, Pc: float) -> pd.DataFrame:
+        """ 電柱研モデル化の定数確認用データフレーム
+            Args:
+                Pc: ファン等消費電力Pc [W]
+        """
+        df = pd.DataFrame(index=['電中研モデリング定数'], columns=['値'])
+        df = spec.outputDataFrame(df)
+        df = cdtn.outputDataFrame(df)
+        df = df._append(
+            pd.DataFrame([[R2], [R1], [R0]], columns=df.columns, index=['R2', 'R1', 'R0'])
+        )
+        df.loc['ファン等消費電力Pc [W]'] = [Pc]
+        df.loc['実際の使用状況におけるエアコン吸込み空気の 温度 [℃]'] = [T_real]
+        df.loc['実際の使用状況におけるエアコン吸込み空気の 相対温度 [%]'] = [RH_real]
+        return df
 
 def dry_air_density(temperature: float) -> float:
     """ 気温[℃]毎の乾燥空気の密度[kg/m3] """

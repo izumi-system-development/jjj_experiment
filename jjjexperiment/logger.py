@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 from inspect import stack
 import numpy as np
+import datetime
 
 LOG_LEVEL = logging.DEBUG  # NOTE: 調査に合わせて変更する
 
@@ -51,7 +52,7 @@ class LimitedLoggerAdapter(logging.LoggerAdapter):
         if cls._isTest: cls._logger.critical(message)
     @classmethod
     def error(cls, message):
-        if cls._isTest: cls._logger.debug(message)
+        if cls._isTest: cls._logger.error(message)
     @classmethod
     def warning(cls, message):
         if cls._isTest: cls._logger.warning(message)
@@ -68,3 +69,10 @@ class LimitedLoggerAdapter(logging.LoggerAdapter):
             cls._logger.debug(f"{name}[MAX]  : {max(arr)}")
             cls._logger.debug(f"{name}[ZEROS]: {arr.size - np.count_nonzero(arr)}")
             cls._logger.debug(f"{name}[AVG.] : {np.average(arr[np.nonzero(arr)])}")
+
+    @classmethod
+    def NDtoCSV(cls, name: str, arr: np.ndarray):
+        if cls._isTest:
+            now = datetime.datetime.now()
+            # 混ぜると見にくいので別ファイルとする
+            np.savetxt(name + now.strftime('%H%M%S') + '.csv', arr, delimiter=',')
