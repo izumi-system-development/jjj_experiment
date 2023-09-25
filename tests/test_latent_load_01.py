@@ -619,6 +619,7 @@ class Testコンプレッサ効率特性_暖房:
         P_rac_fan_rtd_H = H_args['V_hs_dsgn_H'] * others['f_SFP_H']
 
         return {
+            "case_name": "Test",
             "Theta_hs_out_d_t": Theta_hs_out_d_t,
             "Theta_hs_in_d_t":  Theta_hs_in_d_t,
             "Theta_ex_d_t":     Theta_ex_d_t,
@@ -728,6 +729,7 @@ class Testコンプレッサ効率特性_冷房:
         P_rac_fan_rtd_C = C_args['V_hs_dsgn_C'] * others['f_SFP_C']
 
         return {
+            "case_name": "Test",
             "Theta_hs_out_d_t": Theta_hs_out_d_t,
             "Theta_hs_in_d_t":  Theta_hs_in_d_t,
             "Theta_ex_d_t": Theta_ex_d_t,
