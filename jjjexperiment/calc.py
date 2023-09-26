@@ -916,8 +916,8 @@ def calc_E_E_C_d_t(
     return E_E_C_d_t, E_E_fan_C_d_t, q_hs_CS_d_t, q_hs_CL_d_t
 
 def version_info() -> str:
-    """ GITの最終コミット日時をバージョン管理に使用します
+    """ 最終編集日をバージョン管理に使用します
     """
-    date_str = subprocess.check_output(['git', 'log', '-1', '--format=%cd']).decode('utf-8').strip()
-    date = datetime.strptime(date_str, '%a %b %d %H:%M:%S %Y %z')
-    return date.strftime('_%Y%b%d')
+    # WARNING: subprocessモジュールによるコミット履歴からの生成は \
+    # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
+    return '_20230926'
