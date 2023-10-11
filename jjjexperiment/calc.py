@@ -794,7 +794,7 @@ def calc_E_E_H_d_t(
                                 Theta_real_inner= Theta_real_inner,
                                 RH_real_inner= RH_real_inner,
                                 outdoorFile= outdoorFile)
-            E_E_CRAC_H_d_t = np.divide(q_hs_H_d_t * 3.6/1000,
+            E_E_CRAC_H_d_t = np.divide(q_hs_H_d_t / 1000,  # kW
                                        COP_H_d_t,
                                        out=np.zeros_like(q_hs_H_d_t),
                                        where=COP_H_d_t!=0)  # kWh
@@ -935,7 +935,7 @@ def calc_E_E_C_d_t(
                             Theta_real_inner= Theta_real_inner,
                             RH_real_inner= RH_real_inner,
                             outdoorFile= outdoorFile)
-            E_E_CRAC_C_d_t = np.divide(q_hs_C_d_t * 3.6/1000,
+            E_E_CRAC_C_d_t = np.divide(q_hs_C_d_t / 1000,  # kW
                                 COP_C_d_t,
                                 out=np.zeros_like(q_hs_C_d_t),
                                 where=COP_C_d_t!=0)  # kWh
