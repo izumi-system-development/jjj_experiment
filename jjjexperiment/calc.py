@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime
-import subprocess
 
 from pyhees.section3_2_8 import get_r_env
 from pyhees.section11_1 import calc_h_ex, load_climate, load_outdoor, get_Theta_ex, get_X_ex, get_J
@@ -22,6 +21,13 @@ from jjjexperiment.denchu_1 import Spec
 import jjjexperiment.denchu_2 as denchu_2
 
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+
+def version_info() -> str:
+    """ 最終編集日をバージョン管理に使用します
+    """
+    # NOTE: subprocessモジュールによるコミット履歴からの生成は \
+    # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
+    return '_20231011'
 
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
@@ -794,7 +800,7 @@ def calc_E_E_H_d_t(
                                 Theta_real_inner= Theta_real_inner,
                                 RH_real_inner= RH_real_inner,
                                 outdoorFile= outdoorFile)
-            E_E_CRAC_H_d_t = np.divide(q_hs_H_d_t * 3.6/1000,
+            E_E_CRAC_H_d_t = np.divide(q_hs_H_d_t / 1000,  # kW
                                        COP_H_d_t,
                                        out=np.zeros_like(q_hs_H_d_t),
                                        where=COP_H_d_t!=0)  # kWh
@@ -935,7 +941,7 @@ def calc_E_E_C_d_t(
                             Theta_real_inner= Theta_real_inner,
                             RH_real_inner= RH_real_inner,
                             outdoorFile= outdoorFile)
-            E_E_CRAC_C_d_t = np.divide(q_hs_C_d_t * 3.6/1000,
+            E_E_CRAC_C_d_t = np.divide(q_hs_C_d_t / 1000,  # kW
                                 COP_C_d_t,
                                 out=np.zeros_like(q_hs_C_d_t),
                                 where=COP_C_d_t!=0)  # kWh
@@ -961,10 +967,3 @@ def calc_E_E_C_d_t(
         raise Exception('冷房設備機器の種類の入力が不正です。')
 
     return E_E_C_d_t, E_E_fan_C_d_t, q_hs_CS_d_t, q_hs_CL_d_t
-
-def version_info() -> str:
-    """ 最終編集日をバージョン管理に使用します
-    """
-    # WARNING: subprocessモジュールによるコミット履歴からの生成は \
-    # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
-    return '_20230926'
