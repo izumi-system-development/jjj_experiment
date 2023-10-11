@@ -48,7 +48,7 @@
         "q_rac_pub_rtd": 2.5,
         "q_rac_pub_max": 5.4,
         "P_rac_pub_min": 95,
-        "P_rac_pub_rtd": 395,
+        "P_rac_pub_rtd": 390,
         "P_rac_pub_max": 1360,
         "V_rac_pub_inner": 13.1,
         "V_rac_pub_outer": 25.5,
