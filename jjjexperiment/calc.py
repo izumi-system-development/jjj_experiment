@@ -20,6 +20,7 @@ import pyhees.section3_1 as ld
 from jjjexperiment.denchu_1 import Spec
 import jjjexperiment.denchu_2 as denchu_2
 
+import jjjexperiment.constants as constants
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
 
 def version_info() -> str:
@@ -256,12 +257,17 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t(V_hs_min, updated_V_hs_dsgn_H, updated_V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region)
             df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
 
-    # (45)　風量バランス
-    r_supply_des_i = dc.get_r_supply_des_i(A_HCZ_i)
+    if VAV and constants.change_supply_volume_before_vav_adjust == 2:
+        # (45)　風量バランス
+        r_supply_des_d_t_i = dc.get_r_supply_des_d_t_i_2023(region, L_CS_d_t_i, L_H_d_t_i)
+        # (44)　VAV 調整前の吹き出し風量
+        V_dash_supply_d_t_i = dc.get_V_dash_supply_d_t_i_2023(r_supply_des_d_t_i, V_dash_hs_supply_d_t, V_vent_g_i)
+    else:
+        # (45)　風量バランス
+        r_supply_des_i = dc.get_r_supply_des_i(A_HCZ_i)
+        # (44)　VAV 調整前の吹き出し風量
+        V_dash_supply_d_t_i = dc.get_V_dash_supply_d_t_i(r_supply_des_i, V_dash_hs_supply_d_t, V_vent_g_i)
     df_output2['r_supply_des_i'] = r_supply_des_i
-
-    # (44)　VAV 調整前の吹き出し風量
-    V_dash_supply_d_t_i = dc.get_V_dash_supply_d_t_i(r_supply_des_i, V_dash_hs_supply_d_t, V_vent_g_i)
     df_output = df_output.assign(
         V_dash_supply_d_t_1 = V_dash_supply_d_t_i[0],
         V_dash_supply_d_t_2 = V_dash_supply_d_t_i[1],

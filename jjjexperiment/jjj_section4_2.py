@@ -1710,6 +1710,21 @@ def get_V_dash_supply_d_t_i(r_supply_des_i, V_dash_hs_supply_d_t, V_vent_g_i):
     """
     return np.maximum(r_supply_des_i[:5, np.newaxis] * V_dash_hs_supply_d_t, V_vent_g_i[:5, np.newaxis])
 
+def get_V_dash_supply_d_t_i_2023(r_supply_des_d_t_i, V_dash_hs_supply_d_t, V_vent_g_i):
+    """(44)
+
+    Args:
+      r_supply_des_d_t_i: 暖冷房区画iの1時間ごとの風量バランス（-）
+      V_dash_hs_supply_d_t: 日付dの時刻tにおける暖冷房区画iのVAV調整前の吹き出し風量（m3/h）
+      V_vent_g_i: 暖冷房区画iの全般換気量（m3/h）
+
+    Returns:
+      日付dの時刻tにおけるVAV調整前の熱源機の風量（m3/h）
+
+    """
+    return np.maximum(np.sum(r_supply_des_d_t_i, axis=0) * V_dash_hs_supply_d_t, V_vent_g_i[:5, np.newaxis])
+
+
 def get_r_supply_des_i(A_HCZ_i):
     """(45)
 
@@ -1721,6 +1736,27 @@ def get_r_supply_des_i(A_HCZ_i):
 
     """
     return A_HCZ_i / np.sum(A_HCZ_i[:5])
+
+def get_r_supply_des_d_t_i_2023(region, L_CS_d_t_i, L_H_d_t_i):
+    """(45)-1
+
+    Args:
+      region:
+      L_CS_d_t_i: 暖冷房区画iの1時間当たりの冷房顕熱負荷（MJ/h）
+      L_H_d_t_i: 暖冷房区画iの1時間当たりの暖房負荷（MJ/h）
+
+    Returns:
+      暖冷房区画iの1時間当たりの風量バランス（-）
+
+    """
+
+    from jjjexperiment.jjj_section4_2_a import get_season_array_d_t
+    H, C, M = get_season_array_d_t(region)
+    r_supply_des_d_t_i = np.zeros((5, 24 * 365))
+    r_supply_des_d_t_i[:, H] = L_H_d_t_i[:5, H] / np.sum(L_H_d_t_i[:5, H], axis=0)
+    r_supply_des_d_t_i[:, M] = 0
+    r_supply_des_d_t_i[:, C] = L_CS_d_t_i[:5, C] / np.sum(L_CS_d_t_i[:5, C], axis=0)
+    return r_supply_des_d_t_i
 
 
 # ============================================================================
