@@ -805,8 +805,8 @@ def calc_E_E_H_d_t(
                                        out=np.zeros_like(q_hs_H_d_t),
                                        where=COP_H_d_t!=0)  # kWh
 
-            E_E_fan_H_d_t = np.zeros(24 * 365)
-            E_E_fan_H_d_t[q_hs_H_d_t > 0] = P_rac_fan_rtd_H/1000 * 1
+            # (37) 送風機の付加分（kWh/h）
+            E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t, f_SFP_H)
 
             df_output_denchuH = pd.DataFrame(index = pd.date_range(
                 datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
@@ -895,6 +895,7 @@ def calc_E_E_C_d_t(
 
         # (38) 送風機の付加分 (kWh/h)
         E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP_C)
+
         # (6) 圧縮機の分
         E_E_comp_C_d_t = dc_a.get_E_E_comp_C_d_t(
                             q_hs_C_d_t,
@@ -946,8 +947,8 @@ def calc_E_E_C_d_t(
                                 out=np.zeros_like(q_hs_C_d_t),
                                 where=COP_C_d_t!=0)  # kWh
 
-            E_E_fan_C_d_t = np.zeros(24 * 365)
-            E_E_fan_C_d_t[q_hs_C_d_t > 0] = P_rac_fan_rtd_C/1000 * 1
+            # (38) 送風機の付加分 (kWh/h)
+            E_E_fan_C_d_t = dc_a.get_E_E_fan_C_d_t(type, P_fan_rtd_C, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_C, q_hs_C_d_t, f_SFP_C)
 
             df_output_denchuC = pd.DataFrame(index = pd.date_range(
                 datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
@@ -961,6 +962,8 @@ def calc_E_E_C_d_t(
             )
             df_output_denchuC.to_csv(case_name + version_info() + '_denchu_C_output.csv', encoding='cp932')  # =Shift_JIS
 
+        _logger.NDdebug("E_E_CRAC_C_d_t", E_E_CRAC_C_d_t)
+        _logger.NDdebug("E_E_fan_C_d_t", E_E_fan_C_d_t)
         E_E_C_d_t = E_E_CRAC_C_d_t + E_E_fan_C_d_t  # (2)
 
     else:
