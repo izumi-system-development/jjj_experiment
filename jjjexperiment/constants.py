@@ -36,6 +36,8 @@ change_supply_volume_before_vav_adjust: int = 1
 """VAV調整前の吹き出し風量の式を変更"""
 change_heat_source_outlet_required_temperature: int = 1
 """熱源機の出口における空気温度"""
+change_V_supply_d_t_i_max: int = 1
+"""V_supply_d_t_iの上限キャップを外す"""
 
 #以下、潜熱評価モデル追加対応(暖房)
 A_f_hex_small_H: float = 0.2
@@ -181,6 +183,9 @@ def set_constants(input: dict):
   if 'change_heat_source_outlet_required_temperature' in input:
     global change_heat_source_outlet_required_temperature
     change_heat_source_outlet_required_temperature = int(input['change_heat_source_outlet_required_temperature'])
+  if 'change_V_supply_d_t_i_max' in input:
+    global change_V_supply_d_t_i_max
+    change_V_supply_d_t_i_max = int(input['change_V_supply_d_t_i_max'])
   #以下、潜熱評価モデル追加対応
   if 'H_A' in input:
     if 'A_f_hex_small' in input['H_A']:
