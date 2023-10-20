@@ -806,6 +806,7 @@ def calc_E_E_H_d_t(
                                        where=COP_H_d_t!=0)  # kWh
 
             # (37) 送風機の付加分（kWh/h）
+            # NOTE: 求めたいのは循環ファンなので P_rac_fan ではなく P_fan を使用する
             E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t, f_SFP_H)
 
             df_output_denchuH = pd.DataFrame(index = pd.date_range(
