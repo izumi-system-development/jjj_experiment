@@ -809,11 +809,6 @@ def calc_E_E_H_d_t(
             # NOTE: 求めたいのは循環ファンなので P_rac_fan ではなく P_fan を使用する
             E_E_fan_H_d_t = dc_a.get_E_E_fan_H_d_t(type, P_fan_rtd_H, V_hs_vent_d_t, V_hs_supply_d_t, V_hs_dsgn_H, q_hs_H_d_t, f_SFP_H)
 
-            _logger.NDdebug("V_hs_vent_d_t", V_hs_vent_d_t)
-            _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
-            _logger.NDdebug("q_hs_H_d_t", q_hs_H_d_t)
-            _logger.NDdebug("E_E_fan_H_d_t", E_E_fan_H_d_t)
-
             df_output_denchuH = pd.DataFrame(index = pd.date_range(
                 datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
 
@@ -967,11 +962,6 @@ def calc_E_E_C_d_t(
                 E_E_C_d_t = E_E_CRAC_C_d_t + E_E_fan_C_d_t  # kW
             )
             df_output_denchuC.to_csv(case_name + version_info() + '_denchu_C_output.csv', encoding='cp932')  # =Shift_JIS
-
-            _logger.NDdebug("V_hs_vent_d_t", V_hs_vent_d_t)
-            _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
-            _logger.NDdebug("q_hs_H_d_t", q_hs_C_d_t)
-            _logger.NDdebug("E_E_fan_H_d_t", E_E_fan_C_d_t)
 
         _logger.NDdebug("E_E_CRAC_C_d_t", E_E_CRAC_C_d_t)
         _logger.NDdebug("E_E_fan_C_d_t", E_E_fan_C_d_t)
