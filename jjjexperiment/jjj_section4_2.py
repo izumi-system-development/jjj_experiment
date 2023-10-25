@@ -1687,7 +1687,10 @@ def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_
 
     # 吹き出し風量V_(supply,d,t,i)は、VAV調整前の吹き出し風量V_(supply,d,t,i)^'を上回る場合はVAV調整前の \
     # 吹き出し風量V_(supply,d,t,i)^'に等しいとし、全般換気量V_(vent,g,i)を下回る場合は全般換気量V_(vent,g,i)に等しいとする
-    V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
+    if constants.change_V_supply_d_t_i_max == 2:
+      V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, None)
+    else:
+      V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
 
     return V_supply_d_t_i
 
@@ -1753,9 +1756,12 @@ def get_r_supply_des_d_t_i_2023(region, L_CS_d_t_i, L_H_d_t_i):
     from jjjexperiment.jjj_section4_2_a import get_season_array_d_t
     H, C, M = get_season_array_d_t(region)
     r_supply_des_d_t_i = np.zeros((5, 24 * 365))
-    r_supply_des_d_t_i[:, H] = L_H_d_t_i[:5, H] / np.sum(L_H_d_t_i[:5, H], axis=0)
+    sum_L_H_d_t_i = np.sum(L_H_d_t_i[:5, H], axis=0)
+    r_supply_des_d_t_i[:, H] = np.divide(L_H_d_t_i[:5, H], sum_L_H_d_t_i, out=np.zeros_like(L_H_d_t_i[:5, H]), where=sum_L_H_d_t_i!=0)
     r_supply_des_d_t_i[:, M] = 0
-    r_supply_des_d_t_i[:, C] = L_CS_d_t_i[:5, C] / np.sum(L_CS_d_t_i[:5, C], axis=0)
+    sum_L_CS_d_t_i = np.sum(L_CS_d_t_i[:5, C], axis=0)
+    r_supply_des_d_t_i[:, C] = np.divide(L_CS_d_t_i[:5, C], sum_L_CS_d_t_i, out=np.zeros_like(L_CS_d_t_i[:5, C]), where=sum_L_CS_d_t_i!=0)
+
     return r_supply_des_d_t_i
 
 
