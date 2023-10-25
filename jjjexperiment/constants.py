@@ -34,6 +34,8 @@ fix_latent_load: int = 1
 """潜熱負荷計算の不具合修正"""
 change_supply_volume_before_vav_adjust: int = 1
 """VAV調整前の吹き出し風量の式を変更"""
+change_heat_source_outlet_required_temperature: int = 1
+"""熱源機の出口における空気温度"""
 
 #以下、潜熱評価モデル追加対応(暖房)
 A_f_hex_small_H: float = 0.2
@@ -176,6 +178,9 @@ def set_constants(input: dict):
   if 'change_supply_volume_before_vav_adjust' in input:
     global change_supply_volume_before_vav_adjust
     change_supply_volume_before_vav_adjust = int(input['change_supply_volume_before_vav_adjust'])
+  if 'change_heat_source_outlet_required_temperature' in input:
+    global change_heat_source_outlet_required_temperature
+    change_heat_source_outlet_required_temperature = int(input['change_heat_source_outlet_required_temperature'])
   #以下、潜熱評価モデル追加対応
   if 'H_A' in input:
     if 'A_f_hex_small' in input['H_A']:
