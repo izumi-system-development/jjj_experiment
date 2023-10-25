@@ -22,13 +22,14 @@ import jjjexperiment.denchu_2 as denchu_2
 
 import jjjexperiment.constants as constants
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.options import *
 
 def version_info() -> str:
     """ 最終編集日をバージョン管理に使用します
     """
     # NOTE: subprocessモジュールによるコミット履歴からの生成は \
     # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
-    return '_20231020'
+    return '_20231025'
 
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
@@ -257,7 +258,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             V_dash_hs_supply_d_t = dc.get_V_dash_hs_supply_d_t(V_hs_min, updated_V_hs_dsgn_H, updated_V_hs_dsgn_C, Q_hs_rtd_H, Q_hs_rtd_C, Q_hat_hs_d_t, region)
             df_output['V_dash_hs_supply_d_t'] = V_dash_hs_supply_d_t
 
-    if VAV or constants.change_supply_volume_before_vav_adjust == 2:
+    if VAV or constants.change_supply_volume_before_vav_adjust == VAVありなしの吹出風量.数式を統一する.value:
         # (45)　風量バランス
         r_supply_des_d_t_i = dc.get_r_supply_des_d_t_i_2023(region, L_CS_d_t_i, L_H_d_t_i)
         # (44)　VAV 調整前の吹き出し風量

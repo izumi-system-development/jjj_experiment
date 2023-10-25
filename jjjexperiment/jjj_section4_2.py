@@ -42,6 +42,7 @@ from jjjexperiment.constants import PROCESS_TYPE_3
 import jjjexperiment.constants as constants
 
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.options import *
 
 # 未処理負荷と機器の計算に必要な変数を取得
 def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
@@ -778,7 +779,7 @@ def get_Theta_hs_out_d_t(VAV, Theta_req_d_t_i, V_dash_supply_d_t_i, L_star_H_d_t
     f3 = np.logical_and(C, np.sum(L_star_CS_d_t_i[:5], axis=0) > 0)
     f4 = np.logical_and(C, np.sum(L_star_CS_d_t_i[:5], axis=0) <= 0)
 
-    if VAV == False and constants.change_heat_source_outlet_required_temperature != 2:
+    if VAV == False and constants.change_heat_source_outlet_required_temperature != 熱源機出口の空気温度.式を変更.value:
         # 暖房期および冷房期 (14-1)
         Theta_hs_out_d_t[f1] = np.sum(Theta_req_d_t_i[:5, f1] * V_dash_supply_d_t_i[:5, f1], axis=0) / \
                                        np.sum(V_dash_supply_d_t_i[:5, f1], axis=0)
@@ -1687,7 +1688,7 @@ def get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_
 
     # 吹き出し風量V_(supply,d,t,i)は、VAV調整前の吹き出し風量V_(supply,d,t,i)^'を上回る場合はVAV調整前の \
     # 吹き出し風量V_(supply,d,t,i)^'に等しいとし、全般換気量V_(vent,g,i)を下回る場合は全般換気量V_(vent,g,i)に等しいとする
-    if constants.change_V_supply_d_t_i_max == 2:
+    if constants.change_V_supply_d_t_i_max == Vサプライの上限キャップ.外す.value:
       V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, None)
     else:
       V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
