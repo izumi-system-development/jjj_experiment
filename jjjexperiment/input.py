@@ -5,6 +5,7 @@ import pyhees.section4_3_a as rac_spec
 from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3, PROCESS_TYPE_4
 
 from jjjexperiment.denchu_1 import Spec, Condition, absolute_humid
+from jjjexperiment.options import *
 
 def get_basic(input: dict):
     """ 基本情報の設定
