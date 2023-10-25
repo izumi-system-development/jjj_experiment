@@ -32,6 +32,12 @@ q_rtd_C_limit: float = 5600
 """定格冷房能力の最大値"""
 fix_latent_load: int = 1
 """潜熱負荷計算の不具合修正"""
+change_supply_volume_before_vav_adjust: int = 1
+"""VAV調整前の吹き出し風量の式を変更"""
+change_heat_source_outlet_required_temperature: int = 1
+"""熱源機の出口における空気温度"""
+change_V_supply_d_t_i_max: int = 1
+"""V_supply_d_t_iの上限キャップを外す"""
 
 #以下、潜熱評価モデル追加対応(暖房)
 A_f_hex_small_H: float = 0.2
@@ -171,6 +177,15 @@ def set_constants(input: dict):
   if 'fix_latent_load' in input:
     global fix_latent_load
     fix_latent_load = int(input['fix_latent_load'])
+  if 'change_supply_volume_before_vav_adjust' in input:
+    global change_supply_volume_before_vav_adjust
+    change_supply_volume_before_vav_adjust = int(input['change_supply_volume_before_vav_adjust'])
+  if 'change_heat_source_outlet_required_temperature' in input:
+    global change_heat_source_outlet_required_temperature
+    change_heat_source_outlet_required_temperature = int(input['change_heat_source_outlet_required_temperature'])
+  if 'change_V_supply_d_t_i_max' in input:
+    global change_V_supply_d_t_i_max
+    change_V_supply_d_t_i_max = int(input['change_V_supply_d_t_i_max'])
   #以下、潜熱評価モデル追加対応
   if 'H_A' in input:
     if 'A_f_hex_small' in input['H_A']:

@@ -31,6 +31,9 @@
   "underfloor_air_conditioning_air_supply": "1",
   "R_g": 0.15,
   "hs_CAV": "1",
+  "change_supply_volume_before_vav_adjust": "1",
+  "change_heat_source_outlet_required_temperature": "1",
+  "change_V_supply_d_t_i_max": "1",
   "H_A": {
     "type": 2,
     "duct_insulation": 1,
