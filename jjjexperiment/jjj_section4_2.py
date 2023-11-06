@@ -15,24 +15,31 @@ import pyhees.section3_1 as ld
 from pyhees.section3_2_8 import \
     get_r_env
 
-from pyhees.section11_1 import \
-    load_outdoor, \
-    get_T_ex, \
-    get_Theta_ex, \
-    get_X_ex, \
-    calc_h_ex, \
-    load_climate, \
-    get_J
-
 from pyhees.section3_1 import \
     get_A_NR
 
 from pyhees.section4_7_i import \
     get_A_A_R
 
+from pyhees.section11_1 import \
+    get_Theta_ex, \
+    get_X_ex, \
+    load_climate, \
+    get_climate_df
+
+from pyhees.section11_2 import \
+    calc_I_s_d_t
+
 from pyhees.section11_3 import \
     load_schedule, \
     get_schedule_ac
+
+from pyhees.section11_5 import \
+    calc_h_ex, \
+    get_J
+
+from pyhees.section11_6 import \
+    get_table_7
 
 from jjjexperiment.jjj_section4_3 import \
     get_C_af_H, \
@@ -45,7 +52,7 @@ from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ
 from jjjexperiment.options import *
 
 # 未処理負荷と機器の計算に必要な変数を取得
-def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
+def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
              VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """
 
@@ -59,14 +66,14 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
       general_ventilation: param duct_insulation:
       region: param L_H_d_t_i:
       L_CS_d_t_i: param L_CL_d_t_i:
-      A_MR: 
-      A_env: 
-      mu_C: 
-      q_hs_rtd_C: 
-      V_hs_dsgn_C: 
-      VAV: 
-      duct_insulation: 
-      L_H_d_t_i: 
+      A_MR:
+      r_env: 床面積の合計に対する外皮の部位の面積の合計の比 (-)
+      mu_C:
+      q_hs_rtd_C:
+      V_hs_dsgn_C:
+      VAV:
+      duct_insulation:
+      L_H_d_t_i:
       L_CL_d_t_i:
       type:
       input_C_af_H:
@@ -77,11 +84,10 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     """
 
     # 外気条件
-    outdoor = load_outdoor()
-    Theta_ex_d_t = get_Theta_ex(region, outdoor)
-    X_ex_d_t = get_X_ex(region, outdoor)
     climate = load_climate(region)
-    J_d_t = get_J(climate)
+    X_ex_d_t = get_X_ex(climate)
+    Theta_ex_d_t = get_Theta_ex(climate)
+    J_d_t = calc_I_s_d_t(0, 0, get_climate_df(climate))
     h_ex_d_t = calc_h_ex(X_ex_d_t, Theta_ex_d_t)
 
     A_HCZ_i = np.array([ld.get_A_HCZ_i(i, A_A, A_MR, A_OR) for i in range(1, 6)])
@@ -146,7 +152,6 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     U_prt = get_U_prt()
 
     # (60)
-    r_env = get_r_env(A_env, A_A)
     A_prt_i = get_A_prt_i(A_HCZ_i, r_env, A_MR, A_NR, A_OR)
 
     # (59)
@@ -766,7 +771,7 @@ def get_Theta_hs_out_d_t(VAV, Theta_req_d_t_i, V_dash_supply_d_t_i, L_star_H_d_t
       region: 地域区分
       Theta_NR_d_t: 日付dの時刻tにおける非居室の室温(℃)
       Theta_hs_out_max_H_d_t: param Theta_hs_out_min_C_d_t:
-      Theta_hs_out_min_C_d_t: 
+      Theta_hs_out_min_C_d_t:
 
     Returns:
 
@@ -1497,12 +1502,8 @@ def calc_Q_hat_hs_d_t(Q, A_A, V_vent_l_d_t, V_vent_g_i, mu_H, mu_C, J_d_t, q_gen
                       + mu_C * A_A * J_d_t[C] + q_gen_d_t[C] + n_p_d_t[C] * q_p_CS) * 3600 * 10 ** -6
 
     # (40-2c)
-    if constants.fix_latent_load == 2:
-        Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] / 1000 - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
-                       * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
-    else:
-        Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
-                       * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
+    Q_hat_hs_CL_d_t[C] = ((rho_air * (V_vent_l_d_t[C] + np.sum(V_vent_g_i[:5])) * (X_ex_d_t[C] - X_set_C) * 10 ** 3 + w_gen_d_t[C]) \
+                      * L_wtr + n_p_d_t[C] * q_p_CL * 3600) * 10 ** -6
 
     # (40-2a)
     Q_hat_hs_d_t[C] = np.clip(Q_hat_hs_CS_d_t[C], 0, None) + np.clip(Q_hat_hs_CL_d_t[C], 0, None)
@@ -1948,19 +1949,13 @@ def get_X_star_HBR_d_t(X_ex_d_t, region):
     X_star_HBR_d_t = np.zeros(24 * 365)
 
     # 暖房期
-    if constants.fix_latent_load == 2:
-      X_star_HBR_d_t[H] = X_ex_d_t[H] / 1000.0
-    else:
-      X_star_HBR_d_t[H] = X_ex_d_t[H]
+    X_star_HBR_d_t[H] = X_ex_d_t[H]
 
     # 冷房期
     X_star_HBR_d_t[C] = X_set_C
 
     # 中間期
-    if constants.fix_latent_load == 2:
-      X_star_HBR_d_t[M] = X_ex_d_t[M] / 1000.0
-    else:
-      X_star_HBR_d_t[M] = X_ex_d_t[M]
+    X_star_HBR_d_t[M] = X_ex_d_t[M]
 
     return X_star_HBR_d_t
 
@@ -2020,8 +2015,8 @@ def get_X_star_NR_d_t(X_star_HBR_d_t, L_CL_d_t_i, L_wtr, V_vent_l_NR_d_t, V_dash
       L_wtr: param V_vent_l_NR_d_t:
       V_dash_supply_d_t_i: param region:
       L_CL_d_t_i: param V_vent_l_NR_d_t:
-      region: 
-      V_vent_l_NR_d_t: 
+      region:
+      V_vent_l_NR_d_t:
 
     Returns:
 
@@ -2721,7 +2716,7 @@ def get_n_p_d_t(n_p_MR_d_t, n_p_OR_d_t, n_p_NR_d_t):
       q_gen_NR_d_t: 日付dの時刻tにおける非居室の在室人数（人）
       n_p_MR_d_t: param n_p_OR_d_t:
       n_p_NR_d_t: returns: 日付dの時刻tにおける在室人数（人）
-      n_p_OR_d_t: 
+      n_p_OR_d_t:
 
     Returns:
       日付dの時刻tにおける在室人数（人）
@@ -2867,7 +2862,7 @@ def get_season_array(region):
     """
 
     Args:
-      region: 
+      region:
 
     Returns:
 
@@ -2887,7 +2882,7 @@ def get_season_array_d_t(region):
     """
 
     Args:
-      region: 
+      region:
 
     Returns:
 
@@ -2903,7 +2898,7 @@ def get_season_array_d_t(region):
 
 def get_period_array(p1, p2):
     """指定月日期間のみTrueのndarrayを作成する
-    
+
     指定月日期間のみTrueのndarrayを作成する。
     開始月日が終了月日が逆転する場合は、年をまたいだとみなす。
 
@@ -2935,20 +2930,6 @@ def get_period_array(p1, p2):
         arr[d2+1:d1] = False
 
     return arr
-
-
-def get_table_7():
-    """ """
-    return [
-        ((9, 24), (6, 7), (7, 10), (8, 31)),
-        ((9, 26), (6, 4), (7, 15), (8, 31)),
-        ((9, 30), (5, 31), (7, 10), (8, 31)),
-        ((10, 1), (5, 30), (7, 10), (8, 31)),
-        ((10, 10), (5, 15), (7, 6), (8, 31)),
-        ((11, 4), (4, 21), (5, 30), (9, 23)),
-        ((11, 26), (3, 27), (5, 15), (10, 13)),
-        (None, None, (3, 25), (12, 14)),
-    ]
 
 
 # ============================================================================

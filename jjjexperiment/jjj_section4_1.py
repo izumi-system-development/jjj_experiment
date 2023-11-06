@@ -116,7 +116,7 @@ def calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR,
 # 6.1.1 住戸全体を連続的に暖房する方式 
 # ---------------------------------------------------
 
-def calc_Q_UT_H_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
+def calc_Q_UT_H_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
                      VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """住宅全体を連続的に暖房する方式おける暖房設備の未処理暖房負荷 (1)
 
@@ -124,7 +124,7 @@ def calc_Q_UT_H_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
-      A_env(float): 外皮の部位の面積の合計 (m2)
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       mu_H(float): 当該住戸の暖房期の日射取得係数 ((W/m2)/(W/m2))
       mu_C(float): 当該住戸の冷房期の日射取得係数 ((W/m2)/(W/m2))
       q_hs_rtd_H(float): 熱源機の暖房時の定格出力 (MJ/h)
@@ -147,7 +147,7 @@ def calc_Q_UT_H_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C
       ndarray: 住戸全体を連続的に暖房する方式における1時間当たりの暖房設備の未処理暖房負荷(MJ/h)
 
     """
-    _, Q_UT_H_d_t_i, _, _, _, _, _, _, _, _, _ = dc.calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C,
+    _, Q_UT_H_d_t_i, _, _, _, _, _, _, _, _, _ = dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C,
                                           V_hs_dsgn_H, V_hs_dsgn_C, Q, VAV, general_ventilation,
                                           duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C)
 
@@ -436,7 +436,7 @@ def get_Q_UT_H_d_t_i(Q_T_H_d_t_i, L_H_d_t_i):
 # 6.2 暖房設備のエネルギー消費量 
 # ===================================================
 
-def get_E_E_H_d_t(region, sol_region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, type, input_C_af_H, input_C_af_C, 
+def get_E_E_H_d_t(region, sol_region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, type, input_C_af_H, input_C_af_C, 
                   H_A=None,
                   spec_MR=None,
                   spec_OR=None, spec_HS=None,
@@ -454,7 +454,7 @@ def get_E_E_H_d_t(region, sol_region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, typ
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
-      A_env(float): 外皮の部位の面積の合計 (m2)
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       mu_H(float): 当該住戸の暖房期の日射取得係数 ((W/m2)/(W/m2))
       mu_C(float): 当該住戸の冷房期の日射取得係数 ((W/m2)/(W/m2))
       Q(float): 当該住戸の熱損失係数 (W/m2K)
@@ -483,7 +483,7 @@ def get_E_E_H_d_t(region, sol_region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, typ
         return np.zeros(24 * 365)
 
     # 暖房設備機器等の消費電力量
-    E_E_hs_d_t = calc_E_E_hs_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, CG,
+    E_E_hs_d_t = calc_E_E_hs_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, CG,
                                  L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_, type, input_C_af_H, input_C_af_C)
 
     # 空気集熱式太陽熱利用設備の補機の消費電力量のうちの暖房設備への付加分
@@ -529,7 +529,7 @@ def get_E_E_aux_ass_d_t(SHC, heating_flag_d, region, sol_region):
     return E_E_aux_ass_d_t
 
 
-def calc_E_E_hs_d_t(type,region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, CG,
+def calc_E_E_hs_d_t(type,region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, CG,
                     L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i, input_C_af_H, input_C_af_C):
     """暖房設備機器等の消費電力量（kWh/h）を計算する
 
@@ -539,7 +539,7 @@ def calc_E_E_hs_d_t(type,region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, spe
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
-      A_env(float): 外皮の部位の面積の合計 (m2)
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       mu_H(float): 当該住戸の暖房期の日射取得係数 ((W/m2)/(W/m2))
       mu_C(float): 当該住戸の冷房期の日射取得係数 ((W/m2)/(W/m2))
       Q(float): 当該住戸の熱損失係数 (W/m2K)
@@ -561,7 +561,7 @@ def calc_E_E_hs_d_t(type,region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, spe
 
     """
     if H_A is not None:
-        return calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i, region, type, input_C_af_H, input_C_af_C)
+        return calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, L_T_H_d_t_i, L_T_CS_d_t_i, L_T_CL_d_t_i, region, type, input_C_af_H, input_C_af_C)
     elif (spec_MR is not None or spec_OR is not None) and L_T_H_d_t_i is not None:
         if is_hotwaterheatingonly(spec_MR, spec_OR):
             # 居室のみを暖房する方式でかつ主たる居室とその他の居室ともに温水暖房を設置する場合 (8a)
@@ -1569,7 +1569,7 @@ def calc_E_M_hs_d_t(region, A_A, A_MR, A_OR, H_A, spec_MR, spec_OR, spec_HS, L_H
 # 6.3.1 住戸全体を連続的に暖房する方式 
 # ---------------------------------------------------
 
-def calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, q_hs_H_d_t, region, input_C_af_H, input_C_af_C):
+def calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, H_A, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, q_hs_H_d_t, region, input_C_af_H, input_C_af_C):
     """住戸全体を連続的に暖房する方式における暖房設備機器の消費電力量（kWh/h）を計算する
 
     Args:
@@ -1577,7 +1577,7 @@ def calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_H_d_t
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
-      A_env(float): 外皮の部位の面積の合計 (m2)
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       mu_H(float): 当該住戸の暖房期の日射取得係数 ((W/m2)/(W/m2))
       mu_C(float): 当該住戸の冷房期の日射取得係数 ((W/m2)/(W/m2))
       Q(float): 当該住戸の熱損失係数 (W/m2K)
@@ -1657,7 +1657,7 @@ def calc_E_E_H_hs_A_d_t(type,A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, H_A, L_H_d_t
     V_hs_dsgn_C = None
 
     _, _, _, _, Theta_hs_out_d_t, Theta_hs_in_d_t, \
-    _, _, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t = dc.calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C,
+    _, _, V_hs_supply_d_t, V_hs_vent_d_t, C_df_H_d_t = dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C,
                                                                     q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H,
                                                                     V_hs_dsgn_C, Q, VAV, general_ventilation,
                                                                     duct_insulation, region, L_H_d_t_i,
@@ -1929,7 +1929,7 @@ def calc_E_M_d_t(i, device, A_A, A_MR, A_OR, L_H_d_t):
 # 6.4 暖房設備の未処理暖房負荷の設計一次エネルギー消費量相当値 
 # ===================================================
 
-def calc_E_UT_H_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, mode_H, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, CG,
+def calc_E_UT_H_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, mode_H, H_A, spec_MR, spec_OR, spec_HS, mode_MR, mode_OR, CG,
                     L_T_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C):
     """暖房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）(13)を取得する
     (12)(13)式を内部分岐して呼び出す関数
@@ -1939,7 +1939,7 @@ def calc_E_UT_H_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, mode_H, H_A, 
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
-      A_env(float): 外皮の部位の面積の合計 (m2)
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       mu_H(float): 当該住戸の暖房期の日射取得係数 ((W/m2)/(W/m2))
       mu_C(float): 当該住戸の冷房期の日射取得係数 ((W/m2)/(W/m2))
       Q(float): 当該住戸の熱損失係数 (W/m2K)
@@ -1964,7 +1964,7 @@ def calc_E_UT_H_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, mode_H, H_A, 
     """
     if mode_H == '住戸全体を連続的に暖房する方式':
         # 全館連続
-        return calc_E_UT_H_d_t__modeA(H_A, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, region,
+        return calc_E_UT_H_d_t__modeA(H_A, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, region,
                                       L_T_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C)
     elif mode_H == '居室のみを暖房する方式でかつ主たる居室とその他の居室ともに温水暖房を設置する場合に該当しない場合' or \
             mode_H == '設置しない':
@@ -1981,14 +1981,14 @@ def calc_E_UT_H_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, mode_H, H_A, 
 # 6.4.1 住戸全体を連続的に暖房する方式 
 # ---------------------------------------------------
 
-def calc_E_UT_H_d_t__modeA(H_A, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
+def calc_E_UT_H_d_t__modeA(H_A, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """暖房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）(13)を取得する
 
     Args:
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
-      A_env(float): 外皮の部位の面積の合計 (m2)
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       mu_H(float): 当該住戸の暖房期の日射取得係数 ((W/m2)/(W/m2))
       mu_C(float): 当該住戸の冷房期の日射取得係数 ((W/m2)/(W/m2))
       Q(float): 当該住戸の熱損失係数 (W/m2K)
@@ -2045,7 +2045,7 @@ def calc_E_UT_H_d_t__modeA(H_A, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, region, L
     V_hs_dsgn_C = None
 
     # 未処理負荷を取得
-    Q_UT_H_A_d_t = calc_Q_UT_H_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
+    Q_UT_H_A_d_t = calc_Q_UT_H_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
                      VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C)
 
     return Q_UT_H_A_d_t * alpha_UT_H_A
@@ -2336,7 +2336,7 @@ def calc_cooling_load(region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, r_A_
 # 7.1.1 住戸全体を連続的に冷房する方式 
 # ---------------------------------------------------
 
-def calc_Q_UT_CS_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
+def calc_Q_UT_CS_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
                        VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """住戸全体を連続的に冷房する方式における冷房設備の未処理冷房顕熱負荷（MJ/h）(15)を取得する
 
@@ -2358,7 +2358,7 @@ def calc_Q_UT_CS_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_
       L_H_d_t(ndarray): 暖房区画の暖房負荷
       L_CS_d_t(ndarray): 冷房区画の冷房顕熱負荷
       L_CL_d_t(ndarray): 冷房区画の冷房潜熱負荷
-      A_env: param L_H_d_t_i:
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       L_CS_d_t_i: param L_CL_d_t_i:
       L_H_d_t_i: 
       L_CL_d_t_i:
@@ -2370,7 +2370,7 @@ def calc_Q_UT_CS_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_
       ndarray: 住戸全体を連続的に冷房する方式における冷房設備の未処理冷房顕熱負荷（MJ/h）
 
     """
-    _, _, Q_UT_CS_d_t_i, _, _, _, _, _, _, _, _= dc.calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C,
+    _, _, Q_UT_CS_d_t_i, _, _, _, _, _, _, _, _= dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C,
                                                                q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, VAV,
                                                                general_ventilation, duct_insulation, region,
                                                                L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C)
@@ -2379,7 +2379,7 @@ def calc_Q_UT_CS_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_
     return Q_UT_CS_A_d_t
 
 
-def calc_Q_UT_CL_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
+def calc_Q_UT_CL_A_d_t(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
                        VAV, general_ventilation, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C):
     """住戸全体を連続的に冷房する方式における冷房設備の未処理冷房潜熱負荷（MJ/h）(16)を取得する
 
@@ -2401,7 +2401,7 @@ def calc_Q_UT_CL_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_
       L_H_d_t(ndarray): 暖房区画の暖房負荷
       L_CS_d_t(ndarray): 冷房区画の冷房顕熱負荷
       L_CL_d_t(ndarray): 冷房区画の冷房潜熱負荷
-      A_env: param L_H_d_t_i:
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       L_CS_d_t_i: param L_CL_d_t_i:
       L_H_d_t_i: 
       L_CL_d_t_i:
@@ -2413,7 +2413,7 @@ def calc_Q_UT_CL_A_d_t(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_
       ndarray: 住戸全体を連続的に冷房する方式における冷房設備の未処理冷房潜熱負荷（MJ/h）
 
     """
-    _, _, _, Q_UT_CL_d_t_i, _, _, _, _, _, _, _= dc.calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C,
+    _, _, _, Q_UT_CL_d_t_i, _, _, _, _, _, _, _= dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C,
                                                                q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, VAV,
                                                                general_ventilation, duct_insulation, region,
                                                                L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, type, input_C_af_H, input_C_af_C)
@@ -2544,7 +2544,7 @@ def calc_Q_UT_CL_OR_d_t(**args):
 # 7.2 冷房設備のエネルギー消費量 
 # ===================================================
 
-def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, q_hs_C_d_t, type, input_C_af_H, input_C_af_C, C_A=None, C_MR=None, C_OR=None, L_H_d_t=None,
+def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, q_hs_C_d_t, type, input_C_af_H, input_C_af_C, C_A=None, C_MR=None, C_OR=None, L_H_d_t=None,
                    L_CS_d_t=None, L_CL_d_t=None):
     """冷房設備の消費電力量（kWh/h） (21a)を取得する
 
@@ -2553,7 +2553,7 @@ def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, q_hs_C_d_t, ty
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
-      A_env(float): 外皮の部位の面積の合計 (m2)
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       mu_H(float): 当該住戸の暖房期の日射取得係数 ((W/m2)/(W/m2))
       mu_C(float): 当該住戸の冷房期の日射取得係数 ((W/m2)/(W/m2))
       Q(float): 当該住戸の熱損失係数 (W/m2K)
@@ -2572,7 +2572,7 @@ def calc_E_E_C_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, q_hs_C_d_t, ty
       ndarray: 冷房設備の消費電力量（kWh/h）
 
     """
-    return calc_E_E_C_hs_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, q_hs_C_d_t, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C)
+    return calc_E_E_C_hs_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, q_hs_C_d_t, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C)
 
 
 def calc_E_G_C_d_t(**args):
@@ -2618,7 +2618,7 @@ def calc_E_M_C_d_t(**args):
 # 7.3 冷房設備機器のエネルギー消費量 
 # ===================================================
 
-def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, q_hs_C_d_t, input_C_af_H, input_C_af_C):
+def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, q_hs_C_d_t, input_C_af_H, input_C_af_C):
     """冷房設備機器の消費電力量（kWh/h）(22a, 23a)を取得する
 
     Args:
@@ -2627,7 +2627,7 @@ def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, 
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
-      A_env(float): 外皮の部位の面積の合計 (m2)
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       mu_H(float): 当該住戸の暖房期の日射取得係数 ((W/m2)/(W/m2))
       mu_C(float): 当該住戸の冷房期の日射取得係数 ((W/m2)/(W/m2))
       Q(float): 当該住戸の熱損失係数 (W/m2K)
@@ -2710,7 +2710,7 @@ def calc_E_E_C_hs_d_t(type, region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, 
 
         _, _, _, _, \
         Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, \
-        X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, _ = dc.calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H,
+        X_hs_in_d_t, V_hs_supply_d_t, V_hs_vent_d_t, _ = dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H,
                                                                        q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, VAV,
                                                                        general_ventilation, duct_insulation, region,
                                                                        L_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C)
@@ -2994,7 +2994,7 @@ def calc_E_M_C_hs_OR_d_t():
     return np.sum([rac.get_E_M_C_d_t() for i in range(2, 6)], axis=0)
 
 
-def calc_E_UT_C_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, mode_C, type, input_C_af_H, input_C_af_C):
+def calc_E_UT_C_d_t(region, A_A, A_MR, A_OR, r_env, mu_H, mu_C, Q, C_A, C_MR, C_OR, L_H_d_t, L_CS_d_t, L_CL_d_t, mode_C, type, input_C_af_H, input_C_af_C):
     """冷房設備の未処理暖房負荷の設計一次エネルギー消費量相当値（MJ/h）を計算する
 
     Args:
@@ -3002,7 +3002,7 @@ def calc_E_UT_C_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, C_MR, C_
       A_A(float): 床面積の合計 (m2)
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
-      A_env(float): 外皮の部位の面積の合計 (m2)
+      r_env(float): 床面積の合計に対する外皮の部位の面積の合計の比 (-)
       mu_H(float): 当該住戸の暖房期の日射取得係数 ((W/m2)/(W/m2))
       mu_C(float): 当該住戸の冷房期の日射取得係数 ((W/m2)/(W/m2))
       Q(float): 当該住戸の熱損失係数 (W/m2K)
@@ -3065,7 +3065,7 @@ def calc_E_UT_C_d_t(region, A_A, A_MR, A_OR, A_env, mu_H, mu_C, Q, C_A, C_MR, C_
         V_hs_dsgn_H = None
 
         E_UT_C_d_t, _, _, _, _, _, \
-        _, _, _, _, _ = dc.calc_Q_UT_A(A_A, A_MR, A_OR, A_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
+        _, _, _, _, _ = dc.calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
              VAV, general_ventilation, duct_insulation, region, L_H_d_t, L_CS_d_t, L_CL_d_t, type, input_C_af_H, input_C_af_C)
 
         E_UT_C_d_t = E_UT_C_d_t
