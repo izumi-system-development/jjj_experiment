@@ -305,8 +305,8 @@ def calc(input_data : dict, test_mode=False):
         outdoorFile = outdoorFile,
         simu_R_C= simu_R_C if C_A['type']==PROCESS_TYPE_4 else None,
         spec= spec         if C_A['type']==PROCESS_TYPE_4 else None,
-        Theta_real_inner=  T_real if H_A['type']==PROCESS_TYPE_4 else None,
-        RH_real_inner=    RH_real if H_A['type']==PROCESS_TYPE_4 else None)
+        Theta_real_inner=  T_real if C_A['type']==PROCESS_TYPE_4 else None,
+        RH_real_inner=    RH_real if C_A['type']==PROCESS_TYPE_4 else None)
 
     # CHECK: Q_UT_C の間違いではないのか
     df_output2['Q_UT_H_d_t_i [MJ/h']        = E_C_UT_d_t
