@@ -20,7 +20,7 @@ from jjjexperiment.jjj_section4_3_a import \
     get_q_max_C
 
 from pyhees.section11_1 import \
-    load_outdoor, \
+    load_climate, \
     get_Theta_ex, \
     get_X_ex, \
     calc_h_ex
@@ -196,7 +196,7 @@ def get_C_df_H(Theta_ex, h_ex):
 
 # 消費電力量 (5)
 # dualcompressor: 容量可変型コンプレッサー搭載
-def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor, L_H_d_t, input_C_af_H, outdoorFile):
+def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcompressor, L_H_d_t, input_C_af_H, climateFile):
     """消費電力量 (5)
 
     Args:
@@ -207,28 +207,19 @@ def calc_E_E_H_d_t(region, q_rtd_C, q_rtd_H, q_max_C, q_max_H, e_rtd_H, dualcomp
       dualcompressor(bool): 容量可変型コンプレッサー搭載
       L_H_d_t(ndarray): 暖冷房区画݅の１時間当たりの暖房負荷
       input_C_af_H(dict): 室内機吹き出し風量に関する暖房出力補正係数に関する入力
-      outdoorFile: 外気条件ファイル
+      climateFile: 気象条件ファイル
     Returns:
       ndarray: 消費電力量
 
     """
-    # 外気条件
-    if outdoorFile == '-':
-        outdoor = load_outdoor()
-        Theta_ex = get_Theta_ex(region, outdoor)
-        X_ex = get_X_ex(region, outdoor)
-        h_ex = calc_h_ex(X_ex, Theta_ex)
+    # 気象条件
+    if climateFile == '-':
+        climate = load_climate(region)
     else:
-        outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
-            names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
-        Theta_ex = outdoor['Theta_ex_1'].values
-        X_ex = outdoor['X_ex_1'].values
-        h_ex = calc_h_ex(X_ex, Theta_ex)
-
-    #outdoor = load_outdoor()
-    #Theta_ex = get_Theta_ex(region, outdoor)
-    #X_ex = get_X_ex(region, outdoor)
-    #h_ex = calc_h_ex(X_ex, Theta_ex)
+        climate = pd.read_csv(climateFile, nrows=24 * 365, encoding="SHIFT-JIS")
+    Theta_ex = get_Theta_ex(climate)
+    X_ex = get_X_ex(climate)
+    h_ex = calc_h_ex(X_ex, Theta_ex)
 
     # 最大暖房能力
     #q_max_C = get_q_max_C(q_rtd_C)
@@ -275,9 +266,9 @@ def calc_Q_UT_H_d_t(region, q_rtd_C, q_rtd_H, e_rtd_H, L_H_d_t, input_C_af_H):
 
     """
     # 外気条件
-    outdoor = load_outdoor()
-    Theta_ex = get_Theta_ex(region, outdoor)
-    X_ex = get_X_ex(region, outdoor)
+    climate = load_climate(region)
+    Theta_ex = get_Theta_ex(climate)
+    X_ex = get_X_ex(climate)
     h_ex = calc_h_ex(X_ex, Theta_ex)
 
     # 最大暖房能力
@@ -925,7 +916,7 @@ def get_SHF_L_min_c():
 # ============================================================================
 
 # 消費電力量 (20)
-def calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor, L_CS_d_t, L_CL_d_t, input_C_af_C, outdoorFile):
+def calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor, L_CS_d_t, L_CL_d_t, input_C_af_C, climateFile):
     """消費電力量 (20)
 
     Args:
@@ -936,28 +927,19 @@ def calc_E_E_C_d_t(region, q_rtd_C, q_max_C, e_rtd_C, dualcompressor, L_CS_d_t, 
       L_CS_d_t(ndarray): 暖冷房区画の 1 時間当たりの冷房顕熱負荷
       L_CL_d_t(ndarray): 暖冷房区画の 1 時間当たりの冷房潜熱負荷
       input_C_af_C(dict): 室内機吹き出し風量に関する冷房出力補正係数に関する入力
-      outdoor: 外気条件ファイル
+      climateFile: 気象条件ファイル
     Returns:
       ndarray: 消費電力量
 
     """
-    # 外気条件
-    if outdoorFile == '-':
-        outdoor = load_outdoor()
-        Theta_ex = get_Theta_ex(region, outdoor)
-        X_ex = get_X_ex(region, outdoor)
-        h_ex = calc_h_ex(X_ex, Theta_ex)
+    # 気象条件
+    if climateFile == '-':
+        climate = load_climate(region)
     else:
-        outdoor = pd.read_csv(outdoorFile, skiprows=4, nrows=24 * 365,
-            names=('day', 'hour', 'holiday', 'Theta_ex_1', 'X_ex_1'))
-        Theta_ex = outdoor['Theta_ex_1'].values
-        X_ex = outdoor['X_ex_1'].values
-        h_ex = calc_h_ex(X_ex, Theta_ex)
-
-    #outdoor = load_outdoor()
-    #Theta_ex = get_Theta_ex(region, outdoor)
-    #X_ex = get_X_ex(region, outdoor)
-    #h_ex = calc_h_ex(X_ex, Theta_ex)
+        climate = pd.read_csv(climateFile, nrows=24 * 365, encoding="SHIFT-JIS")
+    Theta_ex = get_Theta_ex(climate)
+    X_ex = get_X_ex(climate)
+    h_ex = calc_h_ex(X_ex, Theta_ex)
 
     # 最大冷房能力
     #q_max_C = get_q_max_C(q_rtd_C)
