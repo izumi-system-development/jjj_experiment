@@ -1,2 +1,3 @@
 pytest
-pyhees @ git+https://github.com/izumi-system-development/pyhees.git@smart_installs
+pyhees @ git+https://github.com/BRI-EES-House/pyhees.git
+# pyhees @ git+https://github.com/izumi-system-development/pyhees.git
