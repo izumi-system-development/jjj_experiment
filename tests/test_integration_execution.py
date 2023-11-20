@@ -34,7 +34,9 @@ class Test既存計算維持_デフォルト入力時:
                 "H_A": {"VAV": 2},
                 "C_A": {"VAV": 2},
             }
-        inputs = deep_update(self._inputs1, fixtures)
+        # 複製しないと別テストで矛盾する
+        inputs_double = copy.deepcopy(self._inputs1)
+        inputs = deep_update(inputs_double, fixtures)
 
         assert inputs["U_A"] == 0.60
         assert inputs["H_A"]["VAV"] == 2
