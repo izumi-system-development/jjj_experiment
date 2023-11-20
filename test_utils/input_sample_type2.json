@@ -1,7 +1,6 @@
 {
   "case_name": "default",
   "climateFile": "-",
-  "outdoorFile": "-",
   "loadFile": "-",
   "Theta_hs_out_max_H_d_t_limit": 45.0,
   "Theta_hs_out_min_C_d_t_limit": 15.0,
