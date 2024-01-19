@@ -179,7 +179,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     # (55)　小屋裏の空気温度
     Theta_attic_d_t = dc.get_Theta_attic_d_t(Theta_SAT_d_t, Theta_star_HBR_d_t)
-    df_output['Theta_attic_d_t'] = Theta_attic_d_t    
+    df_output['Theta_attic_d_t'] = Theta_attic_d_t
 
     # (54)　ダクトの周囲の空気温度
     Theta_sur_d_t_i = dc.get_Theta_sur_d_t_i(Theta_star_HBR_d_t, Theta_attic_d_t, l_duct_in_i, l_duct_ex_i, duct_insulation)

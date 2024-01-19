@@ -28,7 +28,7 @@ class Test既存計算維持_デフォルト入力時:
         assert result['TInput'].e_rtd_H == expected_inputs.e_rtd_H
 
     def test_関数_deep_update(self):
-        """
+        """ 階層のあるインプットを使用してインプットを拡張するテスト
         """
         fixtures = {
                 "U_A": 0.60,  # 0.86
@@ -48,6 +48,7 @@ class Test既存計算維持_デフォルト入力時:
         """
 
         inputs = copy.deepcopy(self._inputs1)
+        # inputs = change_testmode_VAV(self._inputs1)
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C == pytest.approx(expected_result_type1.E_C, rel=1e-6)
@@ -88,3 +89,14 @@ class Test既存計算維持_デフォルト入力時:
 
         assert result['TValue'].E_C != expected_result_type2.E_C
         assert result['TValue'].E_H != expected_result_type2.E_H
+
+def change_testmode_VAV(inputs: dict):
+    fixtures = {
+        "change_supply_volume_before_vav_adjust": VAVありなしの吹出風量.数式を統一する.value,
+        "change_V_supply_d_t_i_max": Vサプライの上限キャップ.外さない.value,
+        "H_A": {"VAV": 2},
+        "C_A": {"VAV": 2},
+    }
+    # 複製しないと別テストで矛盾する
+    inputs_copied = copy.deepcopy(inputs)
+    return deep_update(inputs_copied, fixtures)
