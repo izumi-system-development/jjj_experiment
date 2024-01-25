@@ -14,7 +14,7 @@ from pyhees.section4_1_a import calc_heating_mode
 import jjjexperiment.jjj_section4_2_b as dc_spec
 
 # 床下
-import pyhees.section3_1 as ld
+import jjjexperiment.jjj_section3_1 as ld
 from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
 
 import jjjexperiment.calc
@@ -92,10 +92,11 @@ def calc(input_data : dict, test_mode=False):
     L_H_d_t_i: np.ndarray
     """暖房負荷 [MJ/h]"""
 
-    if loadFile == '-':
-        L_H_d_t_i, _ = calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, TS, r_A_ufvnt,
-                                        HEX, underfloor_insulation, mode_H, mode_C, spec_MR, spec_OR, mode_MR, mode_OR, SHC)
-    else:
+    # L_dash_H_R_d_t_i, L_dash_CS_R_d_t_iは負荷ファイルから読み取れないため自動計算する。
+    # 読み込んだ負荷と整合性が取れないため、正しい実装ではない。
+    L_H_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i  = calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, TS, r_A_ufvnt,
+                                    HEX, underfloor_insulation, mode_H, mode_C, spec_MR, spec_OR, mode_MR, mode_OR, SHC)
+    if loadFile != '-':
         load = pd.read_csv(loadFile, nrows=24 * 365)
         L_H_d_t_i = load.iloc[::,:12].T.values
 
@@ -145,9 +146,9 @@ def calc(input_data : dict, test_mode=False):
         jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C,
             H_A['q_hs_rtd_H'], None,
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, H_A['VAV'], H_A['general_ventilation'], hs_CAV,
-            H_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
+            H_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i,
             H_A['type'], input_C_af_H, input_C_af_C,
-            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
+            r_A_ufvnt, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
 
     _logger.NDdebug("Q_UT_H_d_t_i", Q_UT_H_d_t_i[0])
 
@@ -265,9 +266,9 @@ def calc(input_data : dict, test_mode=False):
         = jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C,
             None, C_A['q_hs_rtd_C'],
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, C_A['VAV'], C_A['general_ventilation'], hs_CAV,
-            C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
+            C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i,
             C_A['type'], input_C_af_H, input_C_af_C,
-            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
+            r_A_ufvnt, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
 
     E_E_C_d_t: np.ndarray
     """日付dの時刻tにおける1時間当たりの冷房時の消費電力量(kWh/h)"""
