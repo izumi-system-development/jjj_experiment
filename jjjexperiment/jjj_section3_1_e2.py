@@ -409,6 +409,8 @@ def calc_Theta(region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, The
     Theta_g_surf_d_t = np.zeros(24 * 365)
     Theta_dash_g_surf_A_m = np.zeros(M)
     Theta_dash_g_surf_A_m_d_t = np.zeros((24 * 365, M))
+    Theta_star_d_t_i = np.zeros((12, 24 * 365))
+    H_star_d_t_i = np.zeros((12, 24 * 365))
 
     # 初期値の設定
     Theta_uf_prev = 0.0
@@ -525,10 +527,12 @@ def calc_Theta(region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, The
         Theta_uf_d_t[dt] = Theta_uf
         Theta_g_surf_d_t[dt] = Theta_g_surf
         Theta_dash_g_surf_A_m_d_t[dt] = Theta_dash_g_surf_A_m
+        Theta_star_d_t_i[:, dt] = Theta_star
+        H_star_d_t_i[:, dt] = H_star
 
-    return Theta_uf_d_t, Theta_g_surf_d_t, A_s_ufvnt, A_s_ufvnt_A, Theta_g_avg, Theta_dash_g_surf_A_m_d_t, L_uf, H_floor, phi, Phi_A_0
+    return Theta_uf_d_t, Theta_g_surf_d_t, A_s_ufvnt, A_s_ufvnt_A, Theta_g_avg, Theta_dash_g_surf_A_m_d_t, L_uf, H_floor, phi, Phi_A_0, H_star_d_t_i, Theta_star_d_t_i
 
-def calc_Theta_uf_d_t_i_2023(L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, r_A_ufvnt, V_dash_supply_d_t_i, Theta_ex_d_t, region):
+def calc_Theta_uf_d_t_2023(L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, r_A_ufvnt, V_dash_supply_d_t_i, Theta_ex_d_t):
     """床下温度
     
     Args:
@@ -540,7 +544,6 @@ def calc_Theta_uf_d_t_i_2023(L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, r_A_ufvnt, 
       r_A_ufvnt(list[float]): 当該住戸において、床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)
       V_dash_supply_d_t_i(ndarray): 日付dの時刻tにおける暖冷房区画iのVAV調整前の熱源機の風量（m3/h）
       Theta_ex_d_t(ndarray): 外気温度 (℃)
-      region: 地域区分
 
     Returns:
       日付dの時刻tにおける暖冷房区画iの1時間当たりの床下温度
@@ -567,6 +570,9 @@ def calc_Theta_uf_d_t_i_2023(L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, r_A_ufvnt, 
 
     if r_A_ufvnt is None:
         r_A_ufvnt = 0
+
+    # 暖冷房区画iの床面積のうち床下空間に接する床面積の割合 (-)
+    r_A_uf_i = np.array([get_r_A_uf_i(i) for i in range(1, 13)])
     # 当該住戸の暖冷房区画iの空気を供給する床下空間に接する床の面積(m2) (7)
     A_s_ufvnt_i = [calc_A_s_ufvnt_i(i, r_A_ufvnt, A_A, A_MR, A_OR) for i in range(1, 13)]
 
@@ -574,31 +580,29 @@ def calc_Theta_uf_d_t_i_2023(L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, r_A_ufvnt, 
     C = Theta_ex_d_t > Theta_in_C
     M = np.logical_not(np.logical_or(H, C))
 
+    # 床下への供給風量
+    V_dash_supply_d_t = np.sum(r_A_uf_i[:5, np.newaxis] * V_dash_supply_d_t_i, axis=0)
+
     # 計算領域の確保
-    Theta_uf_d_t_i = np.zeros((5, 24 * 365))
+    Theta_uf_d_t = np.zeros(24 * 365)
 
-    # A_s_ufvnt_iを時刻ごとの形に拡張
-    A_s_ufvnt_d_t_i = np.array(A_s_ufvnt_i[:5]).repeat(24 * 365).reshape((5, 24 * 365))
-    # Theta_ex_d_tを暖冷房区画ごとの形に拡張
-    Theta_ex_d_t_i = np.tile(Theta_ex_d_t, 5).reshape((5, 24 * 365))
-
-    Theta_uf_d_t_i[:, H] = \
-      ( L_H_d_t_i[:5, H] * 1000 -
-        U_s * A_s_ufvnt_d_t_i[:, H] * ((Theta_in_H - Theta_ex_d_t_i[:, H]) * H_floor - Theta_in_H) * 3.6 +
-        ro_air * c_p_air * V_dash_supply_d_t_i[:5, H] * Theta_in_H
+    Theta_uf_d_t[H] = \
+      ( np.sum(r_A_uf_i[:5, np.newaxis] * L_H_d_t_i[:5, H], axis=0) * 1000 -
+        U_s * sum(A_s_ufvnt_i[:5]) * ((Theta_in_H - Theta_ex_d_t[H]) * H_floor - Theta_in_H) * 3.6 +
+        ro_air * c_p_air * V_dash_supply_d_t[H] * Theta_in_H
       ) / (
-        ro_air * c_p_air * V_dash_supply_d_t_i[:5, H] + U_s * A_s_ufvnt_d_t_i[:, H] * 3.6
+        ro_air * c_p_air * V_dash_supply_d_t[H] + U_s * sum(A_s_ufvnt_i[:5]) * 3.6
       )
-    Theta_uf_d_t_i[:, C] = \
-      ( L_CS_d_t_i[:5, C] * 1000 -
-        U_s * A_s_ufvnt_d_t_i[: ,C] * ((Theta_in_C - Theta_ex_d_t_i[:, C]) * H_floor - Theta_in_C) * 3.6 +
-        ro_air * c_p_air * V_dash_supply_d_t_i[:5, C] * Theta_in_C
+    Theta_uf_d_t[C] = \
+      ( np.sum(r_A_uf_i[:5, np.newaxis] * L_CS_d_t_i[:5, C], axis=0) * 1000 -
+        U_s * sum(A_s_ufvnt_i[:5]) * ((Theta_in_C - Theta_ex_d_t[C]) * H_floor - Theta_in_C) * 3.6 +
+        ro_air * c_p_air * V_dash_supply_d_t[C] * Theta_in_C
       ) / (
-        ro_air * c_p_air * V_dash_supply_d_t_i[:5, C] + U_s * A_s_ufvnt_d_t_i[:, C] * 3.6
+        ro_air * c_p_air * V_dash_supply_d_t[C] + U_s * sum(A_s_ufvnt_i[:5]) * 3.6
       )
-    Theta_uf_d_t_i[:, M] = Theta_ex_d_t_i[:, M]
+    Theta_uf_d_t[M] = Theta_ex_d_t[M]
 
-    return Theta_uf_d_t_i
+    return Theta_uf_d_t
 
 def get_Theta_g_avg(Theta_ex_d_t):
     """地盤の不易層温度 (℃) (10)
