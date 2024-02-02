@@ -46,7 +46,6 @@ class Test既存計算維持_デフォルト入力時:
     def test_計算結果一致_方式1(self, expected_result_type1):
         """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
         """
-        _logger.init_logger()
 
         inputs = copy.deepcopy(self._inputs1)
         result = calc(inputs, test_mode=True)
@@ -57,7 +56,6 @@ class Test既存計算維持_デフォルト入力時:
     def test_計算結果一致_方式2(self, expected_result_type2):
         """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
         """
-        _logger.init_logger()
 
         inputs = copy.deepcopy(self._inputs2)
         # inputs["carry_over_heat"] = 過剰熱量繰越計算.行う.value
@@ -69,7 +67,6 @@ class Test既存計算維持_デフォルト入力時:
     def test_計算結果一致_方式3(self, expected_result_type1, expected_result_type2):
         """ 方式3 最後まで実行できること、結果がちゃんと変わることだけ確認
         """
-        _logger.init_logger()
 
         inputs = copy.deepcopy(self._inputs3)
         # inputs["carry_over_heat"] = 過剰熱量繰越計算.行う.value
@@ -84,7 +81,6 @@ class Test既存計算維持_デフォルト入力時:
     def test_計算結果一致_方式4(self, expected_result_type1, expected_result_type2):
         """ 方式4 最後まで実行できること、結果がちゃんと変わることだけ確認
         """
-        _logger.init_logger()
         result = calc(self._inputs4, test_mode=True)
 
         assert result['TValue'].E_C != expected_result_type1.E_C
