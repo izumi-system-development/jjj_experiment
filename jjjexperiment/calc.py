@@ -889,8 +889,6 @@ def calc_E_E_H_d_t(
     # (3) 日付dの時刻tにおける1時間当たりの熱源機の平均暖房能力(W)
     q_hs_H_d_t = dc_a.get_q_hs_H_d_t(Theta_hs_out_d_t, Theta_hs_in_d_t, V_hs_supply_d_t, C_df_H_d_t, region)
 
-    _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
-
     if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
 
         """ e_th: ヒートポンプサイクルの理論効率(-) """
@@ -1018,8 +1016,6 @@ def calc_E_E_C_d_t(
     """
     # (4) 日付dの時刻tにおける1時間当たりの熱源機の平均冷房能力(-)
     q_hs_CS_d_t, q_hs_CL_d_t = dc_a.get_q_hs_C_d_t_2(Theta_hs_out_d_t, Theta_hs_in_d_t, X_hs_out_d_t, X_hs_in_d_t, V_hs_supply_d_t, region)
-
-    _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
 
     if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
         """ 顕熱/潜熱 (CS/CL) を使用せずに 全熱負荷(C) を再計算して使用する """
