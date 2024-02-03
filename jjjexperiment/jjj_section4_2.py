@@ -1710,6 +1710,8 @@ def cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, 
         V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, None)
         V_supply_d_t = np.sum(V_supply_d_t_i, axis=0)  # 1d-shape(5, )
 
+        _logger.NDdebug("V_supply_d_t_i_キャップ後:", V_supply_d_t_i[0])
+
         # キャップとしての設計風量
         V_hs_dsgn_C = V_hs_dsgn_C if V_hs_dsgn_C is not None else float('inf')
         V_hs_dsgn_H = V_hs_dsgn_H if V_hs_dsgn_H is not None else float('inf')
@@ -1738,8 +1740,6 @@ def cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, 
 
     else:
         raise ValueError("change_V_supply_d_t_i is out of range")
-
-    _logger.NDdebug("V_supply_d_t_i_キャップ後:", V_supply_d_t_i[0])
 
     return new_V_supply_d_t_i
 

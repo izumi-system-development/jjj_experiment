@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger
+from jjjexperiment.logger import log_res
 
 ATM_AIR_PRESSURE = 1013.25
 """ 大気圧[hPa] """
@@ -191,6 +192,7 @@ def get_Ca(humid_abs: float):
     C_v = 1.8695 * humid_abs  # NOTE: 様々な数字が見られる(1.884...etc)
     return C_g + C_v  # NOTE: 乾き空気の比熱+水蒸気の比熱
 
+@log_res(['T_evp_C', 'T_cnd_C'])
 def calc_reibai_phase_T_C(q: float, P: float, spec: Spec, condi: Condition)-> typing.Tuple[float, float]:
     """ q, P [kW]で統一
     """
@@ -208,6 +210,7 @@ def calc_reibai_phase_T_C(q: float, P: float, spec: Spec, condi: Condition)-> ty
 
     return T_evp, T_cnd  # 冷媒 蒸発/凝縮 温度[℃]
 
+@log_res(['T_evp_H', 'T_cnd_H'])
 def calc_reibai_phase_T_H(q: float, P: float, spec: Spec, condi: Condition)-> typing.Tuple[float, float]:
     """ q, P [kW]で統一
     """
@@ -235,13 +238,12 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
     def coeffs_for_simultaneous_C(label: str, q:float, P:float, spec: Spec, condi: Condition) -> typing.Tuple[float, float, float]:
         """ q, P [kW]で統一 """
         T_evp, T_cnd = calc_reibai_phase_T_C(q, P, spec, condi)
-        _logger.info(f"T_evp_{label} [℃]: {T_evp}")
-        _logger.info(f"T_cnd_{label} [℃]: {T_cnd}")
         A = (T_cnd - T_evp) / (T_evp + 273.15)  # 冷房と異なる
         B = 1 / q
         COP = q / P; Y = 1 / COP
         return A, B, Y  # A・R' + B・Pc = Y (R'=1/R) の形にする
 
+    @log_res(['R_minrtd_C', 'Pc_C'])
     def R_minrtd_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float]:
         A1, B1, Y1 = coeffs_for_simultaneous_C('min_C', spec.q_rac_min, 0.001*spec.P_rac_min, spec, condi)
         A2, B2, Y2 = coeffs_for_simultaneous_C('rtd_C', spec.q_rac_rtd, 0.001*spec.P_rac_rtd, spec, condi)
@@ -251,13 +253,10 @@ def calc_R_and_Pc_C(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
         return R_minrtd, Pc
 
     R_minrtd, Pc = R_minrtd_C(spec, condi)
-    _logger.info(f"Pc_C [kW]: {Pc}")
 
     def R_max_C(Pc, q, P, spec: Spec, condi: Condition) -> float:
         """ Pc, q, P [kW]で統一 """
         T_evp_max, T_cnd_max = calc_reibai_phase_T_C(q, P, spec, condi)
-        _logger.info(f"T_evp_max_C [℃]: {T_evp_max}")
-        _logger.info(f"T_cnd_max_C [℃]: {T_cnd_max}")
         COP = q / P
         right = COP * q / (q - COP*Pc)  # (7)式右辺
         left = (T_evp_max + 273.15) / (T_cnd_max - T_evp_max)  # (7)式左辺(係数部)
@@ -282,13 +281,12 @@ def calc_R_and_Pc_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
     def coeffs_for_simultaneous_H(label: str, q:float, P:float, spec: Spec, condi: Condition) -> typing.Tuple[float, float, float]:
         """ q, P [kW]で統一 """
         T_evp, T_cnd = calc_reibai_phase_T_H(q, P, spec, condi)
-        _logger.info(f"T_evp_{label} [℃]: {T_evp}")
-        _logger.info(f"T_cnd_{label} [℃]: {T_cnd}")
         A = (T_cnd - T_evp) / (T_cnd + 273.15)  # 冷房と異なる
         B = 1 / q
         COP = q / P; Y = 1 / COP
         return A, B, Y  # A・R' + B・Pc = Y (R'=1/R) の形にする
 
+    @log_res(['R_minrtd_H', 'Pc_H[kW]'])
     def R_minrtd_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float]:
         A1, B1, Y1 = coeffs_for_simultaneous_H('min_H', spec.q_rac_min, 0.001*spec.P_rac_min, spec, condi)
         A2, B2, Y2 = coeffs_for_simultaneous_H('rtd_H', spec.q_rac_rtd, 0.001*spec.P_rac_rtd, spec, condi)
@@ -298,13 +296,10 @@ def calc_R_and_Pc_H(spec: Spec, condi: Condition) -> typing.Tuple[float, float, 
         return R_minrtd, Pc
 
     R_minrtd, Pc = R_minrtd_H(spec, condi)
-    _logger.info(f"Pc_H [kW]: {Pc}")
 
     def R_max_H(Pc, q, P, spec: Spec, condi: Condition) -> float:
         """ Pc, q, P [kW]で統一 """
         T_evp_max, T_cnd_max = calc_reibai_phase_T_H(q, P, spec, condi)
-        _logger.info(f"T_evp_max_H [℃]: {T_evp_max}")
-        _logger.info(f"T_cnd_max_H [℃]: {T_cnd_max}")
         COP = q / P
         right = COP * q / (q - COP*Pc)  # (7)式右辺
         left = (T_cnd_max + 273.15) / (T_cnd_max - T_evp_max)  # (7)式左辺(係数部)

@@ -43,6 +43,9 @@ import numpy as np
 import jjjexperiment.constants as constants
 from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3, PROCESS_TYPE_4
 
+from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.logger import log_res
+
 from scipy import optimize
 
 # ============================================================================
@@ -392,6 +395,7 @@ def get_e_hs_C_d_t(e_th_C_d_t, e_r_C_d_t):
 # A.4.3.1 エネルギー消費量の算定におけるヒートポンプサイクルの理論効率に対する熱源機の効率の比
 # ==============================================================================================
 
+@log_res(['e_r_H_d_t'])
 def get_e_r_H_d_t_2023(q_hs_H_d_t):
     """(9-1)(9-2)(9-3)(9-4) ルームエアコンディショナ活用型全館空調（新：潜熱評価モデル）対応_コンプレッサ効率特性
 
@@ -404,7 +408,7 @@ def get_e_r_H_d_t_2023(q_hs_H_d_t):
     """
     x = q_hs_H_d_t / 1000
     e_r_H_d_t = constants.a_r_H_t_t_a4 * x**4 + constants.a_r_H_t_t_a3 * x**3 + constants.a_r_H_t_t_a2 * x**2 + constants.a_r_H_t_t_a1 * x + constants.a_r_H_t_t_a0
-    
+
     return e_r_H_d_t
 
 def get_e_r_H_d_t(q_hs_H_d_t, q_hs_rtd_H, q_hs_min_H, q_hs_mid_H, e_r_mid_H, e_r_min_H, e_r_rtd_H):

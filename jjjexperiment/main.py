@@ -149,6 +149,7 @@ def calc(input_data : dict, test_mode=False):
             H_A['type'], input_C_af_H, input_C_af_C,
             underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
 
+    _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
     _logger.NDdebug("Q_UT_H_d_t_i", Q_UT_H_d_t_i[0])
 
     if H_A['type'] == PROCESS_TYPE_4:
@@ -268,6 +269,8 @@ def calc(input_data : dict, test_mode=False):
             C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
             C_A['type'], input_C_af_H, input_C_af_C,
             underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
+
+    _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
 
     E_E_C_d_t: np.ndarray
     """日付dの時刻tにおける1時間当たりの冷房時の消費電力量(kWh/h)"""

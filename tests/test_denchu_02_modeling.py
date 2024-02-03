@@ -86,7 +86,6 @@ class Test成績係数比R_モデリング:
     def test_論文計算再現_高機能機_冷房(self):
         """ 論文のR近似式が再現できることを確認
         """
-        _logger.init_logger()
         a2, a1, a0, Pc = calc_R_and_Pc_C(ronbun_spec_hi_C, ronbun_cdtn_C)
 
         R_sut = simu_R(a2, a1, a0)
@@ -106,7 +105,6 @@ class Test成績係数比R_モデリング:
     def test_論文計算再現_普及機_冷房(self):
         """ 論文のR近似式が再現できることを確認
         """
-        _logger.init_logger()
         a2, a1, a0, Pc = calc_R_and_Pc_C(ronbun_spec_cmm_C, ronbun_cdtn_C)
 
         R_sut = simu_R(a2, a1, a0)
@@ -126,7 +124,6 @@ class Test成績係数比R_モデリング:
     def test_論文計算再現_高機能機_暖房(self):
         """ 論文のR近似式が再現できることを確認
         """
-        _logger.init_logger()
         a2, a1, a0, Pc = calc_R_and_Pc_H(ronbun_spec_hi_H, ronbun_cdtn_H)
 
         R_sut = simu_R(a2, a1, a0)
@@ -146,7 +143,6 @@ class Test成績係数比R_モデリング:
     def test_論文計算再現_普及機_暖房(self):
         """ 論文のR近似式が再現できることを確認
         """
-        _logger.init_logger()
         a2, a1, a0, Pc = calc_R_and_Pc_H(ronbun_spec_cmm_H, ronbun_cdtn_H)
 
         R_sut = simu_R(a2, a1, a0)

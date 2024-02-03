@@ -32,7 +32,7 @@ C_hm_C: float = 1.15
 """室内機吸い込み湿度に関する冷房出力補正係数"""
 q_rtd_C_limit: float = 5600
 """定格冷房能力の最大値"""
-change_supply_volume_before_vav_adjust: int = 1
+change_supply_volume_before_vav_adjust: int = VAVありなしの吹出風量.数式を統一しない.value
 """VAV調整前の吹き出し風量の式を変更"""
 change_heat_source_outlet_required_temperature: int = 1
 """熱源機の出口における空気温度"""

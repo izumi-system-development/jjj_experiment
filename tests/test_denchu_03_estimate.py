@@ -36,7 +36,6 @@ class Test_COP推計_室内温度固定_外気温25:
     """
     @classmethod
     def setup_class(cls):
-        _logger.init_logger()
 
         t_outer_C = 25
         cls._cdtn_C = Condition(
@@ -72,7 +71,6 @@ class Test_COP推計_室内温度固定_外気温30:
     """
     @classmethod
     def setup_class(cls):
-        _logger.init_logger()
 
         t_outer_C = 30
         cls._cdtn_C = Condition(
@@ -108,7 +106,6 @@ class Test_COP推計_室内温度固定_外気温35:
     """
     @classmethod
     def setup_class(cls):
-        _logger.init_logger()
 
         t_outer_C = 35
         cls._cdtn_C = Condition(
