@@ -150,7 +150,6 @@ def calc(input_data : dict, test_mode=False):
             underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
 
     _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
-    _logger.NDdebug("Q_UT_H_d_t_i", Q_UT_H_d_t_i[0])
 
     if H_A['type'] == PROCESS_TYPE_4:
         spec, cdtn, T_real, RH_real = jjjexperiment.input.get_rac_catalog_spec(input_data, TH_FC=True)
@@ -215,6 +214,7 @@ def calc(input_data : dict, test_mode=False):
     """未処理暖房負荷の全機器合計(MJ/h)"""
     E_UT_H_d_t: np.ndarray = Q_UT_H_A_d_t * alpha_UT_H_A
     """未処理暖房負荷の設計一次エネルギー消費量相当値(MJ/h)"""
+    _logger.NDdebug("E_UT_H_d_t", E_UT_H_d_t)
 
     df_output2 = pd.DataFrame(index = pd.date_range(datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
     df_output2['Q_UT_H_d_A_t [MJ/h']        = Q_UT_H_A_d_t
@@ -310,16 +310,7 @@ def calc(input_data : dict, test_mode=False):
         Theta_real_inner=  T_real if C_A['type']==PROCESS_TYPE_4 else None,
         RH_real_inner=    RH_real if C_A['type']==PROCESS_TYPE_4 else None)
 
-    # CHECK: Q_UT_C の間違いではないのか
-    df_output2['Q_UT_H_d_t_i [MJ/h']        = E_C_UT_d_t
-    df_output2['Theta_hs_C_out_d_t [℃]']    = Theta_hs_out_d_t
-    df_output2['Theta_hs_C_in_d_t [℃]']     = Theta_hs_in_d_t
-    df_output2['Theta_ex_d_t [℃]']          = Theta_ex_d_t
-    df_output2['V_hs_supply_C_d_t [m3/h]']  = V_hs_supply_d_t
-    df_output2['V_hs_vent_C_d_t [m3/h]']    = V_hs_vent_d_t
-
     ##### 計算結果のまとめ
-    #pprint.pprint(input_data)
 
     f_prim: float       = get_f_prim()                              #電気の量 1kWh を熱量に換算する係数(kJ/kWh)
     # CHECK: E_C_UT_d_t, E_H_UT_d_t 変数名表現の統一
@@ -330,6 +321,7 @@ def calc(input_data : dict, test_mode=False):
 
     _logger.info(f"E_H [MJ/year]: {E_H}")
     _logger.info(f"E_C [MJ/year]: {E_C}")
+
     print('E_H [MJ/year]: ', E_H, ', E_C [MJ/year]: ', E_C)
 
     df_output1 = pd.DataFrame(index = ['合計値'])
@@ -337,6 +329,11 @@ def calc(input_data : dict, test_mode=False):
     df_output1['E_C [MJ/year]'] = E_C
     df_output1.to_csv(case_name + version_info() + '_output1.csv', encoding = 'cp932')
 
+    df_output2['Theta_hs_C_out_d_t [℃]']    = Theta_hs_out_d_t
+    df_output2['Theta_hs_C_in_d_t [℃]']     = Theta_hs_in_d_t
+    df_output2['Theta_ex_d_t [℃]']          = Theta_ex_d_t
+    df_output2['V_hs_supply_C_d_t [m3/h]']  = V_hs_supply_d_t
+    df_output2['V_hs_vent_C_d_t [m3/h]']    = V_hs_vent_d_t
     df_output2['E_H_d_t [MJ/h]']            = E_H_d_t
     df_output2['E_C_d_t [MJ/h]']            = E_C_d_t
     df_output2['E_E_H_d_t [kWh/h]']         = E_E_H_d_t

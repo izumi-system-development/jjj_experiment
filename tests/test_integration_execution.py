@@ -48,7 +48,8 @@ class Test既存計算維持_デフォルト入力時:
         """
 
         inputs = copy.deepcopy(self._inputs1)
-        # inputs = change_testmode_VAV(self._inputs1)
+        # inputs = change_testmode_VAV(inputs)
+        # inputs = change_testmode_exploded_Q_UT(inputs)
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C == pytest.approx(expected_result_type1.E_C, rel=1e-6)
@@ -96,6 +97,30 @@ def change_testmode_VAV(inputs: dict):
         "change_V_supply_d_t_i_max": Vサプライの上限キャップ.外さない.value,
         "H_A": {"VAV": 2},
         "C_A": {"VAV": 2},
+    }
+    # 複製しないと別テストで矛盾する
+    inputs_copied = copy.deepcopy(inputs)
+    return deep_update(inputs_copied, fixtures)
+
+def change_testmode_exploded_Q_UT(inputs: dict):
+    """ 240115全館暖冷房委員会資料13-6における実行条件
+        未処理負荷(一次エネルギー相当分)が大きいことが指摘されています
+    """
+    fixtures = {
+        "H_A": {
+            "input": 2,
+            "q_hs_rtd_H": 5000,
+            "P_hs_rtd_H": 900,
+            "V_fan_rtd_H": 1377,
+            "P_fan_rtd_H": 204,
+        },
+        "C_A": {
+            "input": 2,
+            "q_hs_rtd_C": 4000,
+            "P_hs_rtd_C": 800,
+            "V_fan_rtd_C": 1377,
+            "P_fan_rtd_C": 204.3,
+        },
     }
     # 複製しないと別テストで矛盾する
     inputs_copied = copy.deepcopy(inputs)

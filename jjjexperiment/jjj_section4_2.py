@@ -49,6 +49,7 @@ from jjjexperiment.constants import PROCESS_TYPE_3
 import jjjexperiment.constants as constants
 
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.logger import log_res
 from jjjexperiment.options import *
 
 # 未処理負荷と機器の計算に必要な変数を取得
@@ -495,6 +496,7 @@ def get_E_C_UT_d_t(Q_UT_CL_d_t_i, Q_UT_CS_d_t_i, region):
 # ============================================================================
 
 # メモ： i=1-5のみ i>=6 の場合はどこで計算するのか要確認
+@log_res(['Q_UT_H_d_t_i'])
 def get_Q_UT_H_d_t_i(L_star_H_d_t_i, L_dash_H_d_t_i):
     """(2)
 
@@ -509,6 +511,7 @@ def get_Q_UT_H_d_t_i(L_star_H_d_t_i, L_dash_H_d_t_i):
     return np.clip(L_star_H_d_t_i[:5] - L_dash_H_d_t_i[:5], 0, None)
 
 # メモ： i=1-5のみ i>=6 の場合はどこで計算するのか要確認
+@log_res(['Q_UT_CS_d_t_i'])
 def get_Q_UT_CS_d_t_i(L_star_CS_d_t_i, L_dash_CS_d_t_i):
     """(3)
 
@@ -523,6 +526,7 @@ def get_Q_UT_CS_d_t_i(L_star_CS_d_t_i, L_dash_CS_d_t_i):
     return np.clip(L_star_CS_d_t_i[:5] - L_dash_CS_d_t_i[:5], 0, None)
 
 # メモ： i=1-5のみ i>=6 の場合はどこで計算するのか要確認
+@log_res(['Q_UT_CL_d_t_i'])
 def get_Q_UT_CL_d_t_i(L_star_CL_d_t_i, L_dash_CL_d_t_i):
     """(4)
 
@@ -538,6 +542,7 @@ def get_Q_UT_CL_d_t_i(L_star_CL_d_t_i, L_dash_CL_d_t_i):
     return np.clip(L_star_CL_d_t_i[:5] - L_dash_CL_d_t_i[:5], 0, None)
 
 # メモ： i=1-5のみ i>=6 の場合はどこで計算するのか要確認
+@log_res(['L_dash_H_d_t_i'])
 def get_L_dash_H_d_t_i(V_supply_d_t_i, Theta_supply_d_t_i, Theta_HBR_d_t_i, region):
     """(5-1)(5-2)(5-3)
 
@@ -568,7 +573,7 @@ def get_L_dash_H_d_t_i(V_supply_d_t_i, Theta_supply_d_t_i, Theta_HBR_d_t_i, regi
 
     return L_dash_H_d_t_i
 
-
+@log_res(['L_dash_CS_d_t_i'])
 def get_L_dash_CS_d_t_i(V_supply_d_t_i, Theta_supply_d_t_i, Theta_HBR_d_t_i, region):
     """(6-1)(6-2)(6-3)
 
@@ -599,8 +604,7 @@ def get_L_dash_CS_d_t_i(V_supply_d_t_i, Theta_supply_d_t_i, Theta_HBR_d_t_i, reg
 
     return L_dash_CS_d_t_i
 
-
-
+@log_res(['L_dash_CL_d_t_i'])
 def get_L_dash_CL_d_t_i(V_supply_d_t_i, X_HBR_d_t_i, X_supply_d_t_i, region):
     """(7-1)(7-2)(7-3)
 
@@ -631,7 +635,7 @@ def get_L_dash_CL_d_t_i(V_supply_d_t_i, X_HBR_d_t_i, X_supply_d_t_i, region):
 
     return L_dash_CL_d_t_i
 
-
+@log_res(['L_star_H_d_t_i'])
 def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region):
     """(8-1)(8-2)(8-3)
 
@@ -654,6 +658,7 @@ def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region):
     L_star_H_d_t_i[Hf] = np.clip(L_H_d_t_i[Hf] + Q_star_trs_prt_d_t_i[Hf], 0, None)
     return L_star_H_d_t_i
 
+@log_res(['L_star_H_i'])
 def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, t: int):
     """get_L_star_H_d_t_i のループ用 時点単発計算 \n
 
