@@ -769,7 +769,7 @@ def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_
     if 0 < t:
         cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
         arr_theta = np.max(Theta_HBR_d_t_i[:, t-1:t] - Theta_star_HBR_d_t[t-1], 0)  # 5x1
-        carry_over = -1 * cbri * arr_theta
+        carry_over = -1 * cbri * arr_theta / 1000000 # J/h -> MJ/h
     else:
         carry_over = np.zeros((5, 1))
 
