@@ -729,7 +729,7 @@ def get_delta_L_star_underfloor_2023(
 
 
 def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, t: int,
-                        A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_i, Theta_ex_d_t,
+                        A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
                         L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g):
     """get_L_star_H_d_t_i のループ用 時点単発計算 \n
 
@@ -747,7 +747,7 @@ def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_
       Q(float): 当該住戸の熱損失係数 (W/m2K)
       r_A_ufvnt(float): 当該住戸において、床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)
       underfloor_insulation(bool): 床下空間が断熱空間内である場合はTrue
-      Theta_uf_d_t_i(ndarray): 床下空間の空気の温度 (℃)
+      Theta_uf_d_t(ndarray): 床下空間の空気の温度 (℃)
       Theta_ex_d_t(ndarray): 外気温度 (℃)
       V_sa_d_t_A(ndarray): 床下空間または居室へ供給する1時間当たりの空気の風量の合計
       H_OR_C: type H_OR_C: str
@@ -761,7 +761,7 @@ def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_
     H, C, M = get_season_array_d_t(region)
     L_H_d_t_i = L_H_d_t_i[:5]
     f = L_H_d_t_i > 0
-    Hf = np.logical_and(H, f)[:, t]  # 5x1
+    Hf = np.logical_and(H, f)[:, t:t+1]  # 5x1
 
     A_HCZ_i = A_HCZ_i.reshape(-1,1)
     A_HCZ_R_i = A_HCZ_R_i.reshape(-1,1)
@@ -777,15 +777,15 @@ def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_
 
     if constants.change_under_floor_temperature == 2:
       delta_L_star = get_delta_L_star_underfloor_2023(
-          region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_i, Theta_ex_d_t,
-          L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)[t]
+          region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
+          L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
     else:
-      delta_L_star = np.zeros((5, 24 * 365))
+      delta_L_star = np.zeros((5, 8760))
 
     arr = L_H_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] + delta_L_star[:, t:t+1] + carry_over
 
     L_star_H_i = np.zeros((5, 1))
-    L_star_H_i[Hf] = np.clip(arr, 0, None)[Hf]
+    L_star_H_i[Hf] = arr[Hf]
     return L_star_H_i
 
 def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
@@ -1241,9 +1241,8 @@ def get_Theta_req_d_t_i_2023(
 
     """
 
-    # TODO: Theta_ex_d_t 2つ連続しているところが怪しい
     r_A_uf_i = np.array([get_r_A_uf_i(i) for i in range(1,13)])
-    V_sa_d_t_A = np.sum(V_dash_supply_d_t_i * r_A_uf_i, axis=0)
+    V_sa_d_t_A = np.sum(r_A_uf_i[:5, np.newaxis] * V_dash_supply_d_t_i, axis=0)
     Theta_uf_d_t, Theta_g_surf_d_t, A_s_ufvnt, A_s_ufvnt_A, Theta_g_avg, Theta_dash_g_surf_A_m_d_t, L_uf, H_floor, phi, Phi_A_0, H_star_d_t_i, Theta_star_d_t_i = \
       calc_Theta(region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
         V_sa_d_t_A, H_OR_C, L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
@@ -2223,9 +2222,9 @@ def get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i,
       arr_above_1 = c_p_air * rho_air * V_supply_d_t_i[:, t:t+1] * (Theta_supply_d_t_i[:, t:t+1] - Theta_star_HBR_d_t[t])
       arr_above_2 = -1 * L_star_H_d_t_i[:, t:t+1] * 10 ** 6  # MJ/h -> J/h
       if constants.change_under_floor_temperature == 2:
-        arr_above_3 = U_s * np.array(A_s_ufvnt_i)[:5] * (Theta_uf_d_t[t] - Theta_star_HBR_d_t[t])
+        arr_above_3 = (U_s * np.array(A_s_ufvnt_i)[:5] * (Theta_uf_d_t[t] - Theta_star_HBR_d_t[t]))[:, np.newaxis]
       else:
-        arr_above_3 = 0
+        arr_above_3 = np.zeros((5, 1))
 
       arr_below_1 = c_p_air * rho_air * V_supply_d_t_i[:, t:t+1]
       arr_below_2 = (U_prt * A_prt_i + Q * A_HCZ_i) * 3600
