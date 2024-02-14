@@ -655,6 +655,14 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (43)　暖冷房区画𝑖の吹き出し風量
         V_supply_d_t_i = dc.get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
                                                         V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+        # NOTE: 2024/02/14 WG の話で出力してほしいデータになりました
+        df_output = df_output.assign(
+            V_supply_d_t_1_before = V_supply_d_t_i[0],
+            V_supply_d_t_2_before = V_supply_d_t_i[1],
+            V_supply_d_t_3_before = V_supply_d_t_i[2],
+            V_supply_d_t_4_before = V_supply_d_t_i[3],
+            V_supply_d_t_5_before = V_supply_d_t_i[4]
+        )
         V_supply_d_t_i = dc.cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
         # (41)　暖冷房区画𝑖の吹き出し温度
@@ -699,6 +707,13 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
                                             V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q)
 
     # ループ計算部分の出力
+    df_output = df_output.assign(
+        V_supply_d_t_1 = V_supply_d_t_i[0],
+        V_supply_d_t_2 = V_supply_d_t_i[1],
+        V_supply_d_t_3 = V_supply_d_t_i[2],
+        V_supply_d_t_4 = V_supply_d_t_i[3],
+        V_supply_d_t_5 = V_supply_d_t_i[4]
+    )
     df_output = df_output.assign(
         L_star_CS_d_t_i_1 = L_star_CS_d_t_i[0],
         L_star_CS_d_t_i_2 = L_star_CS_d_t_i[1],
@@ -768,13 +783,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Theta_hs_out_min_C_d_t = Theta_hs_out_min_C_d_t,
         Theta_hs_out_max_H_d_t = Theta_hs_out_max_H_d_t,
         Theta_hs_out_d_t = Theta_hs_out_d_t,
-    )
-    df_output = df_output.assign(
-        V_supply_d_t_1 = V_supply_d_t_i[0],
-        V_supply_d_t_2 = V_supply_d_t_i[1],
-        V_supply_d_t_3 = V_supply_d_t_i[2],
-        V_supply_d_t_4 = V_supply_d_t_i[3],
-        V_supply_d_t_5 = V_supply_d_t_i[4]
     )
     df_output = df_output.assign(
         Theta_supply_d_t_1 = Theta_supply_d_t_i[0],
