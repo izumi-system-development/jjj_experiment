@@ -14,8 +14,8 @@ from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE
 import jjjexperiment.jjj_section4_3 as rac
 
 # 床下
-import jjjexperiment.section3_1_e2 as uf
-import pyhees.section3_1 as ld
+import jjjexperiment.jjj_section3_1 as ld
+import jjjexperiment.jjj_section3_1_e2 as uf
 
 from jjjexperiment.denchu_1 import Spec
 import jjjexperiment.denchu_2 as denchu_2
@@ -32,8 +32,9 @@ def version_info() -> str:
     return '_20231228'
 
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-            VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
-            type, input_C_af_H, input_C_af_C, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile):
+            VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i,
+            type, input_C_af_H, input_C_af_C,
+            r_A_ufvnt, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile):
     """未処理負荷と機器の計算に必要な変数を取得"""
 
     df_output  = pd.DataFrame(index = pd.date_range(datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
@@ -330,6 +331,9 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_star_CL_d_t_i_5 = L_star_CL_d_t_i[4]
     )
 
+    Theta_uf_d_t_2023 = uf.calc_Theta_uf_d_t_2023(
+        L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, YUCACO_r_A_ufvnt,V_dash_supply_d_t_i, Theta_ex_d_t)
+
     if constants.carry_over_heat == 過剰熱量繰越計算.行う.value:
         # インデックス順に更新対象
         L_star_CS_d_t_i = np.zeros((5, 24 * 365))
@@ -341,11 +345,17 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
             L_star_CS_d_t_i[:, hour:hour+1] = dc.get_L_star_CS_i_2023(
                 L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i,
-                Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
+                Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour,
+                A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
+                Theta_uf_d_t_2023, Theta_ex_d_t,
+                L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
             # (8)　熱損失を含む負荷バランス時の暖房負荷
             L_star_H_d_t_i[:, hour:hour+1] = dc.get_L_star_H_i_2023(
                 L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i,
-                Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
+                Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour,
+                A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
+                Theta_uf_d_t_2023, Theta_ex_d_t,
+                L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
 
             ####################################################################################################################
             if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
@@ -418,8 +428,13 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             # (22)　熱源機の出口における要求絶対湿度
             X_req_d_t_i = dc.get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region)
             # (21)　熱源機の出口における要求空気温度
-            Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
-                                L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
+            if constants.change_under_floor_temperature == 2:
+                Theta_req_d_t_i = dc.get_Theta_req_d_t_i_2023(
+                    region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
+                    V_dash_supply_d_t_i, '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+            else:
+                Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
+                                    L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
 
             if underfloor_air_conditioning_air_supply:
                 Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
@@ -466,7 +481,13 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
 
             # (41)　暖冷房区画𝑖の吹き出し温度
-            Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
+            if constants.change_under_floor_temperature == 2:
+                Theta_supply_d_t, _, _, _, _, _, _, _, _, _, _, _ = uf.calc_Theta(
+                    region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
+                    V_dash_supply_d_t_i[0], '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+                Theta_supply_d_t_i = np.tile(Theta_supply_d_t, (5, 1))
+            else:
+                Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
                                                            V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
             if underfloor_air_conditioning_air_supply:
                 Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[0], Theta_ex_d_t,
@@ -496,6 +517,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             # (46)　暖冷房区画𝑖の実際の居室の室温
             Theta_HBR_d_t_i[:, hour:hour+1] = dc.get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
                                                         A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region,
+                                                        Theta_ex_d_t, r_A_ufvnt, A_A, A_MR, A_OR,
                                                         A_HCZ_R_i, Theta_HBR_d_t_i, hour)
 
             # (48)　実際の非居室の室温
@@ -504,10 +526,16 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     else:
         # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
-        L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region)
+        L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
+                                                 A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
+                                                 Theta_uf_d_t_2023, Theta_ex_d_t,
+                                                 L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
 
         # (8)　熱損失を含む負荷バランス時の暖房負荷
-        L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region)
+        L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
+                                               A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
+                                               Theta_uf_d_t_2023, Theta_ex_d_t,
+                                               L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
 
         ####################################################################################################################
         if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
@@ -579,8 +607,13 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (22)　熱源機の出口における要求絶対湿度
         X_req_d_t_i = dc.get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region)
         # (21)　熱源機の出口における要求空気温度
-        Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
-                            L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
+        if constants.change_under_floor_temperature == 2:
+            Theta_req_d_t_i = dc.get_Theta_req_d_t_i_2023(
+                region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
+                V_dash_supply_d_t_i, '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+        else:
+            Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
+                                L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
 
         if underfloor_air_conditioning_air_supply:
             Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
@@ -625,8 +658,14 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         V_supply_d_t_i = dc.cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
         # (41)　暖冷房区画𝑖の吹き出し温度
-        Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
-                                                       V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
+        if constants.change_under_floor_temperature == 2:
+            Theta_supply_d_t, _, _, _, _, _, _, _, _, _, _, _ = uf.calc_Theta(
+                region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
+                V_dash_supply_d_t_i[0], '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+            Theta_supply_d_t_i = np.tile(Theta_supply_d_t, (5, 1))
+        else:
+            Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
+                                                           V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
         if underfloor_air_conditioning_air_supply:
             Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[0], Theta_ex_d_t,
                                                     V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
@@ -652,7 +691,8 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
         # (46)　暖冷房区画𝑖の実際の居室の室温
         Theta_HBR_d_t_i = dc.get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
-                                                 A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
+                                                 A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, Theta_uf_d_t_2023,
+                                                 r_A_ufvnt, A_A, A_MR, A_OR)
 
         # (48)　実際の非居室の室温
         Theta_NR_d_t = dc.get_Theta_NR_d_t(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
