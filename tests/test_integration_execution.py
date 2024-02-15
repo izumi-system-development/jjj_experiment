@@ -48,8 +48,6 @@ class Test既存計算維持_デフォルト入力時:
         """
 
         inputs = copy.deepcopy(self._inputs1)
-        # inputs = change_testmode_VAV(inputs)
-        # inputs = change_testmode_exploded_Q_UT(inputs)
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C == pytest.approx(expected_result_type1.E_C, rel=1e-6)
@@ -60,7 +58,6 @@ class Test既存計算維持_デフォルト入力時:
         """
 
         inputs = copy.deepcopy(self._inputs2)
-        # inputs["carry_over_heat"] = 過剰熱量繰越計算.行う.value
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C == expected_result_type2.E_C
@@ -71,7 +68,6 @@ class Test既存計算維持_デフォルト入力時:
         """
 
         inputs = copy.deepcopy(self._inputs3)
-        # inputs["carry_over_heat"] = 過剰熱量繰越計算.行う.value
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C != expected_result_type1.E_C
@@ -83,7 +79,8 @@ class Test既存計算維持_デフォルト入力時:
     def test_計算結果一致_方式4(self, expected_result_type1, expected_result_type2):
         """ 方式4 最後まで実行できること、結果がちゃんと変わることだけ確認
         """
-        result = calc(self._inputs4, test_mode=True)
+        inputs = copy.deepcopy(self._inputs4)
+        result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C != expected_result_type1.E_C
         assert result['TValue'].E_H != expected_result_type1.E_H
@@ -100,6 +97,32 @@ def change_testmode_VAV(inputs: dict):
     }
     # 複製しないと別テストで矛盾する
     inputs_copied = copy.deepcopy(inputs)
+    return deep_update(inputs_copied, fixtures)
+
+def change_testmode_VAV_cap1logic(inputs: dict):
+    """ VAVを負荷比で按分したときの上限キャップを有効
+    """
+    fixtures = {
+        "change_supply_volume_before_vav_adjust": VAVありなしの吹出風量.数式を統一する.value,
+        "change_V_supply_d_t_i_max": Vサプライの上限キャップ.全体でキャップ.value,
+        "H_A": {"VAV": 2},
+        "C_A": {"VAV": 2},
+    }
+    inputs_copied = copy.deepcopy(inputs)  # 複製しないと別テストで矛盾する
+    return deep_update(inputs_copied, fixtures)
+
+def change_testmode_carryover(inputs: dict):
+    """ 熱繰越
+    """
+    fixtures = {"carry_over_heat": 2}
+    inputs_copied = copy.deepcopy(inputs)  # 複製しないと別テストで矛盾する
+    return deep_update(inputs_copied, fixtures)
+
+def change_testmode_underfloor(inputs: dict):
+    """ 床下空調の新しいロジック
+    """
+    fixtures = {"change_under_floor_temperature": 2}
+    inputs_copied = copy.deepcopy(inputs)  # 複製しないと別テストで矛盾する
     return deep_update(inputs_copied, fixtures)
 
 def change_testmode_exploded_Q_UT(inputs: dict):
