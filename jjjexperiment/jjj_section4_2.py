@@ -92,6 +92,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     Returns:
 
     """
+    raise NotImplementedError("置き換え以前のコードであり、現状は使用されることはないはずです。")
 
     # 外気条件
     climate = load_climate(region)
@@ -307,7 +308,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     # (43)
     V_supply_d_t_i = get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
                                         V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
-    V_supply_d_t_i = cap_V_supply_d_t_i(V_supply_d_t_i, VAV, )
+    V_supply_d_t_i = cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
     # (41)
     Theta_supply_d_t_i = get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,

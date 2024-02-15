@@ -341,6 +341,11 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Theta_HBR_d_t_i = np.zeros((5, 24 * 365))
         Theta_NR_d_t = np.zeros(24 * 365)
 
+        # FIXME: 両立化が計算量的に可能かどうか
+        # NOTE: 床下空調新ロジックと併用しないで下さい。実行完了に数時間かかります。
+        if constants.change_under_floor_temperature == 2:
+            raise TimeoutError("この操作は実行に時間がかかるため強制終了しました。")
+
         for hour in range(0, 24 * 365):
             # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
             L_star_CS_d_t_i[:, hour:hour+1] = dc.get_L_star_CS_i_2023(
