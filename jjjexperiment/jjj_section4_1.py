@@ -96,7 +96,7 @@ def calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR,
 
     """
     if region == 8:
-        return np.zeros((12, 24 * 365)), np.zeros((12, 24 * 365))
+        return np.zeros((12, 24 * 365)), np.zeros((12, 24 * 365)), np.zeros((12, 24 * 365))
 
     if mode_H == '住戸全体を連続的に暖房する方式' or \
             mode_H == '居室のみを暖房する方式でかつ主たる居室とその他の居室ともに温水暖房を設置する場合に該当しない場合' or \
@@ -107,7 +107,7 @@ def calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR,
                                                      mu_H, mu_C, NV_MR, NV_OR, TS, r_A_ufvnt, HEX, SHC, underfloor_insulation)
         return L_T_H_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i
     elif mode_H is None:
-        return None, None
+        return None, None, None
     else:
         raise ValueError(mode_H)
 

@@ -732,12 +732,10 @@ def get_delta_L_star_underfloor_2023(
   delta_L_star = delta_L_other + np.tile(underfloor_to_ground, (5, 1)) + np.tile(underfloor_to_outdoor, (5, 1))
   return delta_L_star / 1000
 
-
+@log_res(['L_star_H_i'])
 def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, t: int,
                         A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
                         L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g):
-@log_res(['L_star_H_i'])
-def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, t: int):
     """get_L_star_H_d_t_i のループ用 時点単発計算 \n
 
     前時刻の値を利用: \n
@@ -776,7 +774,7 @@ def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_
     if 0 < t:
         cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
         arr_theta = np.max(Theta_HBR_d_t_i[:, t-1:t] - Theta_star_HBR_d_t[t-1], 0)  # 5x1
-        carry_over = -1 * cbri * arr_theta / 1000000 # J/h -> MJ/h
+        carry_over = -1 * cbri * arr_theta / 1_000_000  # J/h -> MJ/h
     else:
         carry_over = np.zeros((5, 1))
 
@@ -2146,8 +2144,10 @@ def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, 
 
     # 暖房期 (46-1)
     if constants.change_under_floor_temperature == 2:
+      # NOTE: 新しい床下空調のロジックでのみ、床下換気のための変数である r_A_ufvnt を有効にしています(実験的)
+      r_A_ufvnt_tmp = 1 if r_A_ufvnt is None else r_A_ufvnt
       # 当該住戸の暖冷房区画iの空気を供給する床下空間に接する床の面積(m2) (7)
-      A_s_ufvnt_i = [calc_A_s_ufvnt_i(i, r_A_ufvnt, A_A, A_MR, A_OR) for i in range(1, 13)]
+      A_s_ufvnt_i = [calc_A_s_ufvnt_i(i, r_A_ufvnt_tmp, A_A, A_MR, A_OR) for i in range(1, 13)]
 
       Theta_HBR_d_t_i[:, H] = Theta_star_HBR_d_t[H] + (c_p_air * rho_air * V_supply_d_t_i[:, H] * \
                                                     (Theta_supply_d_t_i[:, H] - Theta_star_HBR_d_t[H])
@@ -2216,9 +2216,6 @@ def get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i,
     A_HCZ_i = A_HCZ_i.reshape(-1,1)
     A_HCZ_R_i = A_HCZ_R_i.reshape(-1,1)
 
-    # 当該住戸の暖冷房区画iの空気を供給する床下空間に接する床の面積(m2) (7)
-    A_s_ufvnt_i = [calc_A_s_ufvnt_i(i, r_A_ufvnt, A_A, A_MR, A_OR) for i in range(1, 13)]
-
     # 暖房期 (46-1)
     if H[t]:
       # NOTE: 時系列データの最初の計算では繰り越し:なしとしています
@@ -2228,7 +2225,13 @@ def get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i,
 
       arr_above_1 = c_p_air * rho_air * V_supply_d_t_i[:, t:t+1] * (Theta_supply_d_t_i[:, t:t+1] - Theta_star_HBR_d_t[t])
       arr_above_2 = -1 * L_star_H_d_t_i[:, t:t+1] * 10 ** 6  # MJ/h -> J/h
+
       if constants.change_under_floor_temperature == 2:
+        # NOTE: 新しい床下空調のロジックでのみ、床下換気のための変数である r_A_ufvnt を有効にしています(実験的)
+        r_A_ufvnt_tmp = 1 if r_A_ufvnt is None else r_A_ufvnt
+        # 当該住戸の暖冷房区画iの空気を供給する床下空間に接する床の面積(m2) (7)
+        A_s_ufvnt_i = [calc_A_s_ufvnt_i(i, r_A_ufvnt_tmp, A_A, A_MR, A_OR) for i in range(1, 13)]
+
         arr_above_3 = (U_s * np.array(A_s_ufvnt_i)[:5] * (Theta_uf_d_t[t] - Theta_star_HBR_d_t[t]))[:, np.newaxis]
       else:
         arr_above_3 = np.zeros((5, 1))
