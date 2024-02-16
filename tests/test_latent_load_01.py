@@ -386,7 +386,7 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
     }
 
     L_H_d_t_i: np.ndarray  # H: 暖房負荷 [MJ/h]
-    L_H_d_t_i, _ = calc_heating_load(
+    L_H_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i = calc_heating_load(
         region = region,
         sol_region = sol_region,
         A_A = A_A, A_MR = A_MR, A_OR = A_OR,
@@ -451,6 +451,9 @@ def prepare_args_for_calc_Q_UT_A() -> dict:
         'YUCACO_r_A_ufvnt': fixtures["YUCACO_r_A_ufvnt"],
         'R_g': fixtures["R_g"],
         'climateFile': fixtures["climateFile"],
+        'L_dash_H_R_d_t_i': L_dash_H_R_d_t_i,
+        'L_dash_CS_R_d_t_i': L_dash_CS_R_d_t_i,
+        'r_A_ufvnt': r_A_ufvnt
     }
     H_args = {
         'VAV': H_A['VAV'],

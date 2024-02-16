@@ -8,7 +8,7 @@
 
 import numpy as np
 
-import pyhees.section3_1 as ld
+import jjjexperiment.jjj_section3_1 as ld
 from pyhees.section3_1_a import calc_etr_dash_t
 
 from pyhees.section4_1_a import calc_heating_mode, get_default_heating_spec, get_default_heatsource
@@ -96,18 +96,18 @@ def calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR,
 
     """
     if region == 8:
-        return np.zeros((12, 24 * 365)), np.zeros((12, 24 * 365))
+        return np.zeros((12, 24 * 365)), np.zeros((12, 24 * 365)), np.zeros((12, 24 * 365))
 
     if mode_H == '住戸全体を連続的に暖房する方式' or \
             mode_H == '居室のみを暖房する方式でかつ主たる居室とその他の居室ともに温水暖房を設置する場合に該当しない場合' or \
             mode_H == '設置しない':
         # 暖房区画i=1-5それぞれの暖房負荷
-        L_T_H_d_t_i, L_dash_H_R_d_t_i = calc_L_H_d_t(region, sol_region, A_A, A_MR, A_OR, mode_H, mode_C, spec_MR, spec_OR,
+        L_T_H_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i = calc_L_H_d_t(region, sol_region, A_A, A_MR, A_OR, mode_H, mode_C, spec_MR, spec_OR,
                                                      mode_MR, mode_OR, Q,
                                                      mu_H, mu_C, NV_MR, NV_OR, TS, r_A_ufvnt, HEX, SHC, underfloor_insulation)
-        return L_T_H_d_t_i, L_dash_H_R_d_t_i
+        return L_T_H_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i
     elif mode_H is None:
-        return None, None
+        return None, None, None
     else:
         raise ValueError(mode_H)
 
@@ -941,12 +941,12 @@ def calc_L_H_d_t(region, sol_region, A_A, A_MR, A_OR, mode_H, mode_C, H_MR, H_OR
             'r_A_ufvnt_ass': SHC['r_A_ufvnt_ass'],
         })
 
-    L_T_H_d_t_i, L_dash_H_R_d_t_i = ld.calc_L_H_d_t_i(**args)
+    L_T_H_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i = ld.calc_L_H_d_t_i(**args)
 
     if normalize:
         L_T_H_d_t_i[L_T_H_d_t_i < 0] = 0
 
-    return L_T_H_d_t_i, L_dash_H_R_d_t_i
+    return L_T_H_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i
 
 
 def get_mode_C_array(mode_C):

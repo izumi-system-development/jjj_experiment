@@ -14,7 +14,7 @@ from pyhees.section4_1_a import calc_heating_mode
 import jjjexperiment.jjj_section4_2_b as dc_spec
 
 # 床下
-import pyhees.section3_1 as ld
+import jjjexperiment.jjj_section3_1 as ld
 from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
 
 import jjjexperiment.calc
@@ -92,10 +92,11 @@ def calc(input_data : dict, test_mode=False):
     L_H_d_t_i: np.ndarray
     """暖房負荷 [MJ/h]"""
 
-    if loadFile == '-':
-        L_H_d_t_i, _ = calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, TS, r_A_ufvnt,
-                                        HEX, underfloor_insulation, mode_H, mode_C, spec_MR, spec_OR, mode_MR, mode_OR, SHC)
-    else:
+    # L_dash_H_R_d_t_i, L_dash_CS_R_d_t_iは負荷ファイルから読み取れないため自動計算する。
+    # 読み込んだ負荷と整合性が取れないため、正しい実装ではない。
+    L_H_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i  = calc_heating_load(region, sol_region, A_A, A_MR, A_OR, Q, mu_H, mu_C, NV_MR, NV_OR, TS, r_A_ufvnt,
+                                    HEX, underfloor_insulation, mode_H, mode_C, spec_MR, spec_OR, mode_MR, mode_OR, SHC)
+    if loadFile != '-':
         load = pd.read_csv(loadFile, nrows=24 * 365)
         L_H_d_t_i = load.iloc[::,:12].T.values
 
@@ -145,12 +146,11 @@ def calc(input_data : dict, test_mode=False):
         jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C,
             H_A['q_hs_rtd_H'], None,
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, H_A['VAV'], H_A['general_ventilation'], hs_CAV,
-            H_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
+            H_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i,
             H_A['type'], input_C_af_H, input_C_af_C,
-            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
+            r_A_ufvnt, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
 
     _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
-    _logger.NDdebug("Q_UT_H_d_t_i", Q_UT_H_d_t_i[0])
 
     if H_A['type'] == PROCESS_TYPE_4:
         spec, cdtn, T_real, RH_real = jjjexperiment.input.get_rac_catalog_spec(input_data, TH_FC=True)
@@ -215,6 +215,7 @@ def calc(input_data : dict, test_mode=False):
     """未処理暖房負荷の全機器合計(MJ/h)"""
     E_UT_H_d_t: np.ndarray = Q_UT_H_A_d_t * alpha_UT_H_A
     """未処理暖房負荷の設計一次エネルギー消費量相当値(MJ/h)"""
+    _logger.NDdebug("E_UT_H_d_t", E_UT_H_d_t)
 
     df_output2 = pd.DataFrame(index = pd.date_range(datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
     df_output2['Q_UT_H_d_A_t [MJ/h']        = Q_UT_H_A_d_t
@@ -266,9 +267,9 @@ def calc(input_data : dict, test_mode=False):
         = jjjexperiment.calc.calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C,
             None, C_A['q_hs_rtd_C'],
             q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q, C_A['VAV'], C_A['general_ventilation'], hs_CAV,
-            C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
+            C_A['duct_insulation'], region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i,
             C_A['type'], input_C_af_H, input_C_af_C,
-            underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
+            r_A_ufvnt, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile)
 
     _logger.NDdebug("V_hs_supply_d_t", V_hs_supply_d_t)
 
@@ -310,16 +311,7 @@ def calc(input_data : dict, test_mode=False):
         Theta_real_inner=  T_real if C_A['type']==PROCESS_TYPE_4 else None,
         RH_real_inner=    RH_real if C_A['type']==PROCESS_TYPE_4 else None)
 
-    # CHECK: Q_UT_C の間違いではないのか
-    df_output2['Q_UT_H_d_t_i [MJ/h']        = E_C_UT_d_t
-    df_output2['Theta_hs_C_out_d_t [℃]']    = Theta_hs_out_d_t
-    df_output2['Theta_hs_C_in_d_t [℃]']     = Theta_hs_in_d_t
-    df_output2['Theta_ex_d_t [℃]']          = Theta_ex_d_t
-    df_output2['V_hs_supply_C_d_t [m3/h]']  = V_hs_supply_d_t
-    df_output2['V_hs_vent_C_d_t [m3/h]']    = V_hs_vent_d_t
-
     ##### 計算結果のまとめ
-    #pprint.pprint(input_data)
 
     f_prim: float       = get_f_prim()                              #電気の量 1kWh を熱量に換算する係数(kJ/kWh)
     # CHECK: E_C_UT_d_t, E_H_UT_d_t 変数名表現の統一
@@ -330,6 +322,7 @@ def calc(input_data : dict, test_mode=False):
 
     _logger.info(f"E_H [MJ/year]: {E_H}")
     _logger.info(f"E_C [MJ/year]: {E_C}")
+
     print('E_H [MJ/year]: ', E_H, ', E_C [MJ/year]: ', E_C)
 
     df_output1 = pd.DataFrame(index = ['合計値'])
@@ -337,6 +330,11 @@ def calc(input_data : dict, test_mode=False):
     df_output1['E_C [MJ/year]'] = E_C
     df_output1.to_csv(case_name + version_info() + '_output1.csv', encoding = 'cp932')
 
+    df_output2['Theta_hs_C_out_d_t [℃]']    = Theta_hs_out_d_t
+    df_output2['Theta_hs_C_in_d_t [℃]']     = Theta_hs_in_d_t
+    df_output2['Theta_ex_d_t [℃]']          = Theta_ex_d_t
+    df_output2['V_hs_supply_C_d_t [m3/h]']  = V_hs_supply_d_t
+    df_output2['V_hs_vent_C_d_t [m3/h]']    = V_hs_vent_d_t
     df_output2['E_H_d_t [MJ/h]']            = E_H_d_t
     df_output2['E_C_d_t [MJ/h]']            = E_C_d_t
     df_output2['E_E_H_d_t [kWh/h]']         = E_E_H_d_t
@@ -347,8 +345,8 @@ def calc(input_data : dict, test_mode=False):
     df_output2['L_CS_d_t [MJ/h]']           = L_CS_d_t
     df_output2['L_CL_d_t [MJ/h]']           = L_CL_d_t
     df_output2['E_E_fan_H_d_t [kWh/h]']     = E_E_fan_H_d_t
-    df_output2['q_hs_H_d_t [Wh/h]']         = q_hs_H_d_t
     df_output2['E_E_fan_C_d_t [kWh/h]']     = E_E_fan_C_d_t
+    df_output2['q_hs_H_d_t [Wh/h]']         = q_hs_H_d_t
     df_output2['q_hs_CS_d_t [Wh/h]']        = q_hs_CS_d_t
     df_output2['q_hs_CL_d_t [Wh/h]']        = q_hs_CL_d_t
     df_output2.to_csv(case_name + version_info() + '_output2.csv', encoding = 'cp932')

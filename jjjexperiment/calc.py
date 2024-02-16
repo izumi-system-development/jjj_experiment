@@ -14,8 +14,8 @@ from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE
 import jjjexperiment.jjj_section4_3 as rac
 
 # 床下
-import jjjexperiment.section3_1_e2 as uf
-import pyhees.section3_1 as ld
+import jjjexperiment.jjj_section3_1 as ld
+import jjjexperiment.jjj_section3_1_e2 as uf
 
 from jjjexperiment.denchu_1 import Spec
 import jjjexperiment.denchu_2 as denchu_2
@@ -29,11 +29,12 @@ def version_info() -> str:
     """
     # NOTE: subprocessモジュールによるコミット履歴からの生成は \
     # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
-    return '_20231228'
+    return '_20240216'
 
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
-            VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i,
-            type, input_C_af_H, input_C_af_C, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile):
+            VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i,
+            type, input_C_af_H, input_C_af_C,
+            r_A_ufvnt, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile):
     """未処理負荷と機器の計算に必要な変数を取得"""
 
     df_output  = pd.DataFrame(index = pd.date_range(datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
@@ -330,7 +331,19 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_star_CL_d_t_i_5 = L_star_CL_d_t_i[4]
     )
 
+    Theta_uf_d_t_2023 = uf.calc_Theta_uf_d_t_2023(
+        L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, YUCACO_r_A_ufvnt,V_dash_supply_d_t_i, Theta_ex_d_t)
+
+    # NOTE: 熱繰越を行うverと行わないverで 同じ処理を異なるループの粒度で二重実装が必要です
+    # 実装量/計算量 の多い仕様の場合には 過剰熱繰越ナシ(一般的なパターン) のみ実装として、オプション併用を拒否する仕様も検討しましょう
     if constants.carry_over_heat == 過剰熱量繰越計算.行う.value:
+
+        # NOTE: 過剰熱繰越と併用しないオプションはここで実行を拒否します
+        if constants.change_underfloor_temperature == 2:
+            raise TimeoutError("この操作は実行に時間がかかるため併用できません。[過剰熱繰越と床下空調ロジック変更]")
+            # NOTE: 過剰熱繰越の8760ループと床下空調ロジック変更の8760ループが合わさると
+            # 一時間を超える実行時間になることを確認したため回避しています(2024/02)
+
         # インデックス順に更新対象
         L_star_CS_d_t_i = np.zeros((5, 24 * 365))
         L_star_H_d_t_i = np.zeros((5, 24 * 365))
@@ -422,27 +435,23 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
                                 L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
 
             if underfloor_air_conditioning_air_supply:
-                Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
-                                                        V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-                if q_hs_rtd_H is not None:
-                    Theta_req_d_t_i[0] = np.where(Theta_req_d_t_i[0] > Theta_uf_d_t, 
-                                                  Theta_req_d_t_i[0] + (Theta_req_d_t_i[0] - Theta_uf_d_t),
-                                                  Theta_req_d_t_i[0])
-                else:
-                    Theta_req_d_t_i[0] = np.where(Theta_req_d_t_i[0] < Theta_uf_d_t, 
-                                                  Theta_req_d_t_i[0] + (Theta_req_d_t_i[0] - Theta_uf_d_t),
-                                                  Theta_req_d_t_i[0])
+                for i in range(2):  # i=0,1
+                    Theta_uf_d_t, Theta_g_surf_d_t, *others = \
+                        uf.calc_Theta(
+                            region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
+                            Theta_req_d_t_i[i], Theta_ex_d_t, V_dash_supply_d_t_i[i],
+                            '', L_H_d_t_i, L_CS_d_t_i, R_g)
 
-                Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[1], Theta_ex_d_t,
-                                                        V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-                if q_hs_rtd_H is not None:
-                    Theta_req_d_t_i[1] = np.where(Theta_req_d_t_i[1] > Theta_uf_d_t, 
-                                                  Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
-                                                  Theta_req_d_t_i[1])
-                else:
-                    Theta_req_d_t_i[1] = np.where(Theta_req_d_t_i[1] < Theta_uf_d_t, 
-                                                  Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
-                                                  Theta_req_d_t_i[1])
+                    if q_hs_rtd_H is not None:
+                        mask = Theta_req_d_t_i[i] > Theta_uf_d_t
+                    elif q_hs_rtd_C is not None:
+                        mask = Theta_req_d_t_i[i] < Theta_uf_d_t
+                    else:
+                        raise IOError("冷房時・暖房時の判断に失敗しました。")
+
+                    Theta_req_d_t_i[i] = np.where(mask,
+                                                  Theta_req_d_t_i[i] + (Theta_req_d_t_i[i] - Theta_uf_d_t),
+                                                  Theta_req_d_t_i[i])
 
             # 式(14)(46)(48)の条件に合わせてTheta_NR_d_tを初期化
             # NOTE: 繰り返し計算時には初期化してはならない
@@ -463,33 +472,29 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             # (43)　暖冷房区画𝑖の吹き出し風量
             V_supply_d_t_i = dc.get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
                                                             V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+            V_supply_d_t_i = dc.cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
 
             # (41)　暖冷房区画𝑖の吹き出し温度
             Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
-                                                           V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
-            if underfloor_air_conditioning_air_supply:
-                Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[0], Theta_ex_d_t,
-                                                        V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-                if q_hs_rtd_H is not None:
-                    Theta_supply_d_t_i[0] = np.where(Theta_supply_d_t_i[0] > Theta_uf_d_t,
-                                                     Theta_uf_d_t,
-                                                     Theta_supply_d_t_i[0])
-                elif q_hs_rtd_C is not None:
-                    Theta_supply_d_t_i[0] = np.where(Theta_supply_d_t_i[0] < Theta_uf_d_t,
-                                                     Theta_uf_d_t,
-                                                     Theta_supply_d_t_i[0])
+                                                       V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
 
-                Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[1], Theta_ex_d_t,
-                                                        V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-                if q_hs_rtd_H is not None:
-                    Theta_supply_d_t_i[1] = np.where(Theta_supply_d_t_i[1] > Theta_uf_d_t,
-                                                     Theta_uf_d_t,
-                                                     Theta_supply_d_t_i[1])
-                elif q_hs_rtd_C is not None:
-                    Theta_supply_d_t_i[1] = np.where(Theta_supply_d_t_i[1] < Theta_uf_d_t,
-                                                     Theta_uf_d_t,
-                                                     Theta_supply_d_t_i[1])
+            if underfloor_air_conditioning_air_supply:
+                for i in range(2):  # i=0,1
+                    Theta_uf_d_t, Theta_g_surf_d_t, *others = \
+                        uf.calc_Theta(
+                            region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
+                            Theta_supply_d_t_i[i], Theta_ex_d_t, V_dash_supply_d_t_i[i],
+                            '', L_H_d_t_i, L_CS_d_t_i, R_g)
+
+                    if q_hs_rtd_H is not None:
+                        mask = Theta_supply_d_t_i[i] > Theta_uf_d_t
+                    elif q_hs_rtd_C is not None:
+                        mask = Theta_supply_d_t_i[i] < Theta_uf_d_t
+                    else:
+                        raise IOError("冷房時・暖房時の判断に失敗しました。")
+
+                    Theta_supply_d_t_i[i] = np.where(mask, Theta_uf_d_t, Theta_supply_d_t_i[i])
 
             # 順次 一時点のみ更新
 
@@ -502,12 +507,19 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             Theta_NR_d_t[hour] = dc.get_Theta_NR_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
                                                 V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q, Theta_NR_d_t, hour)
 
-    else:
+    else:  # 過剰熱繰越ナシ(一般的なパターン)
+
         # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
-        L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region)
+        L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
+                                                 A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
+                                                 Theta_uf_d_t_2023, Theta_ex_d_t,
+                                                 L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
 
         # (8)　熱損失を含む負荷バランス時の暖房負荷
-        L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region)
+        L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
+                                               A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
+                                               Theta_uf_d_t_2023, Theta_ex_d_t,
+                                               L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
 
         ####################################################################################################################
         if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
@@ -579,31 +591,32 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (22)　熱源機の出口における要求絶対湿度
         X_req_d_t_i = dc.get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region)
         # (21)　熱源機の出口における要求空気温度
-        Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
-                            L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
+        if constants.change_underfloor_temperature == 2:
+            Theta_req_d_t_i = dc.get_Theta_req_d_t_i_2023(
+                region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
+                V_dash_supply_d_t_i, '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+        else:
+            Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
+                                L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
 
         if underfloor_air_conditioning_air_supply:
-            Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
-                                                    V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-            if q_hs_rtd_H is not None:
-                Theta_req_d_t_i[0] = np.where(Theta_req_d_t_i[0] > Theta_uf_d_t,
-                                              Theta_req_d_t_i[0] + (Theta_req_d_t_i[0] - Theta_uf_d_t),
-                                              Theta_req_d_t_i[0])
-            else:
-                Theta_req_d_t_i[0] = np.where(Theta_req_d_t_i[0] < Theta_uf_d_t,
-                                              Theta_req_d_t_i[0] + (Theta_req_d_t_i[0] - Theta_uf_d_t),
-                                              Theta_req_d_t_i[0])
+            for i in range(2):  # i=0,1
+                Theta_uf_d_t, Theta_g_surf_d_t, *others = \
+                    uf.calc_Theta(
+                        region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
+                        Theta_req_d_t_i[i], Theta_ex_d_t, V_dash_supply_d_t_i[i],
+                        '', L_H_d_t_i, L_CS_d_t_i, R_g)
 
-            Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[1], Theta_ex_d_t,
-                                                    V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-            if q_hs_rtd_H is not None:
-                Theta_req_d_t_i[1] = np.where(Theta_req_d_t_i[1] > Theta_uf_d_t,
-                                              Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
-                                              Theta_req_d_t_i[1])
-            else:
-                Theta_req_d_t_i[1] = np.where(Theta_req_d_t_i[1] < Theta_uf_d_t,
-                                              Theta_req_d_t_i[1] + (Theta_req_d_t_i[1] - Theta_uf_d_t),
-                                              Theta_req_d_t_i[1])
+                if q_hs_rtd_H is not None:  # 暖房
+                  mask = Theta_req_d_t_i[i] > Theta_uf_d_t
+                elif q_hs_rtd_C is not None:  # 冷房
+                  mask = Theta_req_d_t_i[i] < Theta_uf_d_t
+                else:
+                    raise IOError("冷房時・暖房時の判断に失敗しました。")
+
+                Theta_req_d_t_i[i] = np.where(mask,
+                                              Theta_req_d_t_i[i] + (Theta_req_d_t_i[i] - Theta_uf_d_t),
+                                              Theta_req_d_t_i[i])
 
         # (15)　熱源機の出口における絶対湿度
         X_hs_out_d_t = dc.get_X_hs_out_d_t(X_NR_d_t, X_req_d_t_i, V_dash_supply_d_t_i, X_hs_out_min_C_d_t, L_star_CL_d_t_i, region)
@@ -622,43 +635,64 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (43)　暖冷房区画𝑖の吹き出し風量
         V_supply_d_t_i = dc.get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
                                                         V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+        # NOTE: 2024/02/14 WG の話で出力してほしいデータになりました
+        df_output = df_output.assign(
+            V_supply_d_t_1_before = V_supply_d_t_i[0],
+            V_supply_d_t_2_before = V_supply_d_t_i[1],
+            V_supply_d_t_3_before = V_supply_d_t_i[2],
+            V_supply_d_t_4_before = V_supply_d_t_i[3],
+            V_supply_d_t_5_before = V_supply_d_t_i[4]
+        )
         V_supply_d_t_i = dc.cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
         # (41)　暖冷房区画𝑖の吹き出し温度
-        Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
-                                                       V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
-        if underfloor_air_conditioning_air_supply:
-            Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[0], Theta_ex_d_t,
-                                                    V_dash_supply_d_t_i[0], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-            if q_hs_rtd_H is not None:
-                Theta_supply_d_t_i[0] = np.where(Theta_supply_d_t_i[0] > Theta_uf_d_t,
-                                                 Theta_uf_d_t,
-                                                 Theta_supply_d_t_i[0])
-            elif q_hs_rtd_C is not None:
-                Theta_supply_d_t_i[0] = np.where(Theta_supply_d_t_i[0] < Theta_uf_d_t,
-                                                 Theta_uf_d_t,
-                                                 Theta_supply_d_t_i[0])
+        if constants.change_underfloor_temperature == 2:
+            Theta_uf_d_t, *others = \
+                uf.calc_Theta(
+                    region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
+                    V_dash_supply_d_t_i[0], '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+            Theta_supply_d_t = Theta_uf_d_t
+            Theta_supply_d_t_i = np.tile(Theta_supply_d_t, (5, 1))
+        else:
+            Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
+                                                           V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
 
-            Theta_uf_d_t, Theta_g_surf_d_t = uf.calc_Theta(region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation, Theta_supply_d_t_i[1], Theta_ex_d_t,
-                                                    V_dash_supply_d_t_i[1], '', L_H_d_t_i, L_CS_d_t_i, R_g)
-            if q_hs_rtd_H is not None:
-                Theta_supply_d_t_i[1] = np.where(Theta_supply_d_t_i[1] > Theta_uf_d_t,
-                                                 Theta_uf_d_t,
-                                                 Theta_supply_d_t_i[1])
-            elif q_hs_rtd_C is not None:
-                Theta_supply_d_t_i[1] = np.where(Theta_supply_d_t_i[1] < Theta_uf_d_t,
-                                                 Theta_uf_d_t,
-                                                 Theta_supply_d_t_i[1])
+        if underfloor_air_conditioning_air_supply:
+            for i in range(2):  #i=0,1
+                Theta_uf_d_t, Theta_g_surf_d_t, *others = \
+                    uf.calc_Theta(
+                        region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
+                        Theta_supply_d_t_i[i], Theta_ex_d_t, V_dash_supply_d_t_i[i],
+                        '', L_H_d_t_i, L_CS_d_t_i, R_g)
+
+                if q_hs_rtd_H is not None:  # 暖房
+                    mask = Theta_supply_d_t_i[i] > Theta_uf_d_t
+                elif q_hs_rtd_C is not None:  # 冷房
+                    mask = Theta_supply_d_t_i[i] < Theta_uf_d_t
+                else:
+                    raise IOError("冷房時・暖房時の判断に失敗しました。")
+
+                Theta_supply_d_t_i[i] = np.where(mask, Theta_uf_d_t, Theta_supply_d_t_i[i])
 
         # (46)　暖冷房区画𝑖の実際の居室の室温
         Theta_HBR_d_t_i = dc.get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
-                                                 A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
+                                                 A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, Theta_uf_d_t_2023,
+                                                 r_A_ufvnt, A_A, A_MR, A_OR)
 
         # (48)　実際の非居室の室温
         Theta_NR_d_t = dc.get_Theta_NR_d_t(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
                                             V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q)
 
+    ### 熱繰越 / 非熱繰越 の分岐が終了 -> 以降、共通の処理 ###
+
     # ループ計算部分の出力
+    df_output = df_output.assign(
+        V_supply_d_t_1 = V_supply_d_t_i[0],
+        V_supply_d_t_2 = V_supply_d_t_i[1],
+        V_supply_d_t_3 = V_supply_d_t_i[2],
+        V_supply_d_t_4 = V_supply_d_t_i[3],
+        V_supply_d_t_5 = V_supply_d_t_i[4]
+    )
     df_output = df_output.assign(
         L_star_CS_d_t_i_1 = L_star_CS_d_t_i[0],
         L_star_CS_d_t_i_2 = L_star_CS_d_t_i[1],
@@ -681,7 +715,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_hs_max_H_d_t  = Q_hs_max_H_d_t,
     )
 
-    if type == 1 or type == 3:
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
         df_output = df_output.assign(
             L_star_CL_d_t = L_star_CL_d_t,
             L_star_CS_d_t = L_star_CS_d_t,
@@ -689,7 +723,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             L_star_dash_C_d_t  = L_star_dash_C_d_t,
         )
 
-    if type == 2 or type == 4:
+    if type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
         df_output['C_df_H_d_t'] = C_df_H_d_t
         df_output = df_output.assign(
             Q_r_max_H_d_t = Q_r_max_H_d_t,
@@ -728,13 +762,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Theta_hs_out_min_C_d_t = Theta_hs_out_min_C_d_t,
         Theta_hs_out_max_H_d_t = Theta_hs_out_max_H_d_t,
         Theta_hs_out_d_t = Theta_hs_out_d_t,
-    )
-    df_output = df_output.assign(
-        V_supply_d_t_1 = V_supply_d_t_i[0],
-        V_supply_d_t_2 = V_supply_d_t_i[1],
-        V_supply_d_t_3 = V_supply_d_t_i[2],
-        V_supply_d_t_4 = V_supply_d_t_i[3],
-        V_supply_d_t_5 = V_supply_d_t_i[4]
     )
     df_output = df_output.assign(
         Theta_supply_d_t_1 = Theta_supply_d_t_i[0],

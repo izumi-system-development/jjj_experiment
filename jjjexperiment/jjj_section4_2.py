@@ -10,13 +10,19 @@ from functools import lru_cache
 
 import datetime
 
-import pyhees.section3_1 as ld
+import jjjexperiment.jjj_section3_1 as ld
 
 from pyhees.section3_2_8 import \
     get_r_env
 
-from pyhees.section3_1 import \
+from jjjexperiment.jjj_section3_1 import \
     get_A_NR
+
+from pyhees.section3_1_d import \
+    get_V_A
+
+from pyhees.section3_1_e import \
+    get_U_s, get_ro_air, get_c_p_air, get_phi
 
 from pyhees.section4_7_i import \
     get_A_A_R
@@ -41,6 +47,9 @@ from pyhees.section11_5 import \
 from pyhees.section11_6 import \
     get_table_7
 
+from jjjexperiment.jjj_section3_1_e2 import \
+    calc_Theta, get_r_A_uf_i, calc_A_s_ufvnt_i
+
 from jjjexperiment.jjj_section4_3 import \
     get_C_af_H, \
     get_C_af_C
@@ -49,6 +58,7 @@ from jjjexperiment.constants import PROCESS_TYPE_3
 import jjjexperiment.constants as constants
 
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
+from jjjexperiment.logger import log_res
 from jjjexperiment.options import *
 
 # 未処理負荷と機器の計算に必要な変数を取得
@@ -82,6 +92,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     Returns:
 
     """
+    raise NotImplementedError("置き換え以前のコードであり、現状は使用されることはないはずです。")
 
     # 外気条件
     climate = load_climate(region)
@@ -223,7 +234,9 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     L_star_CS_d_t_i = get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region)
 
     # (8)
-    L_star_H_d_t_i = get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region)
+    L_star_H_d_t_i = get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
+                                        A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_ex_d_t, Theta_ex_d_t,
+                                        L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
 
     # (33)
     L_star_CL_d_t = get_L_star_CL_d_t(L_star_CL_d_t_i)
@@ -295,7 +308,7 @@ def calc_Q_UT_A(A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, V_hs
     # (43)
     V_supply_d_t_i = get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
                                         V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
-    V_supply_d_t_i = cap_V_supply_d_t_i(V_supply_d_t_i, VAV, )
+    V_supply_d_t_i = cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
     # (41)
     Theta_supply_d_t_i = get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
@@ -495,6 +508,7 @@ def get_E_C_UT_d_t(Q_UT_CL_d_t_i, Q_UT_CS_d_t_i, region):
 # ============================================================================
 
 # メモ： i=1-5のみ i>=6 の場合はどこで計算するのか要確認
+@log_res(['Q_UT_H_d_t_i'])
 def get_Q_UT_H_d_t_i(L_star_H_d_t_i, L_dash_H_d_t_i):
     """(2)
 
@@ -509,6 +523,7 @@ def get_Q_UT_H_d_t_i(L_star_H_d_t_i, L_dash_H_d_t_i):
     return np.clip(L_star_H_d_t_i[:5] - L_dash_H_d_t_i[:5], 0, None)
 
 # メモ： i=1-5のみ i>=6 の場合はどこで計算するのか要確認
+@log_res(['Q_UT_CS_d_t_i'])
 def get_Q_UT_CS_d_t_i(L_star_CS_d_t_i, L_dash_CS_d_t_i):
     """(3)
 
@@ -523,6 +538,7 @@ def get_Q_UT_CS_d_t_i(L_star_CS_d_t_i, L_dash_CS_d_t_i):
     return np.clip(L_star_CS_d_t_i[:5] - L_dash_CS_d_t_i[:5], 0, None)
 
 # メモ： i=1-5のみ i>=6 の場合はどこで計算するのか要確認
+@log_res(['Q_UT_CL_d_t_i'])
 def get_Q_UT_CL_d_t_i(L_star_CL_d_t_i, L_dash_CL_d_t_i):
     """(4)
 
@@ -538,6 +554,7 @@ def get_Q_UT_CL_d_t_i(L_star_CL_d_t_i, L_dash_CL_d_t_i):
     return np.clip(L_star_CL_d_t_i[:5] - L_dash_CL_d_t_i[:5], 0, None)
 
 # メモ： i=1-5のみ i>=6 の場合はどこで計算するのか要確認
+@log_res(['L_dash_H_d_t_i'])
 def get_L_dash_H_d_t_i(V_supply_d_t_i, Theta_supply_d_t_i, Theta_HBR_d_t_i, region):
     """(5-1)(5-2)(5-3)
 
@@ -568,7 +585,7 @@ def get_L_dash_H_d_t_i(V_supply_d_t_i, Theta_supply_d_t_i, Theta_HBR_d_t_i, regi
 
     return L_dash_H_d_t_i
 
-
+@log_res(['L_dash_CS_d_t_i'])
 def get_L_dash_CS_d_t_i(V_supply_d_t_i, Theta_supply_d_t_i, Theta_HBR_d_t_i, region):
     """(6-1)(6-2)(6-3)
 
@@ -599,8 +616,7 @@ def get_L_dash_CS_d_t_i(V_supply_d_t_i, Theta_supply_d_t_i, Theta_HBR_d_t_i, reg
 
     return L_dash_CS_d_t_i
 
-
-
+@log_res(['L_dash_CL_d_t_i'])
 def get_L_dash_CL_d_t_i(V_supply_d_t_i, X_HBR_d_t_i, X_supply_d_t_i, region):
     """(7-1)(7-2)(7-3)
 
@@ -632,13 +648,30 @@ def get_L_dash_CL_d_t_i(V_supply_d_t_i, X_HBR_d_t_i, X_supply_d_t_i, region):
     return L_dash_CL_d_t_i
 
 
-def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region):
+@log_res(['L_star_H_d_t_i'])
+def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
+                       A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_i, Theta_ex_d_t,
+                       L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g):
     """(8-1)(8-2)(8-3)
 
     Args:
       L_H_d_t_i: 日付dの時刻tにおける暖冷房区画iの1時間当たりの暖房負荷（MJ/h）
       Q_star_trs_prt_d_t_i: 日付dの時刻tにおける暖冷房区画iの1時間当たりの熱損失を含む負荷バランス時の非居室への熱移動（MJ/h）
       region: 地域区分
+
+      A_A(float): 床面積の合計 (m2)
+      A_MR(float): 主たる居室の床面積 (m2)
+      A_OR(float): その他の居室の床面積 (m2)
+      Q(float): 当該住戸の熱損失係数 (W/m2K)
+      r_A_ufvnt(float): 当該住戸において、床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)
+      underfloor_insulation(bool): 床下空間が断熱空間内である場合はTrue
+      Theta_uf_d_t_i(ndarray): 床下空間の空気の温度 (℃)
+      Theta_ex_d_t(ndarray): 外気温度 (℃)
+      V_sa_d_t_A(ndarray): 床下空間または居室へ供給する1時間当たりの空気の風量の合計
+      H_OR_C: type H_OR_C: str
+      L_dash_H_R_d_t(ndarray): 標準住戸の負荷補正前の暖房負荷 (MJ/h)
+      L_dash_CS_R_d_t(ndarray): 標準住戸の負荷補正前の冷房顕熱負荷 （MJ/h）
+      R_g: 地盤またはそれを覆う基礎の表面熱伝達抵抗 ((m2・K)/W)
 
     Returns:
       日付dの時刻tにおける暖冷房区画iの1時間当たりの熱損失を含む負荷バランス時の暖房負荷
@@ -650,10 +683,57 @@ def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region):
 
     Hf = np.logical_and(H, f)
 
+    if constants.change_underfloor_temperature == 2:
+      delta_L_star = get_delta_L_star_underfloor_2023(
+          region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_i, Theta_ex_d_t,
+          L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
+    else:
+      delta_L_star = np.zeros((5, 24 * 365))
     L_star_H_d_t_i = np.zeros((5, 24 * 365))
-    L_star_H_d_t_i[Hf] = np.clip(L_H_d_t_i[Hf] + Q_star_trs_prt_d_t_i[Hf], 0, None)
+    L_star_H_d_t_i[Hf] = np.clip(L_H_d_t_i[Hf] + Q_star_trs_prt_d_t_i[Hf] + delta_L_star[Hf], 0, None)
     return L_star_H_d_t_i
 
+def get_delta_L_star_underfloor_2023(
+  region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
+  L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g):
+  """
+    Args:
+      region: 地域区分
+      A_A(float): 床面積の合計 (m2)
+      A_MR(float): 主たる居室の床面積 (m2)
+      A_OR(float): その他の居室の床面積 (m2)
+      Q(float): 当該住戸の熱損失係数 (W/m2K)
+      r_A_ufvnt(float): 当該住戸において、床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)
+      underfloor_insulation(bool): 床下空間が断熱空間内である場合はTrue
+      Theta_uf_d_t(ndarray): 床下空間の空気の温度 (℃)
+      Theta_ex_d_t(ndarray): 外気温度 (℃)
+      V_sa_d_t_A(ndarray): 床下空間または居室へ供給する1時間当たりの空気の風量の合計
+      H_OR_C: type H_OR_C: str
+      L_dash_H_R_d_t(ndarray): 標準住戸の負荷補正前の暖房負荷 (MJ/h)
+      L_dash_CS_R_d_t(ndarray): 標準住戸の負荷補正前の冷房顕熱負荷 （MJ/h）
+      R_g: 地盤またはそれを覆う基礎の表面熱伝達抵抗 ((m2・K)/W)
+
+    Returns:
+      日付dの時刻tにおける暖冷房区画iの1時間当たりの床下との熱交換による熱負荷の補正 (MJ/h)
+  """
+  # 当該住戸の1時間当たりの換気量 (m3/h) D.3.2 (4)
+  V_A = get_V_A(A_A)
+  Theta_uf_d_t, _, A_s_ufvnt_i, A_s_ufvnt_A, Theta_g_avg, Theta_dash_g_surf_A_m_d_t, L_uf, H_floor, phi, Phi_A_0, _, _ = \
+    calc_Theta(
+      region=region, A_A=A_A, A_MR=A_MR, A_OR=A_OR, Q=Q, r_A_ufvnt=r_A_ufvnt, underfloor_insulation=underfloor_insulation,
+      Theta_sa_d_t=Theta_uf_d_t, Theta_ex_d_t=Theta_ex_d_t, V_sa_d_t_A=np.repeat(V_A, 24 * 365), H_OR_C='H',
+      L_dash_H_R_d_t=L_dash_H_R_d_t, L_dash_CS_R_d_t=L_dash_CS_R_d_t, R_g=R_g)
+  U_s = get_U_s()
+  # 床下→地盤
+  underfloor_to_ground = (A_s_ufvnt_A * (np.sum(Theta_dash_g_surf_A_m_d_t, axis=1) + Theta_g_avg - Theta_uf_d_t)) / (R_g + Phi_A_0)
+  # 床下→外気
+  underfloor_to_outdoor = phi * L_uf * (Theta_ex_d_t - Theta_uf_d_t)
+  # それ以外の部分
+  delta_L_other = -U_s * np.array(A_s_ufvnt_i[:5]).reshape(-1, 1) * ((Theta_uf_d_t - Theta_ex_d_t) * H_floor).reshape(1, -1) * 3.6
+  delta_L_star = delta_L_other + np.tile(underfloor_to_ground, (5, 1)) + np.tile(underfloor_to_outdoor, (5, 1))
+  return delta_L_star / 1000
+
+@log_res(['L_star_H_i'])
 def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, t: int):
     """get_L_star_H_d_t_i のループ用 時点単発計算 \n
 
@@ -671,33 +751,49 @@ def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_
     H, C, M = get_season_array_d_t(region)
     L_H_d_t_i = L_H_d_t_i[:5]
     f = L_H_d_t_i > 0
-    Hf = np.logical_and(H, f)[:, t]  # 5x1
+    Hf = np.logical_and(H, f)[:, t:t+1]  # 5x1
 
     A_HCZ_i = A_HCZ_i.reshape(-1,1)
     A_HCZ_R_i = A_HCZ_R_i.reshape(-1,1)
 
     if 0 < t:
         cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
-        arr_theta = np.max(Theta_HBR_d_t_i[:, t-1:t] - Theta_star_HBR_d_t[t-1], 0)  # 5x1
-        carry_over = -1 * cbri * arr_theta
+        arr_theta = np.clip(Theta_HBR_d_t_i[:, t-1:t] - Theta_star_HBR_d_t[t-1], 0, None)  # 5x1
+        carry_over = cbri * arr_theta / 1_000_000  # 過剰熱量: J/h -> MJ/h
     else:
         carry_over = np.zeros((5, 1))
+    assert np.all(np.greater_equal(carry_over, 0)), "想定外の計算結果(過剰熱量がマイナス)"
 
-    assert((carry_over >= 0).all(), "熱の繰り越しが想定外")
-    arr = L_H_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] + carry_over
+    # <負荷バランス時の暖房負荷> - <過剰熱量>
+    arr = L_H_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] - carry_over
 
     L_star_H_i = np.zeros((5, 1))
-    L_star_H_i[Hf] = np.clip(arr, 0, None)[Hf]
+    L_star_H_i[Hf] = arr[Hf]
     return L_star_H_i
 
-def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region):
+def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
+                        A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
+                        L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g):
     """(9-2)(9-2)(9-3)
 
     Args:
       L_CS_t_i: 日付dの時刻tにおける暖冷房区画iの1時間当たりの冷房顕熱負荷（MJ/h）
       Q_star_trs_prt_d_t_i: 日付dの時刻tにおける暖冷房区画iの1時間当たりの熱損失を含む負荷バランス時の非居室への熱移動（MJ/h）
       region: 地域区分
-      L_CS_d_t_i: returns: 日付dの時刻tにおける暖冷房区画iの1時間当たりの熱損失を含む負荷バランス時の冷房顕熱負荷
+
+      A_A(float): 床面積の合計 (m2)
+      A_MR(float): 主たる居室の床面積 (m2)
+      A_OR(float): その他の居室の床面積 (m2)
+      Q(float): 当該住戸の熱損失係数 (W/m2K)
+      r_A_ufvnt(float): 当該住戸において、床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)
+      underfloor_insulation(bool): 床下空間が断熱空間内である場合はTrue
+      Theta_uf_d_t_i(ndarray): 床下空間の空気の温度 (℃)
+      Theta_ex_d_t(ndarray): 外気温度 (℃)
+      V_sa_d_t_A(ndarray): 床下空間または居室へ供給する1時間当たりの空気の風量の合計
+      H_OR_C: type H_OR_C: str
+      L_dash_H_R_d_t(ndarray): 標準住戸の負荷補正前の暖房負荷 (MJ/h)
+      L_dash_CS_R_d_t(ndarray): 標準住戸の負荷補正前の冷房顕熱負荷 （MJ/h）
+      R_g: 地盤またはそれを覆う基礎の表面熱伝達抵抗 ((m2・K)/W)
 
     Returns:
       日付dの時刻tにおける暖冷房区画iの1時間当たりの熱損失を含む負荷バランス時の冷房顕熱負荷
@@ -710,7 +806,13 @@ def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region):
     Cf = np.logical_and(C, f)
 
     L_star_CS_d_t_i = np.zeros((5, 24 * 365))
-    L_star_CS_d_t_i[Cf] = np.clip(L_CS_d_t_i[Cf] + Q_star_trs_prt_d_t_i[Cf], 0, None)
+    if constants.change_underfloor_temperature == 2:
+      delta_L_star = get_delta_L_star_underfloor_2023(
+          region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
+          L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
+    else:
+      delta_L_star = np.zeros((5, 24 * 365))
+    L_star_CS_d_t_i[Cf] = np.clip(L_CS_d_t_i[Cf] + Q_star_trs_prt_d_t_i[Cf] + delta_L_star[Cf], 0, None)
     return L_star_CS_d_t_i
 
 def get_L_star_CS_i_2023(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i, Theta_star_HBR_d_t, Theta_HBR_d_t_i, t: int):
@@ -723,6 +825,7 @@ def get_L_star_CS_i_2023(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HC
       A_HCZ_i: xxx  \n
       A_HCZ_R_i: 標準住戸における暖冷房区画の床面積[m2]  \n
       t: 時系列データにおけるインデックス \n
+
     Returns: \n
       一時点の 日付dの時刻tにおける暖冷房区画iの1時間当たりの熱損失を含む負荷バランス時の冷房顕熱負荷 \n
 
@@ -737,14 +840,18 @@ def get_L_star_CS_i_2023(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HC
 
     if 0 < t:
         cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
-        arr_theta = np.max(Theta_star_HBR_d_t[t-1] - Theta_HBR_d_t_i[:, t-1:t], 0)  # 5x1
-        carry_over = -1 * cbri * arr_theta
+        arr_theta = np.clip(Theta_star_HBR_d_t[t-1] - Theta_HBR_d_t_i[:, t-1:t], 0, None)  # 5x1
+        carry_over = cbri * arr_theta / 1_000_000  # 過剰熱量: J/h -> MJ/h
     else:
         carry_over = np.zeros((5, 1))
 
-    assert((carry_over >= 0).all(), "熱の繰り越しが想定外")
+    if np.any(carry_over < 0):
+        pass
+    assert np.all(np.greater_equal(carry_over, 0)), "想定外の計算結果(過剰熱量がマイナス)"
+
+    # <負荷バランス時の暖房負荷> - <過剰熱量>
     # NOTE: MATRIX[:, 0] だと shape(5, ) となりダメ MATRIX[:, 0:1] と書くと shape(5,1)
-    arr = L_CS_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] + carry_over
+    arr = L_CS_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] - carry_over
 
     L_star_CS_i = np.zeros((5, 1))
     L_star_CS_i[Cf] = np.clip(arr, 0, None)[Cf]
@@ -1079,6 +1186,47 @@ def get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i
     Theta_req_d_t_i[:, M] = Theta_star_HBR_d_t[M]
 
     return Theta_req_d_t_i
+
+def get_Theta_req_d_t_i_2023(
+        region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
+        V_dash_supply_d_t_i, H_OR_C, L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g):
+    """(21-1)(21-2)(21-3)
+
+    Args:
+      region(int): 省エネルギー地域区分
+      A_A(float): 床面積の合計 (m2)
+      A_MR(float): 主たる居室の床面積 (m2)
+      A_OR(float): その他の居室の床面積 (m2)
+      Q(float): 当該住戸の熱損失係数 (W/m2K)
+      r_A_ufvnt(float): 当該住戸において、床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)
+      underfloor_insulation(bool): 床下空間が断熱空間内である場合はTrue
+      Theta_uf_d_t(ndarray): 床下温度 (℃)
+      Theta_ex_d_t(ndarray): 外気温度 (℃)
+      V_dash_supply_d_t_i(ndarray): 日付dの時刻tにおける暖冷房区画iのVAV調整前の熱源機の風量（m3/h）
+      H_OR_C: type H_OR_C: str
+      L_dash_H_R_d_t(ndarray): 標準住戸の負荷補正前の暖房負荷 (MJ/h)
+      L_dash_CS_R_d_t(ndarray): 標準住戸の負荷補正前の冷房顕熱負荷 （MJ/h）
+      R_g: 地盤またはそれを覆う基礎の表面熱伝達抵抗 ((m2・K)/W)
+    Returns:
+      Theta_req_d_t: 要求床下温度 (℃)
+
+    """
+
+    r_A_uf_i = np.array([get_r_A_uf_i(i) for i in range(1,13)])
+    V_sa_d_t_A = np.sum(r_A_uf_i[:5, np.newaxis] * V_dash_supply_d_t_i, axis=0)
+    Theta_uf_d_t, Theta_g_surf_d_t, A_s_ufvnt, A_s_ufvnt_A, Theta_g_avg, Theta_dash_g_surf_A_m_d_t, L_uf, H_floor, phi, Phi_A_0, H_star_d_t_i, Theta_star_d_t_i = \
+      calc_Theta(region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
+        V_sa_d_t_A, H_OR_C, L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
+    U_s = get_U_s()
+    ro_air = get_ro_air()
+    c_p_air = get_c_p_air()
+    Theta_req_d_t = (
+        Theta_uf_d_t
+        + (U_s * np.sum(H_star_d_t_i * np.array(A_s_ufvnt)[:, np.newaxis], axis=0) + phi * L_uf + A_s_ufvnt_A / R_g / (1 + Phi_A_0 / R_g)) * Theta_uf_d_t * 3.6
+        - (U_s * np.sum(H_star_d_t_i * Theta_star_d_t_i * np.array(A_s_ufvnt)[:, np.newaxis], axis=0) + phi * L_uf * Theta_ex_d_t
+           + A_s_ufvnt_A / R_g * (np.sum(Theta_dash_g_surf_A_m_d_t, axis=1) + Theta_g_avg) / (1 + Phi_A_0 / R_g)) * 3.6
+      ) / ( ro_air * c_p_air * V_sa_d_t_A )
+    return np.tile(Theta_req_d_t, (5, 1))
 
 
 def get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region):
@@ -1928,7 +2076,8 @@ def get_r_supply_des_d_t_i_2023(region, L_CS_d_t_i, L_H_d_t_i):
 # 11.1 実際の居室の室温・絶対湿度
 # ============================================================================
 
-def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q, A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region):
+def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q, A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region,
+                        Theta_uf_d_t, r_A_ufvnt, A_A, A_MR, A_OR):
     """(46-1)(46-2)(46-3)
 
     Args:
@@ -1942,6 +2091,11 @@ def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, 
       L_star_H_d_t_i: 日付dの時刻tにおける暖冷房区画iの1時間当たりの間仕切りの熱取得を含む実際の暖房負荷（MJ/h）
       L_star_CS_d_t_i: 日付dの時刻tにおける暖冷房区画iの1時間当たりの間仕切りの熱取得を含む実際の冷房顕熱負荷（MJ/h）
       region: 地域区分
+      Theta_uf_d_t: 日付dの時刻tにおける床下温度（℃）
+      r_A_ufvnt(float): 当該住戸において、床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)
+      A_A(float): 床面積の合計 (m2)
+      A_MR(float): 主たる居室の床面積 (m2)
+      A_OR(float): その他の居室の床面積 (m2)
 
     Returns:
 
@@ -1949,12 +2103,25 @@ def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, 
     H, C, M = get_season_array_d_t(region)
     c_p_air = get_c_p_air()
     rho_air = get_rho_air()
+    U_s = get_U_s()
 
     Theta_HBR_d_t_i = np.zeros((5, 24 * 365))
     # A_HCZ_i = np.reshape(A_HCZ_i, (5, 0))
 
     # 暖房期 (46-1)
-    Theta_HBR_d_t_i[:, H] = Theta_star_HBR_d_t[H] + (c_p_air * rho_air * V_supply_d_t_i[:, H] * \
+    if constants.change_underfloor_temperature == 2:
+      # NOTE: 新しい床下空調のロジックでのみ、床下換気のための変数である r_A_ufvnt を有効にしています(実験的)
+      r_A_ufvnt_tmp = 1 if r_A_ufvnt is None else r_A_ufvnt
+      # 当該住戸の暖冷房区画iの空気を供給する床下空間に接する床の面積(m2) (7)
+      A_s_ufvnt_i = [calc_A_s_ufvnt_i(i, r_A_ufvnt_tmp, A_A, A_MR, A_OR) for i in range(1, 13)]
+
+      Theta_HBR_d_t_i[:, H] = Theta_star_HBR_d_t[H] + (c_p_air * rho_air * V_supply_d_t_i[:, H] * \
+                                                    (Theta_supply_d_t_i[:, H] - Theta_star_HBR_d_t[H])
+                                                      + U_s * np.array(A_s_ufvnt_i)[:5, np.newaxis] * (Theta_uf_d_t[H] - Theta_star_HBR_d_t[H])[np.newaxis, :]
+                                                      - L_star_H_d_t_i[:, H] * 10 ** 6) / \
+                         (c_p_air * rho_air * V_supply_d_t_i[:, H] + (U_prt * A_prt_i[:, np.newaxis] + Q * A_HCZ_i[:, np.newaxis]) * 3600)
+    else:
+      Theta_HBR_d_t_i[:, H] = Theta_star_HBR_d_t[H] + (c_p_air * rho_air * V_supply_d_t_i[:, H] * \
                                                     (Theta_supply_d_t_i[:, H] - Theta_star_HBR_d_t[H]) - L_star_H_d_t_i[:, H] * 10 ** 6) / \
                          (c_p_air * rho_air * V_supply_d_t_i[:, H] + (U_prt * A_prt_i[:, np.newaxis] + Q * A_HCZ_i[:, np.newaxis]) * 3600)
 
@@ -1975,18 +2142,29 @@ def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, 
 
     return Theta_HBR_d_t_i
 
-def get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q, A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, A_HCZ_R_i, Theta_HBR_d_t_i, t: int):
+def get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q, A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region,
+                         A_HCZ_R_i, Theta_HBR_d_t_i, t: int):
     """ get_Theta_HBR_d_t_i のループ用 時点単発計算
 
-    前時刻の値を利用: \
-      theta_star_HBR_d_t: 日付dの時刻tにおける負荷バランス時の居室の室温（℃） \
-      Theta_HBR_d_t_i: xxx \
-    Extended Args: \
-      A_HCZ_R_i: 標準住戸における暖冷房区画の床面積[m2] \
-      idx: 時系列データにおけるインデックス \
+    前時刻の値を利用: \n
+      Theta_star_HBR_d_t: 日付dの時刻tにおける負荷バランス時の居室の室温（℃） \n
+      Theta_HBR_d_t_i: xxx \n
+      V_supply_d_t_i: 日付dの時刻tにおける暖冷房区画iの吹き出し風量（m3/h） \n
+      Theta_supply_d_t_i: 日付dの時刻tにおける負荷バランス時の居室の室温（℃） \n
+      U_prt: 間仕切りの熱貫流率（W/(m2・K)） \n
+      A_prt_i: 暖冷房区画iから見た非居室の間仕切りの面積（m2） \n
+      Q: 当該住戸の熱損失係数（W/(m2・K)） \n
+      A_HCZ_i: 暖冷房区画iの床面積（m2） \n
+      L_star_H_d_t_i: 日付dの時刻tにおける暖冷房区画iの1時間当たりの間仕切りの熱取得を含む実際の暖房負荷（MJ/h） \n
+      L_star_CS_d_t_i: 日付dの時刻tにおける暖冷房区画iの1時間当たりの間仕切りの熱取得を含む実際の冷房顕熱負荷（MJ/h） \n
+      region: 地域区分 \n
 
-    Returns: \
-      (日付dの時刻tにおける)暖冷房区画iの実際の居室の室温[℃] \
+    Extended Args: \n
+      A_HCZ_R_i: 標準住戸における暖冷房区画の床面積[m2] \n
+      idx: 時系列データにおけるインデックス \n
+
+    Returns: \n
+      (日付dの時刻tにおける)暖冷房区画iの実際の居室の室温[℃] \n
 
     """
     H, C, M = get_season_array_d_t(region)

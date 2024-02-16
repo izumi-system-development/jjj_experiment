@@ -388,13 +388,14 @@ class Test既存計算維持_入力値切替_方式2:
         """
         inputs = copy.deepcopy(self._inputs)
         inputs["underfloor_air_conditioning_air_supply"] = "2"
+        # NOTE: この設定のみで 他の床下関係インプットも強制されます
 
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_H != expected_result_type2.E_H
-        assert math.isclose(result['TValue'].E_H, 67278.54303193314)
+        assert math.isclose(result['TValue'].E_H, 66213.58790294742)
         assert result['TValue'].E_C != expected_result_type2.E_C
-        assert math.isclose(result['TValue'].E_C, 18024.47144210919)
+        assert math.isclose(result['TValue'].E_C, 18042.557009848893)
 
     def test_入力値入替_26(self, expected_result_type2):
         """ 以前のプログラムと同じ計算結果になる
