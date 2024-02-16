@@ -358,9 +358,23 @@ class Test既存計算維持_入力値切替_方式1:
         assert result['TValue'].E_H == expected_result_type1.E_H
         assert result['TValue'].E_C == expected_result_type1.E_C
 
-    # NOTE: underfloor_air_conditioning_air_supply はオリジナルではない概念なのでテスト対象外
-
     def test_入力値入替_23(self, expected_result_type1):
+        """ 以前のプログラムと同じ計算結果になる
+            空調空気を床下を通して給気する （☐：床下を通して給気しない or ☑：床下を通して給気する）
+            underfloor_air_conditioning_air_supply
+        """
+        inputs = copy.deepcopy(self._inputs)
+        inputs["underfloor_air_conditioning_air_supply"] = "2"
+        # NOTE: この設定のみで 他の床下関係インプットも強制されます
+
+        result = calc(inputs, test_mode=True)
+
+        assert result['TValue'].E_H != expected_result_type1.E_H
+        assert math.isclose(result['TValue'].E_H, 59047.04305281064)
+        assert result['TValue'].E_C != expected_result_type1.E_C
+        assert math.isclose(result['TValue'].E_C, 19511.84935219687)
+
+    def test_入力値入替_24(self, expected_result_type1):
         """ 以前のプログラムと同じ計算結果になる
             地盤またはそれを覆う基礎の表面熱伝達抵抗 [(m2・K)/W]
             R_g
