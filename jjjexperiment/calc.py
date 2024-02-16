@@ -335,12 +335,14 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, YUCACO_r_A_ufvnt,V_dash_supply_d_t_i, Theta_ex_d_t)
 
     # NOTE: 熱繰越を行うverと行わないverで 同じ処理を異なるループの粒度で二重実装が必要です
-    # 実装量/計算量 の多い仕様の場合には 非熱繰越のみの実装として、オプション併用を拒否する仕様も検討しましょう
+    # 実装量/計算量 の多い仕様の場合には 過剰熱繰越ナシ(一般的なパターン) のみ実装として、オプション併用を拒否する仕様も検討しましょう
     if constants.carry_over_heat == 過剰熱量繰越計算.行う.value:
 
         # NOTE: 過剰熱繰越と併用しないオプションはここで実行を拒否します
         if constants.change_underfloor_temperature == 2:
-            raise TimeoutError("この操作は実行に時間がかかるため併用できません。熱繰越と床下空調ロジック変更")
+            raise TimeoutError("この操作は実行に時間がかかるため併用できません。[過剰熱繰越と床下空調ロジック変更]")
+            # NOTE: 過剰熱繰越の8760ループと床下空調ロジック変更の8760ループが合わさると
+            # 一時間を超える実行時間になることを確認したため回避しています(2024/02)
 
         # インデックス順に更新対象
         L_star_CS_d_t_i = np.zeros((5, 24 * 365))
@@ -352,17 +354,11 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
             L_star_CS_d_t_i[:, hour:hour+1] = dc.get_L_star_CS_i_2023(
                 L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i,
-                Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour,
-                A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
-                Theta_uf_d_t_2023, Theta_ex_d_t,
-                L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+                Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
             # (8)　熱損失を含む負荷バランス時の暖房負荷
             L_star_H_d_t_i[:, hour:hour+1] = dc.get_L_star_H_i_2023(
                 L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_R_i,
-                Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour,
-                A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
-                Theta_uf_d_t_2023, Theta_ex_d_t,
-                L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+                Theta_star_HBR_d_t, Theta_HBR_d_t_i, hour)
 
             ####################################################################################################################
             if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
@@ -435,13 +431,8 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             # (22)　熱源機の出口における要求絶対湿度
             X_req_d_t_i = dc.get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region)
             # (21)　熱源機の出口における要求空気温度
-            if constants.change_underfloor_temperature == 2:
-                Theta_req_d_t_i = dc.get_Theta_req_d_t_i_2023(
-                    region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
-                    V_dash_supply_d_t_i, '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
-            else:
-                Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
-                                    L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
+            Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
+                                L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
 
             if underfloor_air_conditioning_air_supply:
                 for i in range(2):  # i=0,1
@@ -485,19 +476,8 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
 
             # (41)　暖冷房区画𝑖の吹き出し温度
-            if constants.change_underfloor_temperature == 2:
-                Theta_uf_d_t, *others = \
-                    uf.calc_Theta(
-                        region, A_A, A_MR, A_OR, Q, r_A_ufvnt,#★
-                        underfloor_insulation, Theta_req_d_t_i[0],#★
-                        Theta_ex_d_t, V_dash_supply_d_t_i[0],
-                        '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i,#★
-                        R_g)
-                Theta_supply_d_t = Theta_uf_d_t
-                Theta_supply_d_t_i = np.tile(Theta_supply_d_t, (5, 1))
-            else:
-                Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
-                                                           V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
+            Theta_supply_d_t_i = dc.get_Thata_supply_d_t_i(Theta_sur_d_t_i, Theta_hs_out_d_t, Theta_star_HBR_d_t, l_duct_i,
+                                                       V_supply_d_t_i, L_star_H_d_t_i, L_star_CS_d_t_i, region)
 
             if underfloor_air_conditioning_air_supply:
                 for i in range(2):  # i=0,1
@@ -521,14 +501,14 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             # (46)　暖冷房区画𝑖の実際の居室の室温
             Theta_HBR_d_t_i[:, hour:hour+1] = dc.get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
                                                         A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region,
-                                                        Theta_ex_d_t, r_A_ufvnt, A_A, A_MR, A_OR,
                                                         A_HCZ_R_i, Theta_HBR_d_t_i, hour)
 
             # (48)　実際の非居室の室温
             Theta_NR_d_t[hour] = dc.get_Theta_NR_2023(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
                                                 V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q, Theta_NR_d_t, hour)
 
-    else:
+    else:  # 過剰熱繰越ナシ(一般的なパターン)
+
         # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
         L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
                                                  A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
