@@ -334,17 +334,19 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     Theta_uf_d_t_2023 = uf.calc_Theta_uf_d_t_2023(
         L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, YUCACO_r_A_ufvnt,V_dash_supply_d_t_i, Theta_ex_d_t)
 
+    # NOTE: 熱繰越を行うverと行わないverで 同じ処理を異なるループの粒度で二重実装が必要です
+    # 実装量/計算量 の多い仕様の場合には 非熱繰越のみの実装として、オプション併用を拒否する仕様も検討しましょう
     if constants.carry_over_heat == 過剰熱量繰越計算.行う.value:
+
+        # NOTE: 過剰熱繰越と併用しないオプションはここで実行を拒否します
+        if constants.change_underfloor_temperature == 2:
+            raise TimeoutError("この操作は実行に時間がかかるため併用できません。熱繰越と床下空調ロジック変更")
+
         # インデックス順に更新対象
         L_star_CS_d_t_i = np.zeros((5, 24 * 365))
         L_star_H_d_t_i = np.zeros((5, 24 * 365))
         Theta_HBR_d_t_i = np.zeros((5, 24 * 365))
         Theta_NR_d_t = np.zeros(24 * 365)
-
-        # FIXME: 両立化が計算量的に可能かどうか
-        # NOTE: 床下空調新ロジックと併用しないで下さい。実行完了に数時間かかります。
-        if constants.change_underfloor_temperature == 2:
-            raise TimeoutError("この操作は実行に時間がかかるため強制終了しました。")
 
         for hour in range(0, 24 * 365):
             # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
@@ -479,6 +481,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             # (43)　暖冷房区画𝑖の吹き出し風量
             V_supply_d_t_i = dc.get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
                                                             V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
+            V_supply_d_t_i = dc.cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
 
             # (41)　暖冷房区画𝑖の吹き出し温度
@@ -700,6 +703,8 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Theta_NR_d_t = dc.get_Theta_NR_d_t(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
                                             V_dash_supply_d_t_i, V_supply_d_t_i, U_prt, A_prt_i, Q)
 
+    ### 熱繰越 / 非熱繰越 の分岐が終了 -> 以降、共通の処理 ###
+
     # ループ計算部分の出力
     df_output = df_output.assign(
         V_supply_d_t_1 = V_supply_d_t_i[0],
@@ -730,7 +735,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_hs_max_H_d_t  = Q_hs_max_H_d_t,
     )
 
-    if type == 1 or type == 3:
+    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
         df_output = df_output.assign(
             L_star_CL_d_t = L_star_CL_d_t,
             L_star_CS_d_t = L_star_CS_d_t,
@@ -738,7 +743,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             L_star_dash_C_d_t  = L_star_dash_C_d_t,
         )
 
-    if type == 2 or type == 4:
+    if type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
         df_output['C_df_H_d_t'] = C_df_H_d_t
         df_output = df_output.assign(
             Q_r_max_H_d_t = Q_r_max_H_d_t,

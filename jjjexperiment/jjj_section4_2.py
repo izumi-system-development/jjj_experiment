@@ -774,12 +774,11 @@ def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_
 
     if 0 < t:
         cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
-        arr_theta = np.max(Theta_HBR_d_t_i[:, t-1:t] - Theta_star_HBR_d_t[t-1], 0)  # 5x1
-        carry_over = -1 * cbri * arr_theta / 1_000_000  # J/h -> MJ/h
+        arr_theta = np.clip(Theta_HBR_d_t_i[:, t-1:t] - Theta_star_HBR_d_t[t-1], 0, None)  # 5x1
+        carry_over = cbri * arr_theta / 1_000_000  # 過剰熱量: J/h -> MJ/h
     else:
         carry_over = np.zeros((5, 1))
-
-    assert((carry_over >= 0).all(), "熱の繰り越しが想定外")
+    assert np.all(np.greater_equal(carry_over, 0)), "想定外の計算結果(過剰熱量がマイナス)"
 
     if constants.change_underfloor_temperature == 2:
       delta_L_star = get_delta_L_star_underfloor_2023(
@@ -788,7 +787,8 @@ def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_
     else:
       delta_L_star = np.zeros((5, 8760))
 
-    arr = L_H_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] + delta_L_star[:, t:t+1] + carry_over
+    # <負荷バランス時の暖房負荷> - <過剰熱量>
+    arr = L_H_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] + delta_L_star[:, t:t+1] - carry_over
 
     L_star_H_i = np.zeros((5, 1))
     L_star_H_i[Hf] = arr[Hf]
@@ -879,14 +879,18 @@ def get_L_star_CS_i_2023(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HC
 
     if 0 < t:
         cbri = get_C_BR_i(A_HCZ_i, A_HCZ_R_i)
-        arr_theta = np.max(Theta_star_HBR_d_t[t-1] - Theta_HBR_d_t_i[:, t-1:t], 0)  # 5x1
-        carry_over = -1 * cbri * arr_theta
+        arr_theta = np.clip(Theta_star_HBR_d_t[t-1] - Theta_HBR_d_t_i[:, t-1:t], 0, None)  # 5x1
+        carry_over = cbri * arr_theta / 1_000_000  # 過剰熱量: J/h -> MJ/h
     else:
         carry_over = np.zeros((5, 1))
 
-    assert((carry_over >= 0).all(), "熱の繰り越しが想定外")
+    if np.any(carry_over < 0):
+        pass
+    assert np.all(np.greater_equal(carry_over, 0)), "想定外の計算結果(過剰熱量がマイナス)"
+
+    # <負荷バランス時の暖房負荷> - <過剰熱量>
     # NOTE: MATRIX[:, 0] だと shape(5, ) となりダメ MATRIX[:, 0:1] と書くと shape(5,1)
-    arr = L_CS_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] + carry_over
+    arr = L_CS_d_t_i[:, t:t+1] + Q_star_trs_prt_d_t_i[:, t:t+1] - carry_over
 
     L_star_CS_i = np.zeros((5, 1))
     L_star_CS_i[Cf] = np.clip(arr, 0, None)[Cf]
