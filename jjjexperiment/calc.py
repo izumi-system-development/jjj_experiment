@@ -343,7 +343,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
         # FIXME: 両立化が計算量的に可能かどうか
         # NOTE: 床下空調新ロジックと併用しないで下さい。実行完了に数時間かかります。
-        if constants.change_under_floor_temperature == 2:
+        if constants.change_underfloor_temperature == 2:
             raise TimeoutError("この操作は実行に時間がかかるため強制終了しました。")
 
         for hour in range(0, 24 * 365):
@@ -433,7 +433,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             # (22)　熱源機の出口における要求絶対湿度
             X_req_d_t_i = dc.get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region)
             # (21)　熱源機の出口における要求空気温度
-            if constants.change_under_floor_temperature == 2:
+            if constants.change_underfloor_temperature == 2:
                 Theta_req_d_t_i = dc.get_Theta_req_d_t_i_2023(
                     region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
                     V_dash_supply_d_t_i, '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
@@ -482,7 +482,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
 
             # (41)　暖冷房区画𝑖の吹き出し温度
-            if constants.change_under_floor_temperature == 2:
+            if constants.change_underfloor_temperature == 2:
                 Theta_uf_d_t, *others = \
                     uf.calc_Theta(
                         region, A_A, A_MR, A_OR, Q, r_A_ufvnt,#★
@@ -608,7 +608,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (22)　熱源機の出口における要求絶対湿度
         X_req_d_t_i = dc.get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region)
         # (21)　熱源機の出口における要求空気温度
-        if constants.change_under_floor_temperature == 2:
+        if constants.change_underfloor_temperature == 2:
             Theta_req_d_t_i = dc.get_Theta_req_d_t_i_2023(
                 region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
                 V_dash_supply_d_t_i, '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
@@ -663,7 +663,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         V_supply_d_t_i = dc.cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
         # (41)　暖冷房区画𝑖の吹き出し温度
-        if constants.change_under_floor_temperature == 2:
+        if constants.change_underfloor_temperature == 2:
             Theta_uf_d_t, *others = \
                 uf.calc_Theta(
                     region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,

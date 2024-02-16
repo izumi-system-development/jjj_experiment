@@ -683,7 +683,7 @@ def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
 
     Hf = np.logical_and(H, f)
 
-    if constants.change_under_floor_temperature == 2:
+    if constants.change_underfloor_temperature == 2:
       delta_L_star = get_delta_L_star_underfloor_2023(
           region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_i, Theta_ex_d_t,
           L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
@@ -781,7 +781,7 @@ def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_
 
     assert((carry_over >= 0).all(), "熱の繰り越しが想定外")
 
-    if constants.change_under_floor_temperature == 2:
+    if constants.change_underfloor_temperature == 2:
       delta_L_star = get_delta_L_star_underfloor_2023(
           region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
           L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
@@ -829,7 +829,7 @@ def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
     Cf = np.logical_and(C, f)
 
     L_star_CS_d_t_i = np.zeros((5, 24 * 365))
-    if constants.change_under_floor_temperature == 2:
+    if constants.change_underfloor_temperature == 2:
       delta_L_star = get_delta_L_star_underfloor_2023(
           region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
           L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
@@ -2144,7 +2144,7 @@ def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, 
     # A_HCZ_i = np.reshape(A_HCZ_i, (5, 0))
 
     # 暖房期 (46-1)
-    if constants.change_under_floor_temperature == 2:
+    if constants.change_underfloor_temperature == 2:
       # NOTE: 新しい床下空調のロジックでのみ、床下換気のための変数である r_A_ufvnt を有効にしています(実験的)
       r_A_ufvnt_tmp = 1 if r_A_ufvnt is None else r_A_ufvnt
       # 当該住戸の暖冷房区画iの空気を供給する床下空間に接する床の面積(m2) (7)
@@ -2227,7 +2227,7 @@ def get_Theta_HBR_i_2023(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i,
       arr_above_1 = c_p_air * rho_air * V_supply_d_t_i[:, t:t+1] * (Theta_supply_d_t_i[:, t:t+1] - Theta_star_HBR_d_t[t])
       arr_above_2 = -1 * L_star_H_d_t_i[:, t:t+1] * 10 ** 6  # MJ/h -> J/h
 
-      if constants.change_under_floor_temperature == 2:
+      if constants.change_underfloor_temperature == 2:
         # NOTE: 新しい床下空調のロジックでのみ、床下換気のための変数である r_A_ufvnt を有効にしています(実験的)
         r_A_ufvnt_tmp = 1 if r_A_ufvnt is None else r_A_ufvnt
         # 当該住戸の暖冷房区画iの空気を供給する床下空間に接する床の面積(m2) (7)

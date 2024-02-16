@@ -121,7 +121,7 @@ def change_testmode_carryover(inputs: dict):
 def change_testmode_underfloor(inputs: dict):
     """ 床下空調の新しいロジック
     """
-    fixtures = {"change_under_floor_temperature": 2}
+    fixtures = {"change_underfloor_temperature": 2}
     inputs_copied = copy.deepcopy(inputs)  # 複製しないと別テストで矛盾する
     return deep_update(inputs_copied, fixtures)
 
