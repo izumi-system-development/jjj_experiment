@@ -7,6 +7,8 @@ from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE
 from jjjexperiment.denchu_1 import Spec, Condition, absolute_humid
 from jjjexperiment.options import *
 
+from jjjexperiment.constants import constants
+
 def get_basic(input: dict):
     """ 基本情報の設定
 
@@ -62,10 +64,18 @@ def get_env(input: dict):
         r_A_ufvnt = None
 
     # 床下空間の断熱
-    underfloor_insulation = input['underfloor_insulation'] == '2'
-
+    underfloor_insulation = int(input['underfloor_insulation']) == 2
     # 空調空気を床下を通して給気する
-    underfloor_air_conditioning_air_supply = input['underfloor_air_conditioning_air_supply'] == '2'
+    underfloor_air_conditioning_air_supply = int(input['underfloor_air_conditioning_air_supply']) == 2
+
+    # NOTE: 床下空調ロジック「変更する」を優先して強制的に床下空調アリの状態にします
+    if constants.change_underfloor_temperature == 床下空調ロジック.変更する.value:
+        underfloor_air_conditioning_air_supply = true
+
+    if underfloor_air_conditioning_air_supply:
+        print("床下空調がオンです。強制的に、床下換気ナシ・床下断熱状態となります。")
+        underfloor_insulation = true
+        r_A_ufvnt = None  # TODO: 要チェック
 
     # 全体風量を固定する
     hs_CAV = input['hs_CAV'] == '2'
