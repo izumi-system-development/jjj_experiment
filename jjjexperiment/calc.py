@@ -29,7 +29,7 @@ def version_info() -> str:
     """
     # NOTE: subprocessモジュールによるコミット履歴からの生成は \
     # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
-    return '_20240216'
+    return '_20240220'
 
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i,
@@ -715,7 +715,10 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_hs_max_H_d_t  = Q_hs_max_H_d_t,
     )
 
-    if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
+    # TODO: 下記のものはバグにより出力されていなかった変数です
+    # 先生と相談して、必要なものは適切なタイミングで出力する
+    # その際には、実行タイプなどで列の数が異なるような実装はCSV解析の妨げになるため避ける!
+    if False:
         df_output = df_output.assign(
             L_star_CL_d_t = L_star_CL_d_t,
             L_star_CS_d_t = L_star_CS_d_t,
@@ -723,7 +726,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             L_star_dash_C_d_t  = L_star_dash_C_d_t,
         )
 
-    if type == PROCESS_TYPE_2 or type == PROCESS_TYPE_4:
+    if False:
         df_output['C_df_H_d_t'] = C_df_H_d_t
         df_output = df_output.assign(
             Q_r_max_H_d_t = Q_r_max_H_d_t,
