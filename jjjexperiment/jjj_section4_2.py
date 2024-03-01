@@ -739,14 +739,22 @@ def get_delta_L_star_underfloor_2023(
   delta_L_other = -U_s * np.array(A_s_ufvnt_i[:5]).reshape(-1, 1) * ((Theta_uf_d_t - Theta_ex_d_t) * H_floor).reshape(1, -1) * 3.6
 
   if di is not None:
-    df_holder = di.get(DataFrameHolder)
+    ha_ca_holder = di.get(HaCaInputHolder)
+    if ha_ca_holder.isH:
+      ch_flg = 'H'
+    elif ha_ca_holder.isC:
+      ch_flg = 'C'
+    else:
+      raise ValueError()
+
+    df_holder = di.get(DtDataFrameHolder)
     df_holder.update_df({
-        "delta_L_other_1": delta_L_other[0],
-        "delta_L_other_2": delta_L_other[1],
-        "delta_L_other_3": delta_L_other[2],
-        "delta_L_other_4": delta_L_other[3],
-        "underfloor_to_ground": underfloor_to_ground,
-        "underfloor_to_outdoor": underfloor_to_outdoor,
+        f"delta_L_{ch_flg}_other_1": delta_L_other[0],
+        f"delta_L_{ch_flg}_other_2": delta_L_other[1],
+        f"delta_L_{ch_flg}_other_3": delta_L_other[2],
+        f"delta_L_{ch_flg}_other_4": delta_L_other[3],
+        f"underfloor_to_ground_{ch_flg}": underfloor_to_ground,
+        f"underfloor_to_outdoor{ch_flg}": underfloor_to_outdoor,
       })
 
   delta_L_star = delta_L_other + np.tile(underfloor_to_ground, (5, 1)) + np.tile(underfloor_to_outdoor, (5, 1))

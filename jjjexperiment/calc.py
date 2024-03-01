@@ -41,7 +41,12 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             r_A_ufvnt, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile):
     """未処理負荷と機器の計算に必要な変数を取得"""
 
-    di = Injector(JJJExperimentModule)  # こちらのインスタンスのみを使用する
+    # NOTE: 暖房・冷房で二回実行される。q_hs_rtd_h, q_hs_rtd_C のどちらが None かで判別可能
+
+    di = Injector(JJJExperimentModule())  # こちらのインスタンスのみを使用する
+    ha_ca_holder = di.get(HaCaInputHolder)
+    ha_ca_holder.q_hs_rtd_H = q_hs_rtd_H
+    ha_ca_holder.q_hs_rtd_C = q_hs_rtd_C
 
     df_output  = pd.DataFrame(index = pd.date_range(datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
     df_output2 = pd.DataFrame()
@@ -903,8 +908,9 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     E_C_UT_d_t = dc.get_E_C_UT_d_t(Q_UT_CL_d_t_i, Q_UT_CS_d_t_i, region)
     df_output['E_C_UT_d_t'] = E_C_UT_d_t
 
-    df_holder = di.get(DataFrameHolder)
-    export_to_csv("di_csv_test_output.csv", df_holder)
+    df_holder = di.get(DtDataFrameHolder)  # ネスト関数内で更新されているデータフレーム
+    filename = case_name + version_info() + ("_H" if ha_ca_holder.isH() else "_C") + "_output_uf.csv"
+    export_to_csv(df_holder, filename)
 
     if q_hs_rtd_H is not None:
         df_output3.to_csv(case_name + version_info() + '_H_output3.csv', encoding = 'cp932')

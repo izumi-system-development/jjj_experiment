@@ -49,7 +49,7 @@ class Test既存計算維持_デフォルト入力時:
     def test_Injector(self):
         """ DIコンテナの挙動テスト """
         di = Injector(JJJExperimentModule())
-        df_holder = di.get(DataFrameHolder)
+        df_holder = di.get(DtDataFrameHolder)
         df_holder.update_df({'x':[1,2,3], 'y':[2,3,4]})
         export_to_csv("ditest.csv", df_holder)
 
