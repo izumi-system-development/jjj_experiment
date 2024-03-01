@@ -8,6 +8,9 @@ from jjjexperiment.options import *
 
 from test_utils.utils import *
 
+from jjjexperiment.di_container import *
+from injector import Injector
+
 class Test既存計算維持_デフォルト入力時:
 
     _inputs1: dict = json.load(open(INPUT_SAMPLE_TYPE1_PATH, 'r'))
@@ -42,6 +45,13 @@ class Test既存計算維持_デフォルト入力時:
         assert inputs["U_A"] == 0.60
         assert inputs["H_A"]["VAV"] == 2
         assert inputs["C_A"]["VAV"] == 2
+
+    def test_Injector(self):
+        """ DIコンテナの挙動テスト """
+        di = Injector(JJJExperimentModule())
+        df_holder = di.get(DataFrameHolder)
+        df_holder.update_df({'x':[1,2,3], 'y':[2,3,4]})
+        export_to_csv("ditest.csv", df_holder)
 
     def test_計算結果一致_方式1(self, expected_result_type1):
         """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
