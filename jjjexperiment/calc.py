@@ -700,23 +700,23 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output = df_output.assign(
         # NOTE: タイプ毎に出力する変数の数を変えないようIFなどの分岐はしない
         # 以下タイプ(1, 3)
-        L_star_CL_d_t = L_star_CL_d_t,  # (33)
-        L_star_CS_d_t = L_star_CS_d_t,  # (32)
-        L_star_dash_CL_d_t = L_star_dash_CL_d_t,  # (30)
-        L_star_dash_C_d_t = L_star_dash_C_d_t,   # (29)
+        L_star_CL_d_t = L_star_CL_d_t if "L_star_CL_d_t" in locals() else None,  # (33)
+        L_star_CS_d_t = L_star_CS_d_t if "L_star_CS_d_t" in locals() else None,  # (32)
+        L_star_dash_CL_d_t = L_star_dash_CL_d_t if "L_star_dash_CL_d_t" in locals() else None,  # (30)
+        L_star_dash_C_d_t = L_star_dash_C_d_t if "L_star_dash_C_d_t" in locals() else None,   # (29)
         # 以下タイプ(2, 4)
-        C_df_H_d_t = C_df_H_d_t,  # (24)
-        Q_r_max_H_d_t = Q_r_max_H_d_t,
-        Q_r_max_C_d_t = Q_r_max_C_d_t,
-        L_max_CL_d_t = L_max_CL_d_t,
-        L_dash_CL_d_t = L_dash_CL_d_t,
-        L_dash_C_d_t  = L_dash_C_d_t,
+        C_df_H_d_t = C_df_H_d_t if "C_df_H_d_t" in locals() else None,  # (24)
+        Q_r_max_H_d_t = Q_r_max_H_d_t if "Q_r_max_H_d_t" in locals() else None,
+        Q_r_max_C_d_t = Q_r_max_C_d_t if "Q_r_max_C_d_t" in locals() else None,
+        L_max_CL_d_t = L_max_CL_d_t if "L_max_CL_d_t" in locals() else None,
+        L_dash_CL_d_t = L_dash_CL_d_t if "L_dash_CL_d_t" in locals() else None,
+        L_dash_C_d_t  = L_dash_C_d_t if "L_dash_C_d_t" in locals() else None,
     )
     df_output3 = df_output3.assign(
         # 以下タイプ(2, 4)
-        q_r_max_H = q_r_max_H,
-        q_r_max_C = q_r_max_C,
-        SHF_L_min_c = SHF_L_min_c
+        q_r_max_H = q_r_max_H if "q_r_max_+H" in locals() else None,
+        q_r_max_C = q_r_max_C if "q_r_max_C" in locals() else None,
+        SHF_L_min_c = SHF_L_min_c if "SHF_L_min_c" in locals() else None,
     )
     df_output['SHF_dash_d_t'] = SHF_dash_d_t
     df_output = df_output.assign(
