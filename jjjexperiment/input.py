@@ -62,6 +62,7 @@ def get_env(input: dict):
         r_A_ufvnt = float(input['r_A_ufvnt']) / 100
     else:
         r_A_ufvnt = None
+    # NOTE: 床下空調アリの時には r_A_ufvnt の代わりに YUCACO_r_A_ufvnt が使用される
 
     # 床下空間の断熱
     underfloor_insulation = int(input['underfloor_insulation']) == 2
@@ -75,7 +76,7 @@ def get_env(input: dict):
     if underfloor_air_conditioning_air_supply:
         print("床下空調がオンです。強制的に、床下換気ナシ・床下断熱状態となります。")
         underfloor_insulation = True
-        r_A_ufvnt = None  # TODO: 要チェック
+        r_A_ufvnt = 1  # r_A_ufacとしてこちらを使用する
 
     # 全体風量を固定する
     hs_CAV = input['hs_CAV'] == '2'

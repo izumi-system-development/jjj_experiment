@@ -46,8 +46,11 @@ class Test既存計算維持_デフォルト入力時:
     def test_計算結果一致_方式1(self, expected_result_type1):
         """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
         """
+        _logger.init_logger()
 
         inputs = copy.deepcopy(self._inputs1)
+        # inputs = change_testmode_underfloor_old(inputs)
+        inputs = change_testmode_underfloor_new(inputs)
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C == pytest.approx(expected_result_type1.E_C, rel=1e-6)
@@ -118,7 +121,14 @@ def change_testmode_carryover(inputs: dict):
     inputs_copied = copy.deepcopy(inputs)  # 複製しないと別テストで矛盾する
     return deep_update(inputs_copied, fixtures)
 
-def change_testmode_underfloor(inputs: dict):
+def change_testmode_underfloor_old(inputs: dict):
+    """ 床下空調の古いロジック
+    """
+    fixtures = {"underfloor_air_conditioning_air_supply": 2}
+    inputs_copied = copy.deepcopy(inputs)  # 複製しないと別テストで矛盾する
+    return deep_update(inputs_copied, fixtures)
+
+def change_testmode_underfloor_new(inputs: dict):
     """ 床下空調の新しいロジック
     """
     fixtures = {"change_underfloor_temperature": 2}

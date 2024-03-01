@@ -684,6 +684,8 @@ def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
     Hf = np.logical_and(H, f)
 
     if constants.change_underfloor_temperature == 2:
+      # FIXME: 新ロジックのみ通っていることを確認したが結果の L_star_H_d_t_i が変わっていない
+      # r_A_ufvnt がNoneなのが原因だと理解
       delta_L_star = get_delta_L_star_underfloor_2023(
           region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_i, Theta_ex_d_t,
           L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)

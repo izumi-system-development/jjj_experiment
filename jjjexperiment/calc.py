@@ -332,8 +332,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_star_CL_d_t_i_5 = L_star_CL_d_t_i[4]
     )
 
-    Theta_uf_d_t_2023 = uf.calc_Theta_uf_d_t_2023(
-        L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, YUCACO_r_A_ufvnt,V_dash_supply_d_t_i, Theta_ex_d_t)
 
     # NOTE: 熱繰越を行うverと行わないverで 同じ処理を異なるループの粒度で二重実装が必要です
     # 実装量/計算量 の多い仕様の場合には 過剰熱繰越ナシ(一般的なパターン) のみ実装として、オプション併用を拒否する仕様も検討しましょう
@@ -510,15 +508,27 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     else:  # 過剰熱繰越ナシ(一般的なパターン)
 
+        # CHECK: Theta_uf_d_t を ノーマルでの L_star_CS_d_t_i に使用しているか
+        Theta_uf_d_t_2023 = uf.calc_Theta_uf_d_t_2023(
+            L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, YUCACO_r_A_ufvnt, V_dash_supply_d_t_i, Theta_ex_d_t)
+        # CHECK: d_t になっていることを大丈夫か確認
+        # FIXME: 床下限定の数値だがとりあえず評価する L_star_の計算で不要なら無視されるようになっている
+
+        # FIXME: 先生から YUCACOの名前ではないほうがよいとのこと、r_A_ufvntを使用するがNoneにはならないように
+
+        # NOTE: r_A_ufvnt は床下新ロジックでしか使用されていない(し、以前は r_A_ufvnt受け取ってすらいない)
+        # -> r_A_ufvnt は床下空調専用である YUCACO を入れるので正解の理由
         # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
         L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
-                                                 A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
+                                                 A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
                                                  Theta_uf_d_t_2023, Theta_ex_d_t,
                                                  L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+        # CHECK: Theta_uf_d_t_2023 を d_t_i のところにいれているがいいか
 
         # (8)　熱損失を含む負荷バランス時の暖房負荷
+        # TODO: 床下新ロジックの時変更するはず
         L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
-                                               A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
+                                               A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
                                                Theta_uf_d_t_2023, Theta_ex_d_t,
                                                L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
 
