@@ -51,7 +51,7 @@ class Test既存計算維持_デフォルト入力時:
         di = Injector(JJJExperimentModule())
         df_holder = di.get(DtDataFrameHolder)
         df_holder.update_df({'x':[1,2,3], 'y':[2,3,4]})
-        export_to_csv("ditest.csv", df_holder)
+        export_to_csv("di_test.csv", df_holder)
 
     def test_計算結果一致_方式1(self, expected_result_type1):
         """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認

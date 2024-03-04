@@ -40,11 +40,20 @@ class HaCaInputHolder:
     def q_hs_rtd_H(self, value):
         self.__q_hs_rtd_H = value
 
+    def flg_char(self):
+        if self.isH:
+          ch_flg = 'H'
+        elif self.isC:
+          ch_flg = 'C'
+        else:
+          raise ValueError()
+        return ch_flg
+
     # もう少し情報持たせてもよさそう
     def isH(self) -> bool:
-        return (self.q_hs_rtd_H is not None)
+        return (self.q_hs_rtd_H is not None) and (self.q_hs_rtd_C is None)
     def isC(self) -> bool:
-        return (self.q_hs_rtd_C is not None)
+        return (self.q_hs_rtd_C is not None) and (self.q_hs_rtd_H is None)
 
 # DIコンテナインスタンスを使いまわしている間はシングルトンが得られるが、
 # DIコンテナインスタンス自体を再生成したときには中身はリセットされる

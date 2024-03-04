@@ -917,8 +917,10 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     E_C_UT_d_t = dc.get_E_C_UT_d_t(Q_UT_CL_d_t_i, Q_UT_CS_d_t_i, region)
     df_output['E_C_UT_d_t'] = E_C_UT_d_t
 
+    hci = di.get(HaCaInputHolder)
     df_holder = di.get(DtDataFrameHolder)  # ネスト関数内で更新されているデータフレーム
-    filename = case_name + version_info() + ("_H" if ha_ca_holder.isH() else "_C") + "_output_uf.csv"
+    # TODO: 床下空調ロジック用の調査用 中間変数
+    filename = case_name + version_info() + hci.flg_char() + "_output_uf.csv"
     export_to_csv(df_holder, filename)
 
     if q_hs_rtd_H is not None:
