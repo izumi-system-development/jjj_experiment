@@ -41,10 +41,10 @@ class HaCaInputHolder:
         self.__q_hs_rtd_H = value
 
     def flg_char(self):
-        if self.isH:
-          ch_flg = 'H'
-        elif self.isC:
-          ch_flg = 'C'
+        if self.isH():
+          ch_flg = '_H'
+        elif self.isC():
+          ch_flg = '_C'
         else:
           raise ValueError()
         return ch_flg
@@ -71,6 +71,8 @@ class JJJExperimentModule(Module):
         return DtDataFrameHolder()
 
     # NOTE: シングルトンを暖房用・冷房用に切替えるのは悪手、それぞれのインスタンスとする
+    # NOTE: シングルトンじゃないと別ファイルで未定義になっていたのでシングルトン
+    @singleton
     @provider
     def provide_ha_ca_input_holder(self) -> HaCaInputHolder:
         return HaCaInputHolder()

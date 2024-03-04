@@ -46,7 +46,8 @@ class Test既存計算維持_デフォルト入力時:
         assert inputs["H_A"]["VAV"] == 2
         assert inputs["C_A"]["VAV"] == 2
 
-    def ttest_Injector(self):
+    @pytest.mark.skip(reason="本ロジックとは無関係のため")
+    def test_Injector(self):
         """ DIコンテナの挙動テスト """
         di = Injector(JJJExperimentModule())
         df_holder = di.get(DtDataFrameHolder)
