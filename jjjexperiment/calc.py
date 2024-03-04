@@ -519,19 +519,28 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     else:  # 過剰熱繰越ナシ(一般的なパターン)
 
-        # CHECK: Theta_uf_d_t を ノーマルでの L_star_CS_d_t_i に使用しているか
+        # NOTE: 床下空調のための r_A_ufvnt の上書きはココより前に行わない、
+        # 外気導入の負荷削減の計算では、削減ナシ(r_A_ufvnt=None) で計算されるべき
+
+        r_A_ufac = r_A_ufvnt
+        if underfloor_air_conditioning_air_supply:
+            r_A_ufac = YUCACO_r_A_ufvnt  # 1.0 未満
+            # NOTE: YUCACO_r_A_ufvnt は先生より(02/01)、床下空調新ロジックには使用しないことが希望
+        if constants.change_underfloor_temperature == 2:
+            r_A_ufac = 1.0  # NOTE: WG資料に一致させるため
+
+        # NOTE: 以降では、r_A_ufvnt は床下空調ロジックのみに使用されているため、
+        # 変数名を r_A_ufvnt -> r_A_ufac と変更して、統一して使用する
+
+        # FIXME: 床下限定の数値だがとりあえず評価する L_star_の計算で不要なら無視されている
         Theta_uf_d_t_2023 = uf.calc_Theta_uf_d_t_2023(
-            L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, YUCACO_r_A_ufvnt, V_dash_supply_d_t_i, Theta_ex_d_t)
+            L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, r_A_ufac, V_dash_supply_d_t_i, Theta_ex_d_t)
         # CHECK: d_t になっていることを大丈夫か確認
-        # FIXME: 床下限定の数値だがとりあえず評価する L_star_の計算で不要なら無視されるようになっている
+        # CHECK: 本当に d_t なのか d_t_i じゃないのか確認する
 
-        # FIXME: 先生から YUCACOの名前ではないほうがよいとのこと、r_A_ufvntを使用するがNoneにはならないように
-
-        # NOTE: r_A_ufvnt は床下新ロジックでしか使用されていない(し、以前は r_A_ufvnt受け取ってすらいない)
-        # -> r_A_ufvnt は床下空調専用である YUCACO を入れるので正解の理由
         # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
         L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
-                                                 A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
+                                                 A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation,
                                                  Theta_uf_d_t_2023, Theta_ex_d_t,
                                                  L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
         # CHECK: Theta_uf_d_t_2023 を d_t_i のところにいれているがいいか
@@ -539,7 +548,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (8)　熱損失を含む負荷バランス時の暖房負荷
         # TODO: 床下新ロジックの時変更するはず
         L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
-                                               A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
+                                               A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation,
                                                Theta_uf_d_t_2023, Theta_ex_d_t,
                                                L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g, di)
 
@@ -615,7 +624,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (21)　熱源機の出口における要求空気温度
         if constants.change_underfloor_temperature == 2:
             Theta_req_d_t_i = dc.get_Theta_req_d_t_i_2023(
-                region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
+                region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
                 V_dash_supply_d_t_i, '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
         else:
             Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
@@ -625,7 +634,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             for i in range(2):  # i=0,1
                 Theta_uf_d_t, Theta_g_surf_d_t, *others = \
                     uf.calc_Theta(
-                        region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
+                        region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation,
                         Theta_req_d_t_i[i], Theta_ex_d_t, V_dash_supply_d_t_i[i],
                         '', L_H_d_t_i, L_CS_d_t_i, R_g)
 
@@ -663,7 +672,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         if constants.change_underfloor_temperature == 2:
             Theta_uf_d_t, *others = \
                 uf.calc_Theta(
-                    region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
+                    region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
                     V_dash_supply_d_t_i[0], '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
             Theta_supply_d_t = Theta_uf_d_t
             Theta_supply_d_t_i = np.tile(Theta_supply_d_t, (5, 1))
@@ -675,7 +684,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             for i in range(2):  #i=0,1
                 Theta_uf_d_t, Theta_g_surf_d_t, *others = \
                     uf.calc_Theta(
-                        region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
+                        region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation,
                         Theta_supply_d_t_i[i], Theta_ex_d_t, V_dash_supply_d_t_i[i],
                         '', L_H_d_t_i, L_CS_d_t_i, R_g)
 
@@ -691,7 +700,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (46)　暖冷房区画𝑖の実際の居室の室温
         Theta_HBR_d_t_i = dc.get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
                                                  A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, Theta_uf_d_t_2023,
-                                                 r_A_ufvnt, A_A, A_MR, A_OR)
+                                                 r_A_ufac, A_A, A_MR, A_OR)
 
         # (48)　実際の非居室の室温
         Theta_NR_d_t = dc.get_Theta_NR_d_t(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,

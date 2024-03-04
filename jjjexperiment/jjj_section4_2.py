@@ -2137,10 +2137,8 @@ def get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, 
 
     # 暖房期 (46-1)
     if constants.change_underfloor_temperature == 2:
-      # NOTE: 新しい床下空調のロジックでのみ、床下換気のための変数である r_A_ufvnt を有効にしています(実験的)
-      r_A_ufvnt_tmp = 1 if r_A_ufvnt is None else r_A_ufvnt
       # 当該住戸の暖冷房区画iの空気を供給する床下空間に接する床の面積(m2) (7)
-      A_s_ufvnt_i = [calc_A_s_ufvnt_i(i, r_A_ufvnt_tmp, A_A, A_MR, A_OR) for i in range(1, 13)]
+      A_s_ufvnt_i = [calc_A_s_ufvnt_i(i, r_A_ufvnt, A_A, A_MR, A_OR) for i in range(1, 13)]
 
       Theta_HBR_d_t_i[:, H] = Theta_star_HBR_d_t[H] + (c_p_air * rho_air * V_supply_d_t_i[:, H] * \
                                                     (Theta_supply_d_t_i[:, H] - Theta_star_HBR_d_t[H])
