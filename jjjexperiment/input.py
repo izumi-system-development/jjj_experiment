@@ -76,7 +76,6 @@ def get_env(input: dict):
     if underfloor_air_conditioning_air_supply:
         print("床下空調がオンです。強制的に、床下換気ナシ・床下断熱状態となります。")
         underfloor_insulation = True
-        r_A_ufvnt = 1  # r_A_ufacとしてこちらを使用する
 
     # 全体風量を固定する
     hs_CAV = input['hs_CAV'] == '2'

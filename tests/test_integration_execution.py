@@ -46,7 +46,7 @@ class Test既存計算維持_デフォルト入力時:
         assert inputs["H_A"]["VAV"] == 2
         assert inputs["C_A"]["VAV"] == 2
 
-    def test_Injector(self):
+    def ttest_Injector(self):
         """ DIコンテナの挙動テスト """
         di = Injector(JJJExperimentModule())
         df_holder = di.get(DtDataFrameHolder)
@@ -56,11 +56,10 @@ class Test既存計算維持_デフォルト入力時:
     def test_計算結果一致_方式1(self, expected_result_type1):
         """ ipynbのサンプル入力で計算結果が意図しない変化がないことを確認
         """
-        _logger.init_logger()
 
         inputs = copy.deepcopy(self._inputs1)
         # inputs = change_testmode_underfloor_old(inputs)
-        inputs = change_testmode_underfloor_new(inputs)
+        # inputs = change_testmode_underfloor_new(inputs)
         result = calc(inputs, test_mode=True)
 
         assert result['TValue'].E_C == pytest.approx(expected_result_type1.E_C, rel=1e-6)

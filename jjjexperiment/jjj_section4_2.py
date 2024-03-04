@@ -654,7 +654,7 @@ def get_L_dash_CL_d_t_i(V_supply_d_t_i, X_HBR_d_t_i, X_supply_d_t_i, region):
 
 @log_res(['L_star_H_d_t_i'])
 def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
-                       A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_i, Theta_ex_d_t,
+                       A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_uf_d_t_i, Theta_ex_d_t,
                        L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g, di: Injector = None):
     """(8-1)(8-2)(8-3)
 
@@ -667,7 +667,7 @@ def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
       Q(float): 当該住戸の熱損失係数 (W/m2K)
-      r_A_ufvnt(float): 当該住戸において、床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)
+      r_A_ufac(float): 当該住戸において、床下空間全体の面積に対する 空調空気を供給する床下空間の面積の比 (-)
       underfloor_insulation(bool): 床下空間が断熱空間内である場合はTrue
       Theta_uf_d_t_i(ndarray): 床下空間の空気の温度 (℃)
       Theta_ex_d_t(ndarray): 外気温度 (℃)
@@ -692,7 +692,7 @@ def get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
       # FIXME: 新ロジックのみ通っていることを確認したが結果の L_star_H_d_t_i が変わっていない
       # r_A_ufvnt がNoneなのが原因だと理解
       delta_L_star = get_delta_L_star_underfloor_2023(
-          region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_i, Theta_ex_d_t,
+          region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_uf_d_t_i, Theta_ex_d_t,
           L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g, di)
     else:
       delta_L_star = np.zeros((5, 24 * 365))
@@ -799,7 +799,7 @@ def get_L_star_H_i_2023(L_H_d_t_i, Q_star_trs_prt_d_t_i, region, A_HCZ_i, A_HCZ_
     return L_star_H_i
 
 def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
-                        A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
+                        A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
                         L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g):
     """(9-2)(9-2)(9-3)
 
@@ -812,7 +812,7 @@ def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
       A_MR(float): 主たる居室の床面積 (m2)
       A_OR(float): その他の居室の床面積 (m2)
       Q(float): 当該住戸の熱損失係数 (W/m2K)
-      r_A_ufvnt(float): 当該住戸において、床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)
+      r_A_ufac(float): 当該住戸において、床下空間全体の面積に対する 空調空気を供給する床下空間の面積の比(-)
       underfloor_insulation(bool): 床下空間が断熱空間内である場合はTrue
       Theta_uf_d_t_i(ndarray): 床下空間の空気の温度 (℃)
       Theta_ex_d_t(ndarray): 外気温度 (℃)
@@ -835,7 +835,7 @@ def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
     L_star_CS_d_t_i = np.zeros((5, 24 * 365))
     if constants.change_underfloor_temperature == 2:
       delta_L_star = get_delta_L_star_underfloor_2023(
-          region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
+          region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
           L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
     else:
       delta_L_star = np.zeros((5, 24 * 365))
