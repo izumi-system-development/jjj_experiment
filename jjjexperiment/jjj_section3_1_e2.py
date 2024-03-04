@@ -6,6 +6,8 @@ import numpy as np
 from math import sqrt
 from functools import lru_cache
 
+from jjjexperiment.logger import log_res
+
 # ============================================================================
 # E.2 床下温度
 # ============================================================================
@@ -532,9 +534,10 @@ def calc_Theta(region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, The
 
     return Theta_uf_d_t, Theta_g_surf_d_t, A_s_ufvnt, A_s_ufvnt_A, Theta_g_avg, Theta_dash_g_surf_A_m_d_t, L_uf, H_floor, phi, Phi_A_0, H_star_d_t_i, Theta_star_d_t_i
 
+@log_res(['Theta_uf_d_t'])
 def calc_Theta_uf_d_t_2023(L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, r_A_ufvnt, V_dash_supply_d_t_i, Theta_ex_d_t):
     """床下温度
-    
+
     Args:
       L_H_d_t_i(ndarray): 暖冷房区画iの1時間当たりの暖房負荷
       L_CS_d_t_i(ndarray): 暖冷房区画iの1時間当たりの冷房顕熱負荷

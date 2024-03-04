@@ -24,18 +24,29 @@ import jjjexperiment.constants as constants
 from jjjexperiment.logger import LimitedLoggerAdapter as _logger  # デバッグ用ロガー
 from jjjexperiment.options import *
 
+# DIコンテナー
+from injector import Injector
+from jjjexperiment.di_container import *
+
 def version_info() -> str:
     """ 最終編集日をバージョン管理に使用します
     """
     # NOTE: subprocessモジュールによるコミット履歴からの生成は \
-    # ipynb 環境では正常に動作しませんでした(returned no-zero exit status 128.)
-    return '_20240220'
+    # ipynb 環境では正常に動作しないことを確認しました(returned no-zero exit status 128.)
+    return '_20240304'
 
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i,
             type, input_C_af_H, input_C_af_C,
             r_A_ufvnt, underfloor_insulation, underfloor_air_conditioning_air_supply, YUCACO_r_A_ufvnt, R_g, climateFile):
     """未処理負荷と機器の計算に必要な変数を取得"""
+
+    # NOTE: 暖房・冷房で二回実行される。q_hs_rtd_h, q_hs_rtd_C のどちらが None かで判別可能
+
+    di = Injector(JJJExperimentModule())  # こちらのインスタンスのみを使用する
+    ha_ca_holder = di.get(HaCaInputHolder)
+    ha_ca_holder.q_hs_rtd_H = q_hs_rtd_H
+    ha_ca_holder.q_hs_rtd_C = q_hs_rtd_C
 
     df_output  = pd.DataFrame(index = pd.date_range(datetime(2023,1,1,1,0,0), datetime(2024,1,1,0,0,0), freq='h'))
     df_output2 = pd.DataFrame()
@@ -311,6 +322,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         X_HBR_d_t_5 = X_HBR_d_t_i[4]
     )
 
+    """ 熱損失・熱取得を含む負荷バランス時の熱負荷 - 熱損失・熱取得を含む負荷バランス時(1) """
     # (11)　熱損失を含む負荷バランス時の非居室への熱移動
     Q_star_trs_prt_d_t_i = dc.get_Q_star_trs_prt_d_t_i(U_prt, A_prt_i, Theta_star_HBR_d_t, Theta_star_NR_d_t)
     df_output = df_output.assign(
@@ -331,8 +343,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_star_CL_d_t_i_5 = L_star_CL_d_t_i[4]
     )
 
-    Theta_uf_d_t_2023 = uf.calc_Theta_uf_d_t_2023(
-        L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, YUCACO_r_A_ufvnt,V_dash_supply_d_t_i, Theta_ex_d_t)
 
     # NOTE: 熱繰越を行うverと行わないverで 同じ処理を異なるループの粒度で二重実装が必要です
     # 実装量/計算量 の多い仕様の場合には 過剰熱繰越ナシ(一般的なパターン) のみ実装として、オプション併用を拒否する仕様も検討しましょう
@@ -509,17 +519,38 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     else:  # 過剰熱繰越ナシ(一般的なパターン)
 
+        # NOTE: 床下空調のための r_A_ufvnt の上書きはココより前に行わない、
+        # 外気導入の負荷削減の計算では、削減ナシ(r_A_ufvnt=None) で計算されるべき
+
+        r_A_ufac = r_A_ufvnt
+        if underfloor_air_conditioning_air_supply:
+            r_A_ufac = YUCACO_r_A_ufvnt  # 1.0 未満
+            # NOTE: YUCACO_r_A_ufvnt は先生より(02/01)、床下空調新ロジックには使用しないことが希望
+        if constants.change_underfloor_temperature == 2:
+            r_A_ufac = 1.0  # NOTE: WG資料に一致させるため
+
+        # NOTE: 以降では、r_A_ufvnt は床下空調ロジックのみに使用されているため、
+        # 変数名を r_A_ufvnt -> r_A_ufac と変更して、統一して使用する
+
+        # FIXME: 床下限定の数値だがとりあえず評価する L_star_の計算で不要なら無視されている
+        Theta_uf_d_t_2023 = uf.calc_Theta_uf_d_t_2023(
+            L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, r_A_ufac, V_dash_supply_d_t_i, Theta_ex_d_t)
+        # CHECK: d_t になっていることを大丈夫か確認
+        # CHECK: 本当に d_t なのか d_t_i じゃないのか確認する
+
         # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
         L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
-                                                 A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
+                                                 A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation,
                                                  Theta_uf_d_t_2023, Theta_ex_d_t,
                                                  L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+        # CHECK: Theta_uf_d_t_2023 を d_t_i のところにいれているがいいか
 
         # (8)　熱損失を含む負荷バランス時の暖房負荷
+        # TODO: 床下新ロジックの時変更するはず
         L_star_H_d_t_i = dc.get_L_star_H_d_t_i(L_H_d_t_i, Q_star_trs_prt_d_t_i, region,
-                                               A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation,
+                                               A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation,
                                                Theta_uf_d_t_2023, Theta_ex_d_t,
-                                               L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
+                                               L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g, di)
 
         ####################################################################################################################
         if type == PROCESS_TYPE_1 or type == PROCESS_TYPE_3:
@@ -593,7 +624,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (21)　熱源機の出口における要求空気温度
         if constants.change_underfloor_temperature == 2:
             Theta_req_d_t_i = dc.get_Theta_req_d_t_i_2023(
-                region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
+                region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
                 V_dash_supply_d_t_i, '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
         else:
             Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
@@ -603,7 +634,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             for i in range(2):  # i=0,1
                 Theta_uf_d_t, Theta_g_surf_d_t, *others = \
                     uf.calc_Theta(
-                        region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
+                        region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation,
                         Theta_req_d_t_i[i], Theta_ex_d_t, V_dash_supply_d_t_i[i],
                         '', L_H_d_t_i, L_CS_d_t_i, R_g)
 
@@ -633,23 +664,15 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
                                                 Theta_hs_out_max_H_d_t, Theta_hs_out_min_C_d_t)
 
         # (43)　暖冷房区画𝑖の吹き出し風量
-        V_supply_d_t_i = dc.get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
+        V_supply_d_t_i_before = dc.get_V_supply_d_t_i(L_star_H_d_t_i, L_star_CS_d_t_i, Theta_sur_d_t_i, l_duct_i, Theta_star_HBR_d_t,
                                                         V_vent_g_i, V_dash_supply_d_t_i, VAV, region, Theta_hs_out_d_t)
-        # NOTE: 2024/02/14 WG の話で出力してほしいデータになりました
-        df_output = df_output.assign(
-            V_supply_d_t_1_before = V_supply_d_t_i[0],
-            V_supply_d_t_2_before = V_supply_d_t_i[1],
-            V_supply_d_t_3_before = V_supply_d_t_i[2],
-            V_supply_d_t_4_before = V_supply_d_t_i[3],
-            V_supply_d_t_5_before = V_supply_d_t_i[4]
-        )
-        V_supply_d_t_i = dc.cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
+        V_supply_d_t_i = dc.cap_V_supply_d_t_i(V_supply_d_t_i_before, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
         # (41)　暖冷房区画𝑖の吹き出し温度
         if constants.change_underfloor_temperature == 2:
             Theta_uf_d_t, *others = \
                 uf.calc_Theta(
-                    region, A_A, A_MR, A_OR, Q, r_A_ufvnt, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
+                    region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
                     V_dash_supply_d_t_i[0], '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
             Theta_supply_d_t = Theta_uf_d_t
             Theta_supply_d_t_i = np.tile(Theta_supply_d_t, (5, 1))
@@ -661,7 +684,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             for i in range(2):  #i=0,1
                 Theta_uf_d_t, Theta_g_surf_d_t, *others = \
                     uf.calc_Theta(
-                        region, A_A, A_MR, A_OR, Q, YUCACO_r_A_ufvnt, underfloor_insulation,
+                        region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation,
                         Theta_supply_d_t_i[i], Theta_ex_d_t, V_dash_supply_d_t_i[i],
                         '', L_H_d_t_i, L_CS_d_t_i, R_g)
 
@@ -677,7 +700,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (46)　暖冷房区画𝑖の実際の居室の室温
         Theta_HBR_d_t_i = dc.get_Theta_HBR_d_t_i(Theta_star_HBR_d_t, V_supply_d_t_i, Theta_supply_d_t_i, U_prt, A_prt_i, Q,
                                                  A_HCZ_i, L_star_H_d_t_i, L_star_CS_d_t_i, region, Theta_uf_d_t_2023,
-                                                 r_A_ufvnt, A_A, A_MR, A_OR)
+                                                 r_A_ufac, A_A, A_MR, A_OR)
 
         # (48)　実際の非居室の室温
         Theta_NR_d_t = dc.get_Theta_NR_d_t(Theta_star_NR_d_t, Theta_star_HBR_d_t, Theta_HBR_d_t_i, A_NR, V_vent_l_NR_d_t,
@@ -685,14 +708,9 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     ### 熱繰越 / 非熱繰越 の分岐が終了 -> 以降、共通の処理 ###
 
-    # ループ計算部分の出力
-    df_output = df_output.assign(
-        V_supply_d_t_1 = V_supply_d_t_i[0],
-        V_supply_d_t_2 = V_supply_d_t_i[1],
-        V_supply_d_t_3 = V_supply_d_t_i[2],
-        V_supply_d_t_4 = V_supply_d_t_i[3],
-        V_supply_d_t_5 = V_supply_d_t_i[4]
-    )
+    # NOTE: 繰越の有無によってCSV出力が異ならないよう df_output の処理は以降に限定する
+
+    """ 熱損失・熱取得を含む負荷バランス時の熱負荷 - 熱損失・熱取得を含む負荷バランス時(2) """
     df_output = df_output.assign(
         L_star_CS_d_t_i_1 = L_star_CS_d_t_i[0],
         L_star_CS_d_t_i_2 = L_star_CS_d_t_i[1],
@@ -707,6 +725,29 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_star_H_d_t_i_4 = L_star_H_d_t_i[3],
         L_star_H_d_t_i_5 = L_star_H_d_t_i[4]
     )
+
+    """ 最大暖冷房能力 """
+    df_output = df_output.assign(
+        # NOTE: タイプ毎に出力する変数の数を変えないようIFなどの分岐はしない
+        # 以下タイプ(1, 3)
+        L_star_CL_d_t = L_star_CL_d_t if "L_star_CL_d_t" in locals() else None,  # (33)
+        L_star_CS_d_t = L_star_CS_d_t if "L_star_CS_d_t" in locals() else None,  # (32)
+        L_star_dash_CL_d_t = L_star_dash_CL_d_t if "L_star_dash_CL_d_t" in locals() else None,  # (30)
+        L_star_dash_C_d_t = L_star_dash_C_d_t if "L_star_dash_C_d_t" in locals() else None,   # (29)
+        # 以下タイプ(2, 4)
+        C_df_H_d_t = C_df_H_d_t if "C_df_H_d_t" in locals() else None,  # (24)
+        Q_r_max_H_d_t = Q_r_max_H_d_t if "Q_r_max_H_d_t" in locals() else None,
+        Q_r_max_C_d_t = Q_r_max_C_d_t if "Q_r_max_C_d_t" in locals() else None,
+        L_max_CL_d_t = L_max_CL_d_t if "L_max_CL_d_t" in locals() else None,
+        L_dash_CL_d_t = L_dash_CL_d_t if "L_dash_CL_d_t" in locals() else None,
+        L_dash_C_d_t  = L_dash_C_d_t if "L_dash_C_d_t" in locals() else None,
+    )
+    df_output3 = df_output3.assign(
+        # 以下タイプ(2, 4)
+        q_r_max_H = q_r_max_H if "q_r_max_+H" in locals() else None,
+        q_r_max_C = q_r_max_C if "q_r_max_C" in locals() else None,
+        SHF_L_min_c = SHF_L_min_c if "SHF_L_min_c" in locals() else None,
+    )
     df_output['SHF_dash_d_t'] = SHF_dash_d_t
     df_output = df_output.assign(
         Q_hs_max_C_d_t  = Q_hs_max_C_d_t,
@@ -715,36 +756,11 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_hs_max_H_d_t  = Q_hs_max_H_d_t,
     )
 
-    # TODO: 下記のものはバグにより出力されていなかった変数です
-    # 先生と相談して、必要なものは適切なタイミングで出力する
-    # その際には、実行タイプなどで列の数が異なるような実装はCSV解析の妨げになるため避ける!
-    if False:
-        df_output = df_output.assign(
-            L_star_CL_d_t = L_star_CL_d_t,
-            L_star_CS_d_t = L_star_CS_d_t,
-            L_star_dash_CL_d_t = L_star_dash_CL_d_t,
-            L_star_dash_C_d_t  = L_star_dash_C_d_t,
-        )
-
-    if False:
-        df_output['C_df_H_d_t'] = C_df_H_d_t
-        df_output = df_output.assign(
-            Q_r_max_H_d_t = Q_r_max_H_d_t,
-            Q_r_max_C_d_t = Q_r_max_C_d_t,
-        )
-        df_output3 = df_output3.assign(
-            q_r_max_H = [q_r_max_H],
-            q_r_max_C = [q_r_max_C],
-            SHF_L_min_c = [SHF_L_min_c]
-        )
-        df_output = df_output.assign(
-            L_max_CL_d_t  = L_max_CL_d_t,
-            L_dash_CL_d_t = L_dash_CL_d_t,
-            L_dash_C_d_t  = L_dash_C_d_t,
-        )
-
+    """ 熱源機の出口 - 負荷バランス時 """
     df_output['X_star_hs_in_d_t'] = X_star_hs_in_d_t
     df_output['Theta_star_hs_in_d_t'] = Theta_star_hs_in_d_t
+
+    """ 熱源機の出口 - 熱源機の出口 """
     df_output['X_hs_out_min_C_d_t'] = X_hs_out_min_C_d_t
     df_output = df_output.assign(
         X_req_d_t_1 = X_req_d_t_i[0],
@@ -766,6 +782,23 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Theta_hs_out_max_H_d_t = Theta_hs_out_max_H_d_t,
         Theta_hs_out_d_t = Theta_hs_out_d_t,
     )
+
+    """吹出口 - 吹出口"""
+    # NOTE: 2024/02/14 WG の話で出力してほしいデータになりました
+    df_output = df_output.assign(
+        V_supply_d_t_1_before = V_supply_d_t_i_before[0] if V_supply_d_t_i_before is not None else None,
+        V_supply_d_t_2_before = V_supply_d_t_i_before[1] if V_supply_d_t_i_before is not None else None,
+        V_supply_d_t_3_before = V_supply_d_t_i_before[2] if V_supply_d_t_i_before is not None else None,
+        V_supply_d_t_4_before = V_supply_d_t_i_before[3] if V_supply_d_t_i_before is not None else None,
+        V_supply_d_t_5_before = V_supply_d_t_i_before[4] if V_supply_d_t_i_before is not None else None,
+    )
+    df_output = df_output.assign(
+        V_supply_d_t_1 = V_supply_d_t_i[0],
+        V_supply_d_t_2 = V_supply_d_t_i[1],
+        V_supply_d_t_3 = V_supply_d_t_i[2],
+        V_supply_d_t_4 = V_supply_d_t_i[3],
+        V_supply_d_t_5 = V_supply_d_t_i[4]
+    )
     df_output = df_output.assign(
         Theta_supply_d_t_1 = Theta_supply_d_t_i[0],
         Theta_supply_d_t_2 = Theta_supply_d_t_i[1],
@@ -773,6 +806,8 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Theta_supply_d_t_4 = Theta_supply_d_t_i[3],
         Theta_supply_d_t_5 = Theta_supply_d_t_i[4]
     )
+
+    """ 吹出口 - 実際 """
     df_output = df_output.assign(
         Theta_HBR_d_t_1 = Theta_HBR_d_t_i[0],
         Theta_HBR_d_t_2 = Theta_HBR_d_t_i[1],
@@ -782,6 +817,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Theta_NR_d_t = Theta_NR_d_t
     )
 
+    """ 吹出口 - 熱源機の出口 """
     # L_star_H_d_t_i，L_star_CS_d_t_iの暖冷房区画1～5を合算し0以下だった場合の為に再計算
     # (14)　熱源機の出口における空気温度
     Theta_hs_out_d_t = dc.get_Theta_hs_out_d_t(VAV, Theta_req_d_t_i, V_dash_supply_d_t_i,
@@ -789,6 +825,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
                                             Theta_hs_out_max_H_d_t, Theta_hs_out_min_C_d_t)
     df_output['Theta_hs_out_d_t'] = Theta_hs_out_d_t
 
+    """ 吹出口 - 吹出口 """
     # (42)　暖冷房区画𝑖の吹き出し絶対湿度
     X_supply_d_t_i = dc.get_X_supply_d_t_i(X_star_HBR_d_t, X_hs_out_d_t, L_star_CL_d_t_i, region)
     df_output = df_output.assign(
@@ -799,22 +836,25 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         X_supply_d_t_5 = X_supply_d_t_i[4]
     )
 
+    """ 熱源機の入口 - 熱源機の風量の計算 """
     # (35)　熱源機の風量のうちの全般換気分
     V_hs_vent_d_t = dc.get_V_hs_vent_d_t(V_vent_g_i, general_ventilation)
-    df_output['V_hs_vent_d_t'] = V_hs_vent_d_t 
+    df_output['V_hs_vent_d_t'] = V_hs_vent_d_t
 
     # (34)　熱源機の風量
     V_hs_supply_d_t = dc.get_V_hs_supply_d_t(V_supply_d_t_i)
     df_output['V_hs_supply_d_t'] = V_hs_supply_d_t
 
+    """ 熱源機の入口 - 熱源機の入口 """
     # (13)　熱源機の入口における絶対湿度
     X_hs_in_d_t = dc.get_X_hs_in_d_t(X_NR_d_t)
     df_output['X_hs_in_d_t'] = X_hs_in_d_t
 
     # (12)　熱源機の入口における空気温度
     Theta_hs_in_d_t = dc.get_Theta_hs_in_d_t(Theta_NR_d_t)
-    df_output['Theta_hs_in_d_t'] = Theta_hs_in_d_t  
+    df_output['Theta_hs_in_d_t'] = Theta_hs_in_d_t
 
+    """ まとめ - 実際の暖冷房負荷 """
     # (7)　間仕切りの熱取得を含む実際の冷房潜熱負荷
     L_dash_CL_d_t_i = dc.get_L_dash_CL_d_t_i(V_supply_d_t_i, X_HBR_d_t_i, X_supply_d_t_i, region)
     df_output = df_output.assign(
@@ -824,7 +864,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_dash_CL_d_t_4 = L_dash_CL_d_t_i[3],
         L_dash_CL_d_t_5 = L_dash_CL_d_t_i[4]
     )
-
     # (6)　間仕切りの熱取得を含む実際の冷房顕熱負荷
     L_dash_CS_d_t_i = dc.get_L_dash_CS_d_t_i(V_supply_d_t_i, Theta_supply_d_t_i, Theta_HBR_d_t_i, region)
     df_output = df_output.assign(
@@ -834,7 +873,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_dash_CS_d_t_4 = L_dash_CS_d_t_i[3],
         L_dash_CS_d_t_5 = L_dash_CS_d_t_i[4]
     )
-
     # (5)　間仕切りの熱損失を含む実際の暖房負荷
     L_dash_H_d_t_i = dc.get_L_dash_H_d_t_i(V_supply_d_t_i, Theta_supply_d_t_i, Theta_HBR_d_t_i, region)
     df_output = df_output.assign(
@@ -845,6 +883,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         L_dash_H_d_t_5 = L_dash_H_d_t_i[4]
     )
 
+    """ まとめ - 未処理負荷 """
     # (4)　冷房設備機器の未処理冷房潜熱負荷
     Q_UT_CL_d_t_i = dc.get_Q_UT_CL_d_t_i(L_star_CL_d_t_i, L_dash_CL_d_t_i)
     df_output = df_output.assign(
@@ -854,7 +893,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_UT_CL_d_t_4 = Q_UT_CL_d_t_i[3],
         Q_UT_CL_d_t_5 = Q_UT_CL_d_t_i[4]
     )
-
     # (3)　冷房設備機器の未処理冷房顕熱負荷
     Q_UT_CS_d_t_i = dc.get_Q_UT_CS_d_t_i(L_star_CS_d_t_i, L_dash_CS_d_t_i)
     df_output = df_output.assign(
@@ -864,7 +902,6 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_UT_CS_d_t_4 = Q_UT_CS_d_t_i[3],
         Q_UT_CS_d_t_5 = Q_UT_CS_d_t_i[4]
     )
-
     # (2)　暖房設備機器等の未処理暖房負荷
     Q_UT_H_d_t_i = dc.get_Q_UT_H_d_t_i(L_star_H_d_t_i, L_dash_H_d_t_i)
     df_output = df_output.assign(
@@ -875,9 +912,16 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         Q_UT_H_d_t_5 = Q_UT_H_d_t_i[4]
     )
 
+    """ まとめ - 一次エネルギー """
     # (1)　冷房設備の未処理冷房負荷の設計一次エネルギー消費量相当値
     E_C_UT_d_t = dc.get_E_C_UT_d_t(Q_UT_CL_d_t_i, Q_UT_CS_d_t_i, region)
     df_output['E_C_UT_d_t'] = E_C_UT_d_t
+
+    hci = di.get(HaCaInputHolder)
+    df_holder = di.get(DtDataFrameHolder)  # ネスト関数内で更新されているデータフレーム
+    # TODO: 床下空調ロジック用の調査用 中間変数
+    filename = case_name + version_info() + hci.flg_char() + "_output_uf.csv"
+    export_to_csv(df_holder, filename)
 
     if q_hs_rtd_H is not None:
         df_output3.to_csv(case_name + version_info() + '_H_output3.csv', encoding = 'cp932')

@@ -1,2 +1,3 @@
 pytest
+injector
 pyhees @ git+https://github.com/izumi-system-development/pyhees.git@smart_installs_ver_3.5

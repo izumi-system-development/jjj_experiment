@@ -20,9 +20,10 @@ from pyhees.section3_2 import calc_r_env, get_Q_dash, get_mu_H, get_mu_C
 import jjjexperiment.calc
 from jjjexperiment.calc import version_info
 import jjjexperiment.input
-import jjjexperiment.constants
+import jjjexperiment.constants as constants
 from jjjexperiment.constants import PROCESS_TYPE_1, PROCESS_TYPE_2, PROCESS_TYPE_3, PROCESS_TYPE_4
 from jjjexperiment.result import *
+from jjjexperiment.options import *
 
 # 電中研モデルロジック
 import jjjexperiment.denchu_1
@@ -85,7 +86,6 @@ def calc(input_data : dict, test_mode=False):
 
     # 空調空気を床下を通して給気する場合（YUCACO）の「床下空間全体の面積に対する空気を供給する床下空間の面積の比 (-)」
     YUCACO_r_A_ufvnt = (8.28+16.56+21.53) / (9.52+1.24+3.31+3.31+1.66+8.28+16.56+21.53)
-
 
     ##### 暖房負荷の取得（MJ/h）
 
