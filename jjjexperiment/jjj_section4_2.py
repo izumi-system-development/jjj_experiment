@@ -1876,7 +1876,7 @@ def cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, 
         new_V_supply_d_t_i = np.clip(V_supply_d_t_i, V_vent_g_i, V_dash_supply_d_t_i)
 
     elif constants.change_V_supply_d_t_i_max == Vサプライの上限キャップ.全体でキャップ.value:
-        # デンソーエアクール 守屋さまより提案 案1
+        # 委員より提案 案1('24/01)
 
         """ 設計風量をキャップ上限とする """
         V_hs_dsgn_C = V_hs_dsgn_C if V_hs_dsgn_C is not None else float('inf')
@@ -1907,7 +1907,7 @@ def cap_V_supply_d_t_i(V_supply_d_t_i, V_dash_supply_d_t_i, V_vent_g_i, region, 
         assert all(check[C] <= V_hs_dsgn_C)
 
     elif constants.change_V_supply_d_t_i_max == Vサプライの上限キャップ.ピンポイントでキャップ.value:
-        # デンソーエアクール 守屋さまより提案 案2
+        # 委員より提案 案2('24/01)
 
         """ 設計風量をキャップ上限とする """
         V_hs_dsgn_C = V_hs_dsgn_C if V_hs_dsgn_C is not None else float('inf')
