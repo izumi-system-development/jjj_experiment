@@ -9,6 +9,13 @@ INPUT_SAMPLE_TYPE2_PATH = 'test_utils/input_sample_type2.json'
 INPUT_SAMPLE_TYPE3_PATH = 'test_utils/input_sample_type3.json'
 INPUT_SAMPLE_TYPE4_PATH = 'test_utils/input_sample_type4.json'
 
+"""テストインプットデータの差し替え設定エリア"""
+
+# V_supply_d_t_i の設計風量によるキャップロジック(案1,案2) のテストに有用なデータ
+# 委員の方が検証のために使用されていたデータをいただいたものです
+
+# INPUT_SAMPLE_TYPE1_PATH = 'test_utils/input_sample_vsup_cap_logics.json'
+
 @pytest.fixture
 def expected_inputs():
     """ テストコードは下記の入力を想定したものになっています """
