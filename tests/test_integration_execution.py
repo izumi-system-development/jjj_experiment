@@ -59,6 +59,7 @@ class Test既存計算維持_デフォルト入力時:
         """
 
         inputs = copy.deepcopy(self._inputs1)
+        # inputs = change_testmode_VAV_cap2logic(inputs)
         # inputs = change_testmode_underfloor_old(inputs)
         # inputs = change_testmode_underfloor_new(inputs)
         result = calc(inputs, test_mode=True)
@@ -118,6 +119,18 @@ def change_testmode_VAV_cap1logic(inputs: dict):
     fixtures = {
         "change_supply_volume_before_vav_adjust": VAVありなしの吹出風量.数式を統一する.value,
         "change_V_supply_d_t_i_max": Vサプライの上限キャップ.全体でキャップ.value,
+        "H_A": {"VAV": 2},
+        "C_A": {"VAV": 2},
+    }
+    inputs_copied = copy.deepcopy(inputs)  # 複製しないと別テストで矛盾する
+    return deep_update(inputs_copied, fixtures)
+
+def change_testmode_VAV_cap2logic(inputs: dict):
+    """ VAVを負荷比で按分したときの上限キャップを有効
+    """
+    fixtures = {
+        "change_supply_volume_before_vav_adjust": VAVありなしの吹出風量.数式を統一する.value,
+        "change_V_supply_d_t_i_max": Vサプライの上限キャップ.ピンポイントでキャップ.value,
         "H_A": {"VAV": 2},
         "C_A": {"VAV": 2},
     }
