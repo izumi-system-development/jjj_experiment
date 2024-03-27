@@ -5,18 +5,19 @@ from injector import Module, provider, inject, singleton
 
 # NOTE: DIコンテナで管理するもの毎に型を定義する必要があるはず...
 
-class DtDataFrameHolder:
-    """d_t 長のデータフレーム"""
+class UfVarsDataFrame:
+    '''床下空調 新ロジックの調査用 出力変数'''
     @inject
     def __init__(self):
-        self._dataframe = pd.DataFrame()
+        # d_t 長のデータフレーム
+        self._df_d_t = pd.DataFrame()
 
-    def update_df(self, data):
+    def update_df(self, data: dict):
         new_df = pd.DataFrame(data)
-        self._dataframe = pd.concat([self._dataframe, new_df], ignore_index=True)
+        self._df_d_t = pd.concat([self._df_d_t, new_df], ignore_index=True)
 
     def get_dataframe(self):
-        return self._dataframe
+        return self._df_d_t
 
 
 class HaCaInputHolder:
@@ -67,8 +68,8 @@ class JJJExperimentModule(Module):
     # 引数をとる場合の例: https://github.com/python-injector/injector/blob/master/README.md
     @singleton
     @provider
-    def provide_dt_data_frame_holder(self) -> DtDataFrameHolder:
-        return DtDataFrameHolder()
+    def provide_uf_vars_data_frame(self) -> UfVarsDataFrame:
+        return UfVarsDataFrame()
 
     # NOTE: シングルトンを暖房用・冷房用に切替えるのは悪手、それぞれのインスタンスとする
     # NOTE: シングルトンじゃないと別ファイルで未定義になっていたのでシングルトン
@@ -81,19 +82,19 @@ class JJJExperimentModule(Module):
 
 # 関数の定義にinjectデコレータを使用し、DataFrameHolderインスタンスを受け取る
 @inject
-def some_function(data_frame_holder: DtDataFrameHolder):
+def some_function(data_frame_holder: UfVarsDataFrame):
     # 関数内で何らかの処理を行い、途中結果をデータフレームに追加
     intermediate_result = {'x': [1, 2, 3], 'y': [4, 5, 6]}  # 何らかの中間結果
     data_frame_holder.update_df(intermediate_result)
 
 # ネストした関数の例
 @inject
-def another_function(data_frame_holder: DtDataFrameHolder):
+def another_function(data_frame_holder: UfVarsDataFrame):
     # 内部関数も同様にデータフレームを更新
     some_function(data_frame_holder)
 
 @inject  # 不要?必要?よくわかっていない
 # 最終的にメイン関数またはスクリプト終了時にCSVファイルに出力
-def export_to_csv(data_frame_holder: DtDataFrameHolder, filename: str, encoding: str = 'cp932'):
+def export_to_csv(data_frame_holder: UfVarsDataFrame, filename: str, encoding: str = 'cp932'):
     df = data_frame_holder.get_dataframe()
     df.to_csv(filename, index=False, encoding=encoding)

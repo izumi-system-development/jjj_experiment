@@ -740,7 +740,7 @@ def get_delta_L_star_underfloor_2023(
 
   if di is not None:
     hci = di.get(HaCaInputHolder)
-    df_holder = di.get(DtDataFrameHolder)
+    df_holder = di.get(UfVarsDataFrame)
     df_holder.update_df({
         f"delta_L_{hci.flg_char()}_other_1": delta_L_other[0],
         f"delta_L_{hci.flg_char()}_other_2": delta_L_other[1],

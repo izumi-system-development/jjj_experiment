@@ -22,6 +22,6 @@ class Test_DIコンテナ:
     def test_Injector(self):
         """ DIコンテナの挙動テスト """
         di = Injector(JJJExperimentModule())
-        df_holder = di.get(DtDataFrameHolder)
+        df_holder = di.get(UfVarsDataFrame)
         df_holder.update_df({'x':[1,2,3], 'y':[2,3,4]})
         export_to_csv("di_test.csv", df_holder)
