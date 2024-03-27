@@ -755,7 +755,7 @@ def get_delta_L_star_underfloor_2023(
   underfloor_to_ground_d_t_i = np.zeros((5, 8760))
   underfloor_to_ground_d_t_i[[0,1], :] = np.tile(underfloor_to_ground, (2,1))
   underfloor_to_outdoor_d_t_i = np.zeros((5, 8760))
-  underfloor_to_outdoor_d_t_i[[0,1], :] = np.tile(underfloor_to_outdoor_d_t_i, (2,1))
+  underfloor_to_outdoor_d_t_i[[0,1], :] = np.tile(underfloor_to_outdoor, (2,1))
 
   delta_L_star = delta_L_other + underfloor_to_ground_d_t_i + underfloor_to_outdoor_d_t_i
   return delta_L_star / 1000
