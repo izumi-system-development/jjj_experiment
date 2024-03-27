@@ -751,7 +751,13 @@ def get_delta_L_star_underfloor_2023(
         f"underfloor_to_outdoor{hci.flg_char()}": underfloor_to_outdoor,
       })
 
-  delta_L_star = delta_L_other + np.tile(underfloor_to_ground, (5, 1)) + np.tile(underfloor_to_outdoor, (5, 1))
+  # d_t -> d_t_i 化(床下混合損失は 1F居室のみ)
+  underfloor_to_ground_d_t_i = np.zeros((5, 8760))
+  underfloor_to_ground_d_t_i[[0,1], :] = np.tile(underfloor_to_ground, (2,1))
+  underfloor_to_outdoor_d_t_i = np.zeros((5, 8760))
+  underfloor_to_outdoor_d_t_i[[0,1], :] = np.tile(underfloor_to_outdoor_d_t_i, (2,1))
+
+  delta_L_star = delta_L_other + underfloor_to_ground_d_t_i + underfloor_to_outdoor_d_t_i
   return delta_L_star / 1000
 
 @log_res(['L_star_H_i'])
