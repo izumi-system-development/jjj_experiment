@@ -24,4 +24,4 @@ class Test_DIコンテナ:
         di = Injector(JJJExperimentModule())
         df_holder = di.get(UfVarsDataFrame)
         df_holder.update_df({'x':[1,2,3], 'y':[2,3,4]})
-        export_to_csv("di_test.csv", df_holder)
+        df_holder.export_to_csv("di_test.csv")

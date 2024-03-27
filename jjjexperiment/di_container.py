@@ -13,11 +13,12 @@ class UfVarsDataFrame:
         self._df_d_t = pd.DataFrame()
 
     def update_df(self, data: dict):
-        new_df = pd.DataFrame(data)
-        self._df_d_t = pd.concat([self._df_d_t, new_df], ignore_index=True)
+        # 横連結時は ignore_index しないこと
+        self._df_d_t = pd.concat([self._df_d_t, pd.DataFrame(data)], axis=1)
 
-    def get_dataframe(self):
-        return self._df_d_t
+    def export_to_csv(self, filename: str, encoding: str = 'cp932'):
+        '''csv書き出し'''
+        self._df_d_t.to_csv(filename, index=False, encoding=encoding)
 
 
 class HaCaInputHolder:
@@ -92,9 +93,3 @@ def some_function(data_frame_holder: UfVarsDataFrame):
 def another_function(data_frame_holder: UfVarsDataFrame):
     # 内部関数も同様にデータフレームを更新
     some_function(data_frame_holder)
-
-@inject  # 不要?必要?よくわかっていない
-# 最終的にメイン関数またはスクリプト終了時にCSVファイルに出力
-def export_to_csv(data_frame_holder: UfVarsDataFrame, filename: str, encoding: str = 'cp932'):
-    df = data_frame_holder.get_dataframe()
-    df.to_csv(filename, index=False, encoding=encoding)

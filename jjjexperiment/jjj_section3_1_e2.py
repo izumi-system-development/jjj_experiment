@@ -587,6 +587,7 @@ def calc_Theta_uf_d_t_2023(L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, r_A_ufvnt, V_
     V_dash_supply_d_t = np.sum(r_A_uf_i[:5, np.newaxis] * V_dash_supply_d_t_i, axis=0)
 
     # 計算領域の確保
+    # NOTE: 床下はつながっているので d_t_i にはならない
     Theta_uf_d_t = np.zeros(24 * 365)
 
     Theta_uf_d_t[H] = \

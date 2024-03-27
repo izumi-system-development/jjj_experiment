@@ -33,8 +33,9 @@ def version_info() -> str:
     """
     # NOTE: subprocessモジュールによるコミット履歴からの生成は \
     # ipynb 環境では正常に動作しないことを確認しました(returned no-zero exit status 128.)
-    return '_20240314'
+    return '_20240327'
 
+# NOTE: section4_2 の同名の関数の改変版
 def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_rtd_C, q_rtd_H, q_rtd_C, q_max_H, q_max_C, V_hs_dsgn_H, V_hs_dsgn_C, Q,
             VAV, general_ventilation, hs_CAV, duct_insulation, region, L_H_d_t_i, L_CS_d_t_i, L_CL_d_t_i, L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i,
             type, input_C_af_H, input_C_af_C,
@@ -519,31 +520,42 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
 
     else:  # 過剰熱繰越ナシ(一般的なパターン)
 
-        # NOTE: 床下空調のための r_A_ufvnt の上書きはココより前に行わない、
-        # 外気導入の負荷削減の計算では、削減ナシ(r_A_ufvnt=None) で計算されるべき
+        # NOTE: 床下空調のための r_A_ufvnt の上書きはココより前に行わない
+        # 外気導入の負荷削減の計算までは、削減ナシ(r_A_ufvnt=None) のままであるべきため
 
-        r_A_ufac = r_A_ufvnt
-        if underfloor_air_conditioning_air_supply:
-            r_A_ufac = YUCACO_r_A_ufvnt  # 1.0 未満
-            # NOTE: YUCACO_r_A_ufvnt は先生より(02/01)、床下空調新ロジックには使用しないことが希望
-        if constants.change_underfloor_temperature == 2:
-            r_A_ufac = 1.0  # NOTE: WG資料に一致させるため
-
+        ''' r_A_ufac: 面積比 (空気供給室の床下面積 / 床下全体面積全体) [-]'''
         # NOTE: 以降では、r_A_ufvnt は床下空調ロジックのみに使用されているため、
         # 変数名を r_A_ufvnt -> r_A_ufac と変更して、統一して使用する
 
+        if constants.change_underfloor_temperature == 床下空調ロジック.変更する.value:
+            # 床下空調 新ロジック
+            r_A_ufac = 1.0  # WG資料に一致させるため
+        elif underfloor_air_conditioning_air_supply:
+            # 床下空調 旧ロジック
+            r_A_ufac = YUCACO_r_A_ufvnt  # (1.0 未満)
+            # NOTE: ユカコは新ロジックには使用しない ('24/02 先生)
+        else:  # 非床下空調
+            r_A_ufac = r_A_ufvnt
+        del r_A_ufvnt
+
+        ''' Theta_uf_d_t: 床下温度 '''
         # FIXME: 床下限定の数値だがとりあえず評価する L_star_の計算で不要なら無視されている
         Theta_uf_d_t_2023 = uf.calc_Theta_uf_d_t_2023(
             L_H_d_t_i, L_CS_d_t_i, A_A, A_MR, A_OR, r_A_ufac, V_dash_supply_d_t_i, Theta_ex_d_t)
-        # CHECK: d_t になっていることを大丈夫か確認
-        # CHECK: 本当に d_t なのか d_t_i じゃないのか確認する
+
+        survey_df_uf = di.get(UfVarsDataFrame)
+        survey_df_uf.update_df({
+            "L_H_d_t_1": L_H_d_t_i[0], "L_H_d_t_2": L_H_d_t_i[1], "L_H_d_t_3": L_H_d_t_i[2], "L_H_d_t_4": L_H_d_t_i[3], "L_H_d_t_5": L_H_d_t_i[4],
+            "L_CS_d_t_1": L_CS_d_t_i[0], "L_CS_d_t_2": L_CS_d_t_i[1], "L_CS_d_t_3": L_CS_d_t_i[2], "L_CS_d_t_4": L_CS_d_t_i[3], "L_CS_d_t_5": L_CS_d_t_i[4],
+            "L_CL_d_t_1": L_CL_d_t_i[0], "L_CL_d_t_2": L_CL_d_t_i[1], "L_CL_d_t_3": L_CL_d_t_i[2], "L_CL_d_t_4": L_CL_d_t_i[3], "L_CL_d_t_5": L_CL_d_t_i[4],
+            "Theta_uf_d_t_2023": Theta_uf_d_t_2023
+        })
 
         # (9)　熱取得を含む負荷バランス時の冷房顕熱負荷
         L_star_CS_d_t_i = dc.get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
                                                  A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation,
                                                  Theta_uf_d_t_2023, Theta_ex_d_t,
                                                  L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
-        # CHECK: Theta_uf_d_t_2023 を d_t_i のところにいれているがいいか
 
         # (8)　熱損失を含む負荷バランス時の暖房負荷
         # TODO: 床下新ロジックの時変更するはず
@@ -622,7 +634,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         # (22)　熱源機の出口における要求絶対湿度
         X_req_d_t_i = dc.get_X_req_d_t_i(X_star_HBR_d_t, L_star_CL_d_t_i, V_dash_supply_d_t_i, region)
         # (21)　熱源機の出口における要求空気温度
-        if constants.change_underfloor_temperature == 2:
+        if constants.change_underfloor_temperature == 床下空調ロジック.変更する.value:
             Theta_req_d_t_i = dc.get_Theta_req_d_t_i_2023(
                 region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_uf_d_t_2023, Theta_ex_d_t,
                 V_dash_supply_d_t_i, '', L_dash_H_R_d_t_i, L_dash_CS_R_d_t_i, R_g)
@@ -630,13 +642,19 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
             Theta_req_d_t_i = dc.get_Theta_req_d_t_i(Theta_sur_d_t_i, Theta_star_HBR_d_t, V_dash_supply_d_t_i,
                                 L_star_H_d_t_i, L_star_CS_d_t_i, l_duct_i, region)
 
+        # 床下を通して空調する場合、対象居室のみ損失分を補正する
         if underfloor_air_conditioning_air_supply:
-            for i in range(2):  # i=0,1
+            for i in range(2):  # 1F居室のみ(i=0,1)
+                # CHECK: 床下温度が i(部屋) で変わるが問題ないか
                 Theta_uf_d_t, Theta_g_surf_d_t, *others = \
                     uf.calc_Theta(
                         region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation,
                         Theta_req_d_t_i[i], Theta_ex_d_t, V_dash_supply_d_t_i[i],
                         '', L_H_d_t_i, L_CS_d_t_i, R_g)
+
+                # 床下空調 新ロジックなら計算済み
+                if constants.change_underfloor_temperature == 床下空調ロジック.変更する.value:
+                    Theta_uf_d_t = Theta_uf_d_t_2023
 
                 if q_hs_rtd_H is not None:  # 暖房
                   mask = Theta_req_d_t_i[i] > Theta_uf_d_t
@@ -646,8 +664,9 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
                     raise IOError("冷房時・暖房時の判断に失敗しました。")
 
                 Theta_req_d_t_i[i] = np.where(mask,
-                                              Theta_req_d_t_i[i] + (Theta_req_d_t_i[i] - Theta_uf_d_t),
-                                              Theta_req_d_t_i[i])
+                                            # 熱源機出口 -> 居室床下までの温度低下分を見込む
+                                            Theta_req_d_t_i[i] + (Theta_req_d_t_i[i] - Theta_uf_d_t),
+                                            Theta_req_d_t_i[i])
 
         # (15)　熱源機の出口における絶対湿度
         X_hs_out_d_t = dc.get_X_hs_out_d_t(X_NR_d_t, X_req_d_t_i, V_dash_supply_d_t_i, X_hs_out_min_C_d_t, L_star_CL_d_t_i, region)
@@ -669,7 +688,7 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
         V_supply_d_t_i = dc.cap_V_supply_d_t_i(V_supply_d_t_i_before, V_dash_supply_d_t_i, V_vent_g_i, region, V_hs_dsgn_H, V_hs_dsgn_C)
 
         # (41)　暖冷房区画𝑖の吹き出し温度
-        if constants.change_underfloor_temperature == 2:
+        if constants.change_underfloor_temperature == 床下空調ロジック.変更する.value:
             Theta_uf_d_t, *others = \
                 uf.calc_Theta(
                     region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_req_d_t_i[0], Theta_ex_d_t,
@@ -918,10 +937,9 @@ def calc_Q_UT_A(case_name, A_A, A_MR, A_OR, r_env, mu_H, mu_C, q_hs_rtd_H, q_hs_
     df_output['E_C_UT_d_t'] = E_C_UT_d_t
 
     hci = di.get(HaCaInputHolder)
-    df_holder = di.get(UfVarsDataFrame)  # ネスト関数内で更新されているデータフレーム
-    # TODO: 床下空調ロジック用の調査用 中間変数
     filename = case_name + version_info() + hci.flg_char() + "_output_uf.csv"
-    export_to_csv(df_holder, filename)
+    survey_df_uf = di.get(UfVarsDataFrame)  # ネスト関数内で更新されているデータフレーム
+    survey_df_uf.export_to_csv(filename)
 
     if q_hs_rtd_H is not None:
         df_output3.to_csv(case_name + version_info() + '_H_output3.csv', encoding = 'cp932')

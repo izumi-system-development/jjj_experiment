@@ -742,12 +742,12 @@ def get_delta_L_star_underfloor_2023(
     hci = di.get(HaCaInputHolder)
     df_holder = di.get(UfVarsDataFrame)
     df_holder.update_df({
-        f"delta_L_{hci.flg_char()}_other_1": delta_L_other[0],
-        f"delta_L_{hci.flg_char()}_other_2": delta_L_other[1],
-        f"delta_L_{hci.flg_char()}_other_3": delta_L_other[2],
-        f"delta_L_{hci.flg_char()}_other_4": delta_L_other[3],
-        f"delta_L_{hci.flg_char()}_other_5": delta_L_other[4],
-        f"underfloor_to_ground_{hci.flg_char()}": underfloor_to_ground,
+        f"delta_L{hci.flg_char()}_other_1": delta_L_other[0],
+        f"delta_L{hci.flg_char()}_other_2": delta_L_other[1],
+        f"delta_L{hci.flg_char()}_other_3": delta_L_other[2],
+        f"delta_L{hci.flg_char()}_other_4": delta_L_other[3],
+        f"delta_L{hci.flg_char()}_other_5": delta_L_other[4],
+        f"underfloor_to_ground{hci.flg_char()}": underfloor_to_ground,
         f"underfloor_to_outdoor{hci.flg_char()}": underfloor_to_outdoor,
       })
 
@@ -808,7 +808,7 @@ def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
       Q(float): 当該住戸の熱損失係数 (W/m2K)
       r_A_ufac(float): 当該住戸において、床下空間全体の面積に対する 空調空気を供給する床下空間の面積の比(-)
       underfloor_insulation(bool): 床下空間が断熱空間内である場合はTrue
-      Theta_uf_d_t_i(ndarray): 床下空間の空気の温度 (℃)
+      Theta_uf_d_t(ndarray): 床下空間の空気の温度 (℃)
       Theta_ex_d_t(ndarray): 外気温度 (℃)
       V_sa_d_t_A(ndarray): 床下空間または居室へ供給する1時間当たりの空気の風量の合計
       H_OR_C: type H_OR_C: str
@@ -827,7 +827,8 @@ def get_L_star_CS_d_t_i(L_CS_d_t_i, Q_star_trs_prt_d_t_i, region,
     Cf = np.logical_and(C, f)
 
     L_star_CS_d_t_i = np.zeros((5, 24 * 365))
-    if constants.change_underfloor_temperature == 2:
+    if constants.change_underfloor_temperature == 床下空調ロジック.変更する.value:
+      # 床下との熱交換による熱負荷の補正
       delta_L_star = get_delta_L_star_underfloor_2023(
           region, A_A, A_MR, A_OR, Q, r_A_ufac, underfloor_insulation, Theta_uf_d_t, Theta_ex_d_t,
           L_dash_H_R_d_t, L_dash_CS_R_d_t, R_g)
